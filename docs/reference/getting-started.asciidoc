@@ -1,110 +1,105 @@
 [[getting-started]]
-= Getting Started
+= 开始
 
 [partintro]
 --
 
-Elasticsearch is a highly scalable open-source full-text search and analytics engine. It allows you to store, search, and analyze big volumes of data quickly and in near real time. It is generally used as the underlying engine/technology that powers applications that have complex search features and requirements.
+Elasticsearch 是一个高度可扩展的开源全文搜索和分析引擎。它具有存储、搜索以及快速近实时分析海量数据的功能，并通常为具有复杂搜索特性和需求的应用提供底层 引擎/计算。
+下面是 Elasticsearch 的几个使用用例:
 
-Here are a few sample use-cases that Elasticsearch could be used for:
+* 你正在经营一家支持客户搜索在售商品的网上商店。在这种场景下，你可以使用 Elasticsearch 存储所有的产品目录和库存，并提供搜索和自动补全的功能。
+* 你想收集日志和事务数据并分析和挖掘这些数据，以便于查找趋势、统计信息、汇总信息或者异常情形。在这种场景下，你可以使用 Logstash(Elasticsearch/Logstash/Kibana 栈的一部分) 来收集、聚合和解析数据，然后通过 Logstash 将这些数据存入 Elasticsearch。一旦这些数据存在 Elasticsearch 中，你就可以使用搜索和聚合方法来挖掘你感兴趣的信息。
+* 你运转一个为某些精明的客户指定一条类似 “我对购买一个特定的电子产品感兴趣，如果下个月任何供应商的报价低于 $X 则通知我” 的价格提醒平台。在这种场景下，你可以收集供应商价格并将这些价格推送到 Elasticsearch,然后使用反向搜索(过滤)功能来匹配客户查询的价格变动，并在找到满足匹配条件情形下给客户提醒。
+* 你有分析/商业智能需求，并希望快速调查、分析、可视化以及基于海量数据（比如数百万或数十亿的记录）的问题咨询。在这种场景下,你可以使用 Elasticsearch 存储你的数据,然后使用 Kibana(Elasticsearch/Logstash/Kibana 栈的一部分)来构建自定义仪表板以呈现对你很重要的可视化数据。此外，你可以使用 Elasticsearch 聚合功能来对数据执行复杂的商业智能查询。
 
-* You run an online web store where you allow your customers to search for products that you sell. In this case, you can use Elasticsearch to store your entire product catalog and inventory and provide search and autocomplete suggestions for them.
-* You want to collect log or transaction data and you want to analyze and mine this data to look for trends, statistics, summarizations, or anomalies. In this case, you can use Logstash (part of the Elasticsearch/Logstash/Kibana stack) to collect, aggregate, and parse your data, and then have Logstash feed this data into Elasticsearch. Once the data is in Elasticsearch, you can run searches and aggregations to mine any information that is of interest to you.
-* You run a price alerting platform which allows price-savvy customers to specify a rule like "I am interested in buying a specific electronic gadget and I want to be notified if the price of gadget falls below $X from any vendor within the next month". In this case you can scrape vendor prices, push them into Elasticsearch and use its reverse-search (Percolator) capability to match price movements against customer queries and eventually push the alerts out to the customer once matches are found.
-* You have analytics/business-intelligence needs and want to quickly investigate, analyze, visualize, and ask ad-hoc questions on a lot of data (think millions or billions of records). In this case, you can use Elasticsearch to store your data and then use Kibana (part of the Elasticsearch/Logstash/Kibana stack) to build custom dashboards that can visualize aspects of your data that are important to you. Additionally, you can use the Elasticsearch aggregations functionality to perform complex business intelligence queries against your data.
-
-For the rest of this tutorial, you will be guided through the process of getting Elasticsearch up and running, taking a peek inside it, and performing basic operations like indexing, searching, and modifying your data. At the end of this tutorial, you should have a good idea of what Elasticsearch is, how it works, and hopefully be inspired to see how you can use it to either build sophisticated search applications or to mine intelligence from your data.
+在本教程的剩余部分中将指导你开始使用、运行、深入了解 Elasticsearch，以及执行如索引、搜索、和修改数据等基本操作。在本教程的最后，你应该会很好地了解Elasticsearch是什么，以及它是如何工作的，并希望从中可以收获启发以便利用它来构建复杂的搜索应用程序，或者从你的数据中挖掘情报。
 --
 
-== Basic Concepts
+== 基本概念
 
-There are a few concepts that are core to Elasticsearch. Understanding these concepts from the outset will tremendously help ease the learning process.
-
-[float]
-=== Near Realtime (NRT)
-
-Elasticsearch is a near real time search platform. What this means is there is a slight latency (normally one second) from the time you index a document until the time it becomes searchable.
+以下是一些关于 Elasticsearch 的核心概念。理解这些概念可以极大的简化学习过程。
 
 [float]
-=== Cluster
+=== 近实时 (NRT)
 
-A cluster is a collection of one or more nodes (servers) that together holds your entire data and provides federated indexing and search capabilities across all nodes. A cluster is identified by a unique name which by default is "elasticsearch". This name is important because a node can only be part of a cluster if the node is set up to join the cluster by its name.
-
-Make sure that you don't reuse the same cluster names in different
-environments, otherwise you might end up with nodes joining the wrong cluster.
-For instance you could use `logging-dev`, `logging-stage`, and `logging-prod`
-for the development, staging, and production clusters.
-
-Note that it is valid and perfectly fine to have a cluster with only a single node in it. Furthermore, you may also have multiple independent clusters each with its own unique cluster name.
+Elasticsearch 是一个近实时搜索平台。这意味着从索引文档到文档可搜索会有一个轻微的延迟（通常是 1s）。
 
 [float]
-=== Node
+=== 集群
 
-A node is a single server that is part of your cluster, stores your data, and participates in the cluster's indexing and search
-capabilities. Just like a cluster, a node is identified by a name which by default is a random Universally Unique IDentifier (UUID) that is assigned to the node at startup. You can define any node name you want if you do not want the default.  This name is important for administration purposes where you want to identify which servers in your network correspond to which nodes in your Elasticsearch cluster.
+集群是一个或多个节点（服务器）的集合，这些节点共同保存所有数据并提供联合索引和搜索能力。一个集群由一个唯一名称标识，默认名称是 "elasticsearch"。这个名称很重要，因为如果节点被设置为按名称加入集群，那么节点就只能是集群的一部分。
 
-A node can be configured to join a specific cluster by the cluster name. By default, each node is set up to join a cluster named `elasticsearch` which means that if you start up a number of nodes on your network and--assuming they can discover each other--they will all automatically form and join a single cluster named `elasticsearch`.
+在不同的环境中请确保不要使用相同的集群名，否则可能导致节点加入错误的集群。例如，你可以使用 `logging-dev` 、`logging-stage` 、`logging-prod` 来标识开发集群、展示集群、生产集群。
 
-In a single cluster, you can have as many nodes as you want. Furthermore, if there are no other Elasticsearch nodes currently running on your network, starting a single node will by default form a new single-node cluster named `elasticsearch`.
-
-[float]
-=== Index
-
-An index is a collection of documents that have somewhat similar characteristics. For example, you can have an index for customer data, another index for a product catalog, and yet another index for order data. An index is identified by a name (that must be all lowercase) and this name is used to refer to the index when performing indexing, search, update, and delete operations against the documents in it.
-
-In a single cluster, you can define as many indexes as you want.
+注意只有一个节点的集群是完全合适和合理的。此外，你也可以有多个唯一名称标识的独立集群。
 
 [float]
-=== Type
+=== 节点
 
-deprecated[6.0.0,See <<removal-of-types>>]
+节点是集群中具有存储数据及参与集群索引、搜索功能的一台服务器。和集群类似，一个节点由一个名称标识，默认情况下该名称是在启动时分配的一个随机通用唯一识别码（UUID）。
+如果你不想要默认名称可以自定义。节点名称在管理和确认网络中哪些服务器在 Elasticsearch 集群的作用十分重要。
 
-A type used to be a logical category/partition of your index to allow you to store different types of documents in the same index, eg one type for users, another type for blog posts.  It is no longer possible to create multiple types in an index, and the whole concept of types will be removed in a later version.  See <<removal-of-types>> for more.
+节点可以配置成按集群名称加入特定集群。默认情况下，每个节点设置成加入名为 `elasticsearch` 的集群，这意味着一旦你启动了网络中的多个节点，且假设这些节点可以相互发现，那么这些节点将自动组成一个名为 `elasticsearch` 的集群。
+
+单个集群中可以有任意多的节点。此外，如果网络中没有其他正在运行的 Elasticsearch 节点，则默认情况下启动单个节点会形成一个名为 `elasticsearch` 的单节点集群。
 
 [float]
-=== Document
+=== 索引
 
-A document is a basic unit of information that can be indexed. For example, you can have a document for a single customer, another document for a single product, and yet another for a single order. This document is expressed in http://json.org/[JSON] (JavaScript Object Notation) which is a ubiquitous internet data interchange format.
+索引是一个具有相似特性的文档集合。例如你可以使用三个索引分别存储客户数据、产品目录和订单数据。索引是由名称（必须全部为小写）标识的，同时该名称作为对文档进行索引、搜索、更新和删除操作的引用。
 
-Within an index/type, you can store as many documents as you want. Note that although a document physically resides in an index, a document actually must be indexed/assigned to a type inside an index.
+单个集群中你可以定义任意多的索引。
+
+[float]
+=== 类型
+
+deprecated[6.0.0,参考 <<removal-of-types>>]
+
+类型曾经是同一索引中允许存储不同类型文档的一个逻辑 类别/分区。例如一个是用户类型，另一个是博客文章类型。 现在索引中再也不能创建多个类型，同时在未来版本中将移除整个类型的概念。更多信息请参考 <<removal-of-types>>。
+
+[float]
+=== 文档
+
+文档是可被索引的基本单元。例如你可以使用三条文档分别存储单个客户、单个产品以及单个订单。文档是由互联网中常见的数据交换格式 http://json.org/[JSON] (JavaScript Object Notation) 呈现的。
+
+在索引/类型中可以存储任意多的文档。需要注意的是尽管文档表面上是存储在索引中，但实际上文档必须被 索引/分配 给索引内的类型。
 
 [[getting-started-shards-and-replicas]]
 [float]
-=== Shards & Replicas
+=== 分片 & 副本
 
-An index can potentially store a large amount of data that can exceed the hardware limits of a single node. For example, a single index of a billion documents taking up 1TB of disk space may not fit on the disk of a single node or may be too slow to serve search requests from a single node alone.
+索引可以存储大量数据，这些数据可能会超出单个节点的硬件限制。例如，使用单个节点的磁盘存储占用 1TB 磁盘空间的十亿份文档不大合适，另外单节点在处理搜索请求也可能会比较慢。
 
-To solve this problem, Elasticsearch provides the ability to subdivide your index into multiple pieces called shards. When you create an index, you can simply define the number of shards that you want. Each shard is in itself a fully-functional and independent "index" that can be hosted on any node in the cluster.
+为了解决这些问题，Elasticsearch 提供了将索引细分为多个分片的能力。当你创建索引时，你可以定义你需要的分片数，每个分片都是分布在集群中任意节点的一个功能齐全的独立 "index"。
 
-Sharding is important for two primary reasons:
+分片如此重要主要有两个原因：
 
-* It allows you to horizontally split/scale your content volume
-* It allows you to distribute and parallelize operations across shards (potentially on multiple nodes) thus increasing performance/throughput
-
-
-The mechanics of how a shard is distributed and also how its documents are aggregated back into search requests are completely managed by Elasticsearch and is transparent to you as the user.
-
-In a network/cloud environment where failures can be expected anytime, it is very useful and highly recommended to have a failover mechanism in case a shard/node somehow goes offline or disappears for whatever reason. To this end, Elasticsearch allows you to make one or more copies of your index's shards into what are called replica shards, or replicas for short.
-
-Replication is important for two primary reasons:
-
-* It provides high availability in case a shard/node fails. For this reason, it is important to note that a replica shard is never allocated on the same node as the original/primary shard that it was copied from.
-* It allows you to scale out your search volume/throughput since searches can be executed on all replicas in parallel.
+* 它允许水平 划分/缩放 你的内容。
+* 它允许你跨分片（可能在多个节点上）进行分发和并行操作以提升 性能/吞吐量。
 
 
-To summarize, each index can be split into multiple shards. An index can also be replicated zero (meaning no replicas) or more times. Once replicated, each index will have primary shards (the original shards that were replicated from) and replica shards (the copies of the primary shards).
-The number of shards and replicas can be defined per index at the time the index is created. After the index is created, you may change the number of replicas dynamically anytime but you cannot change the number of shards after-the-fact.
+分片分发和文档搜索时聚合的机制是完全由 Elasticsearch 管理的，且对用户来说是透明的。
 
-By default, each index in Elasticsearch is allocated 5 primary shards and 1 replica which means that if you have at least two nodes in your cluster, your index will have 5 primary shards and another 5 replica shards (1 complete replica) for a total of 10 shards per index.
+在 网络/云 环境下失败可能发生在任何时刻。因此强烈建议当发生 分片/节点 下线或消失时需要有一套故障转移机制。基于此，Elasticsearch 允许你设置一个或者多个索引分片的拷贝，这些拷贝被称为副本分片或简称副本。
 
-NOTE: Each Elasticsearch shard is a Lucene index.  There is a maximum number of documents you can have in a single Lucene index.  As of https://issues.apache.org/jira/browse/LUCENE-5843[`LUCENE-5843`], the limit is `2,147,483,519` (= Integer.MAX_VALUE - 128) documents.
-You can monitor shard sizes using the {ref}/cat-shards.html[`_cat/shards`] API.
+复制如此重要主要有两个原因：
 
-With that out of the way, let's get started with the fun part...
+* 它在 分片/节点 失败的情况下提供了高可用。因为这个原因，需要特别注意的是副本分片永远不会分配在与 原始/主 分片相同的节点上。
+* 它允许你扩展你的 搜索量/吞吐量，因为搜索可在所有副本上执行。
 
-== Installation
 
-Elasticsearch requires at least Java 8. Specifically as of this writing, it is recommended that you use the Oracle JDK version {jdk}. Java installation varies from platform to platform so we won't go into those details here. Oracle's recommended installation documentation can be found on http://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html[Oracle's website]. Suffice to say, before you install Elasticsearch, please check your Java version first by running (and then install/upgrade accordingly if needed):
+总之，每个索引可以分为多个分片。一个索引可以有 0 个（意味着没有副本）或者多个副本。一旦设置了副本，每个索引都将有主分片（原始分片）和副分片（主分片的拷贝）。分片和副本数在创建索引时定义，创建索引之后，你可以随时动态改变副本数，但是不能随意改变分片数。
+
+默认情况下，Elasticsearch 中的每个索引由 5 个主分片和 1 个副本组成，这意味着你的集群至少需要两个节点，索引将包含 5 个主分片和 5 个副本（1个完整副本），总共10个分片。
+
+NOTE: 每个 Elasticsearch 分片是一个 Lucence 索引。一个 Lucene 索引有最大支持文档数。从 https://issues.apache.org/jira/browse/LUCENE-5843[`LUCENE-5843`] 开始, 最大限制是 `2,147,483,519` (= Integer.MAX_VALUE - 128)。
+你可以使用 {ref}/cat-shards.html[`_cat/shards`] API 管理分片数。
+
+有了这些，我们就可以开始有趣之旅了...
+
+== 安装
+
+Elasticsearch 最低需要Java 8 支持。 在撰写本文时强烈建议你使用 Oracle JDK 版本 {jdk}。Java 在不同平台的安装方法不同，所以我们不会在这里详细讨论安装细节。Oracle 的建议安装文档可以在 http://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html[Oracle's website] 找到。需要知道的是，在安装 Elasticsearch 之前请先检查你的 Java 版本（请按需进行 安装/升级）：
 
 [source,sh]
 --------------------------------------------------
@@ -112,14 +107,14 @@ java -version
 echo $JAVA_HOME
 --------------------------------------------------
 
-Once we have Java set up, we can then download and run Elasticsearch. The binaries are available from http://www.elastic.co/downloads[`www.elastic.co/downloads`] along with all the releases that have been made in the past. For each release, you have a choice among a `zip` or `tar` archive, a `DEB` or `RPM` package, or a Windows `MSI` installation package.
+当设置好了 Java 环境之后，我们可以下载运行 Elasticsearch。所有已发布的二进制版本可以从 http://www.elastic.co/downloads[`www.elastic.co/downloads`] 下载。对于每一个发布版本，你可以从 `zip` 、 `tar` 、 `DEB` 、 `RPM` 或者 Windows `MSI` 中选择合适版本进行安装。
 
 [float]
-=== Installation example with tar
+=== 安装 tar 示例
 
-For simplicity, let's use the {ref}/zip-targz.html[tar] file.
+简单起见，我们使用 {ref}/zip-targz.html[tar] 文件。
 
-Let's download the Elasticsearch {version} tar as follows:
+下载 Elasticsearc {version} tar：
 
 ["source","sh",subs="attributes,callouts"]
 --------------------------------------------------
@@ -127,21 +122,21 @@ curl -L -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{v
 --------------------------------------------------
 // NOTCONSOLE
 
-Then extract it as follows:
+然后解压：
 
 ["source","sh",subs="attributes,callouts"]
 --------------------------------------------------
 tar -xvf elasticsearch-{version}.tar.gz
 --------------------------------------------------
 
-It will then create a bunch of files and folders in your current directory. We then go into the bin directory as follows:
+解压后当前目录中将创建一组文件和文件夹。接着进入 bin 目录:
 
 ["source","sh",subs="attributes,callouts"]
 --------------------------------------------------
 cd elasticsearch-{version}/bin
 --------------------------------------------------
 
-And now we are ready to start our node and single cluster:
+下面我们准备启动节点和单集群：
 
 [source,sh]
 --------------------------------------------------
@@ -149,9 +144,9 @@ And now we are ready to start our node and single cluster:
 --------------------------------------------------
 
 [float]
-=== Installation with Homebrew
+=== 使用 Homebrew 安装
 
-On macOS, Elasticsearch can also be installed via https://brew.sh[Homebrew]:
+在 macOS, Elasticsearch 可以使用 https://brew.sh[Homebrew] 安装：
 
 ["source","sh"]
 --------------------------------------------------
@@ -159,56 +154,55 @@ brew install elasticsearch
 --------------------------------------------------
 
 [float]
-=== Installation example with MSI Windows Installer
+=== MSI Windows Installer 安装示例
 
-For Windows users, we recommend using the {ref}/windows.html[MSI Installer package]. The package contains a graphical user interface (GUI) that guides you through the installation process.
+对于 Windows 用户，我们推荐使用 {ref}/windows.html[MSI Installer package] 安装。 它包含的图形用户界面（GUI）可以引导你完成安装。
 
-First, download the Elasticsearch {version} MSI from
-https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{version}.msi.
+首先，从 https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{version}.msi 下载 Elasticsearch {version} MSI。
 
-Then double-click the downloaded file to launch the GUI. Within the first screen, select the deployment directories:
+然后双击下载的文件以启动 GUI。在第一个界面中选择安装目录：
 
 [[getting-started-msi-installer-locations]]
 image::images/msi_installer/msi_installer_locations.png[]
 
-Then select whether to install as a service or start Elasticsearch manually as needed.
-To align with the tar example, choose not to install as a service:
+选择是否安装为服务，或者按需手动启动 Elasticsearch。
+为了与 tar 示例保持一致，这里选择不安装服务：
 
 [[getting-started-msi-installer-service]]
 image::images/msi_installer/msi_installer_no_service.png[]
 
-For configuration, simply leave the default values:
+只需保留配置的默认值：
 
 [[getting-started-msi-installer-configuration]]
 image::images/msi_installer/msi_installer_configuration.png[]
 
-Again, to align with the tar example, uncheck all plugins to not install any plugins:
+同样为了与 tar 示例保持一致，取消所有插件以避免安装任何插件:
 
 [[getting-started-msi-installer-plugins]]
 image::images/msi_installer/msi_installer_plugins.png[]
 
-After clicking the install button, Elasticsearch will be installed:
+点击安装按钮后，Elasticsearch 将会开始安装：
 
 [[getting-started-msi-installer-success]]
 image::images/msi_installer/msi_installer_success.png[]
 
-By default, Elasticsearch will be installed at `%PROGRAMFILES%\Elastic\Elasticsearch`. Navigate here and go into the bin directory as follows:
+默认情况下 Elasticsearch 会安装在 `%PROGRAMFILES%\Elastic\Elasticsearch` 。在这导航并进入 bin 目录：
 
-**with Command Prompt:**
+**命令提示符：**
 
 [source,sh]
 --------------------------------------------------
 cd %PROGRAMFILES%\Elastic\Elasticsearch\bin
 --------------------------------------------------
 
-**with PowerShell:**
+**PowerShell：**
 
 [source,powershell]
 --------------------------------------------------
 cd $env:PROGRAMFILES\Elastic\Elasticsearch\bin
 --------------------------------------------------
 
-And now we are ready to start our node and single cluster:
+现在启动节点和单集群：
 
 [source,sh]
 --------------------------------------------------
@@ -216,9 +210,9 @@ And now we are ready to start our node and single cluster:
 --------------------------------------------------
 
 [float]
-=== Successfully running node
+=== 节点运行成功
 
-If everything goes well with installation, you should see a bunch of messages that look like below:
+如果一切顺利，你会看到如下的一串提示：
 
 ["source","sh",subs="attributes,callouts"]
 --------------------------------------------------
@@ -247,37 +241,34 @@ If everything goes well with installation, you should see a bunch of messages th
 [2016-09-16T14:17:56,748][INFO ][o.e.n.Node               ] [6-bjhwl] started
 --------------------------------------------------
 
-Without going too much into detail, we can see that our node named "6-bjhwl" (which will be a different set of characters in your case) has started and elected itself as a master in a single cluster. Don't worry yet at the moment what master means. The main thing that is important here is that we have started one node within one cluster.
+在忽略细节的前提下，我们可以看到我们的节点名为 "6-bjhwl"（在你的场景下会看到不同的字符标识）在单集群中已经被选为主节点。 现在不用太关心主节点，最重要的是我们已经在集群中启动了一个节点。
 
-As mentioned previously, we can override either the cluster or node name. This can be done from the command line when starting Elasticsearch as follows:
+如上所述，我们可以重命名集群或节点名。可以在启动 Elasticsearch 时使用命令行：
 
 [source,sh]
 --------------------------------------------------
 ./elasticsearch -Ecluster.name=my_cluster_name -Enode.name=my_node_name
 --------------------------------------------------
 
-Also note the line marked http with information about the HTTP address (`192.168.8.112`) and port (`9200`) that our node is reachable from. By default, Elasticsearch uses port `9200` to provide access to its REST API. This port is configurable if necessary.
+还需注意的是标记为 http 的行提供了节点可访问的 HTTP 地址（ `192.168.8.112` ）和端口（ `9200` ）信息。默认情况下，Elasticsearch 使用端口 `9200` 来提供 REST API 访问。如果需要，这个端口是可配置的。
 
-== Exploring Your Cluster
+== 探索你的集群
 
 [float]
-=== The REST API
+=== REST API
 
-Now that we have our node (and cluster) up and running, the next step is to understand how to communicate with it. Fortunately, Elasticsearch provides a very comprehensive and powerful REST API that you can use to interact with your cluster. Among the few things that can be done with the API are as follows:
+现在我们的节点（集群）正在运行，下一步就是需要知道如何与其交互。幸运的是，Elasticsearch 提供了一个全面而强大的 REST API 使你可以与其交互。这些 API 可以完成如下事情：
 
-* Check your cluster, node, and index health, status, and statistics
-* Administer your cluster, node, and index data and metadata
-* Perform CRUD (Create, Read, Update, and Delete) and search operations against your indexes
-* Execute advanced search operations such as paging, sorting, filtering, scripting, aggregations, and many others
+* 检查集群、节点、索引健康、索引状态和统计信息
+* 管理集群、节点、索引数据和元数据
+* 对你的索引执行 CRUD （创建、读取、更新、删除）和搜索操作
+* 执行类似分页、排序、过滤、脚本、聚合和其他高级操作
 
-=== Cluster Health
+=== 集群健康
 
-Let's start with a basic health check, which we can use to see how our cluster is doing. We'll be using curl to do this but you can use any tool that allows you to make HTTP/REST calls. Let's assume that we are still on the same node where we started Elasticsearch on and open another command shell window.
+我们从一个基础健康校验开始来看看集群是如果工作的。我们将使用 curl 来演示，你也可以使用任何可以执行 HTTP/REST 调用的工具。假设我们处在 Elasticsearch 集群的节点上，接下来打开一个新的命令执行窗口。
 
-To check the cluster health, we will be using the {ref}/cat.html[`_cat` API]. You can
-run the command below in {kibana-ref}/console-kibana.html[Kibana's Console]
-by clicking "VIEW IN CONSOLE" or with `curl` by clicking the "COPY AS CURL"
-link below and pasting it into a terminal.
+为了检查集群健康，我们可以调用 {ref}/cat.html[`_cat` API]。你可以在 {kibana-ref}/console-kibana.html[Kibana's Console] 运行 "VIEW IN CONSOLE" ，或者点击下面的 "COPY AS CURL" 链接然后复制到终端执行 `curl` 。
 
 [source,js]
 --------------------------------------------------
@@ -285,7 +276,7 @@ GET /_cat/health?v
 --------------------------------------------------
 // CONSOLE
 
-And the response:
+响应如下：
 
 [source,txt]
 --------------------------------------------------
@@ -296,19 +287,20 @@ epoch      timestamp cluster       status node.total node.data shards pri relo i
 // TESTRESPONSE[s/0             0                  -/0             \\d+                  -/]
 // TESTRESPONSE[_cat]
 
-We can see that our cluster named "elasticsearch" is up with a green status.
+可以看到名为 "elasticsearch" 的集群状态是绿色的。
 
-Whenever we ask for the cluster health, we either get green, yellow, or red.
+任何时候查看集群健康，我们只会得到绿色、黄色和红色三种状态之一。
 
-    * Green - everything is good (cluster is fully functional)
-    * Yellow - all data is available but some replicas are not yet allocated (cluster is fully functional)
-    * Red - some data is not available for whatever reason (cluster is partially functional)
+    * 绿色 - 一切正常（集群所有功能可用）
+    * 黄色 - 索引数据是可用的但是某些副本尚未分配（集群所有功能可用）
+    * 红色 - 索引数据因为某些原因不可用（集群部分功能可用）
 
-**Note:** When a cluster is red, it will continue to serve search requests from the available shards but you will likely need to fix it ASAP since there are unassigned shards.
+**Note:** 当集群状态是红色时，来自可用分片的搜索请求仍然可用，但是因为有未分配的分片所以你需要尽快修复。
 
-Also from the above response, we can see a total of 1 node and that we have 0 shards since we have no data in it yet. Note that since we are using the default cluster name (elasticsearch) and since Elasticsearch uses unicast network discovery by default to find other nodes on the same machine, it is possible that you could accidentally start up more than one node on your computer and have them all join a single cluster. In this scenario, you may see more than 1 node in the above response.
+上面的响应因为还没有数据所以我们可以看到总共有 1 个节点和 0 个分片。请注意由于我们使用的是默认集群名 （elasticsearch），同时 Elasticsearch 默认使用单播发现来寻找同一机器的其他节点。
+无意启动的多个节点时可能都会加入该集群，此时你可能在响应中会看到多个节点。
 
-We can also get a list of nodes in our cluster as follows:
+获取集群中的节点列表：
 
 [source,js]
 --------------------------------------------------
@@ -316,7 +308,7 @@ GET /_cat/nodes?v
 --------------------------------------------------
 // CONSOLE
 
-And the response:
+响应如下：
 
 [source,txt]
 --------------------------------------------------
@@ -326,11 +318,11 @@ ip        heap.percent ram.percent cpu load_1m load_5m load_15m node.role master
 // TESTRESPONSE[s/10           5   5    4.46/\\d+ \\d+ \\d+ (\\d+\\.\\d+)? (\\d+\\.\\d+)? (\\d+\.\\d+)?/]
 // TESTRESPONSE[s/[*]/[*]/ s/PB2SGZY/.+/ _cat]
 
-Here, we can see our one node named "PB2SGZY", which is the single node that is currently in our cluster.
+可以看到当前集群只有一个名为 "PB2SGZY" 的单节点。
 
-=== List All Indices
+=== 列举分片
 
-Now let's take a peek at our indices:
+现在来看一下索引情况：
 
 [source,js]
 --------------------------------------------------
@@ -338,7 +330,7 @@ GET /_cat/indices?v
 --------------------------------------------------
 // CONSOLE
 
-And the response:
+响应如下：
 
 [source,txt]
 --------------------------------------------------
@@ -346,11 +338,11 @@ health status index uuid pri rep docs.count docs.deleted store.size pri.store.si
 --------------------------------------------------
 // TESTRESPONSE[_cat]
 
-Which simply means we have no indices yet in the cluster.
+这意味着当前集群没有索引。
 
-=== Create an Index
+=== 创建索引
 
-Now let's create an index named "customer" and then list all the indexes again:
+现在创建一个名为 "customer" 的索引，并重新执行列举索引操作：
 
 [source,js]
 --------------------------------------------------
@@ -359,9 +351,9 @@ GET /_cat/indices?v
 --------------------------------------------------
 // CONSOLE
 
-The first command creates the index named "customer" using the PUT verb. We simply append `pretty` to the end of the call to tell it to pretty-print the JSON response (if any).
+第一个命令使用 PUT 创建了一个名为 "customer" 的索引，我们可以在调用尾端追加 `pretty` 以获得完美排版的 JSON 响应格式。
 
-And the response:
+响应如下：
 
 [source,txt]
 --------------------------------------------------
@@ -370,30 +362,31 @@ yellow open   customer 95SQ4TSUT7mWBT7VNHH67A   5   1          0            0   
 --------------------------------------------------
 // TESTRESPONSE[s/95SQ4TSUT7mWBT7VNHH67A/.+/ s/260b/\\d+\\.?\\d?k?b/ _cat]
 
-The results of the second command tells us that we now have 1 index named customer and it has 5 primary shards and 1 replica (the defaults) and it contains 0 documents in it.
+从第二个命令返回的结果可知有 1 个名为 customer 的索引，该索引有 5 个主分片和 1 个副本（默认），同时没有任何文档。
 
-You might also notice that the customer index has a yellow health tagged to it. Recall from our previous discussion that yellow means that some replicas are not (yet) allocated. The reason this happens for this index is because Elasticsearch by default created one replica for this index. Since we only have one node running at the moment, that one replica cannot yet be allocated (for high availability) until a later point in time when another node joins the cluster. Once that replica gets allocated onto a second node, the health status for this index will turn to green.
+注意到 customer 索引的健康状态为黄色。回想一下之前的讨论，黄色意味着有副本尚未分配。原因是 Elasticsearch 的索引默认有一个副本。因为当前只有一个节点在运行所以索引副本无法被分配（为了高可用），之后有其他节点加入集群时副本才会分配，此时索引的监控状态会变成绿色。
 
-=== Index and Query a Document
+=== 索引和查找文档
 
-Let's now put something into our customer index. We'll index a simple customer document into the customer index, with an ID of 1 as follows:
+
+现在将一些内容存入 customer 索引。首先添加一个 ID 为 1 的简单 customer 文档。
 
 [source,js]
 --------------------------------------------------
-PUT /customer/_doc/1?pretty
+PUT /customer/doc/1?pretty
 {
   "name": "John Doe"
 }
 --------------------------------------------------
 // CONSOLE
 
-And the response:
+响应如下：
 
 [source,js]
 --------------------------------------------------
 {
   "_index" : "customer",
-  "_type" : "_doc",
+  "_type" : "doc",
   "_id" : "1",
   "_version" : 1,
   "result" : "created",
@@ -408,26 +401,26 @@ And the response:
 --------------------------------------------------
 // TESTRESPONSE[s/"_seq_no" : 0/"_seq_no" : $body._seq_no/ s/"_primary_term" : 1/"_primary_term" : $body._primary_term/]
 
-From the above, we can see that a new customer document was successfully created inside the customer index. The document also has an internal id of 1 which we specified at index time.
+通过上文可知，可以发现有一个新的 customer 文档成功的被创建。这条文档在索引时指定其内部 id 为 1。
 
-It is important to note that Elasticsearch does not require you to explicitly create an index first before you can index documents into it. In the previous example, Elasticsearch will automatically create the customer index if it didn't already exist beforehand.
+请注意 Elasticsearch 不需要你在索引文档前先显式的创建索引。在上面的例子中，如果 customer 索引不存在 Elasticsearch 将自动创建一个 customer 索引。
 
-Let's now retrieve that document that we just indexed:
+现在取回刚刚索引的文档：
 
 [source,js]
 --------------------------------------------------
-GET /customer/_doc/1?pretty
+GET /customer/doc/1?pretty
 --------------------------------------------------
 // CONSOLE
 // TEST[continued]
 
-And the response:
+响应如下：
 
 [source,js]
 --------------------------------------------------
 {
   "_index" : "customer",
-  "_type" : "_doc",
+  "_type" : "doc",
   "_id" : "1",
   "_version" : 1,
   "found" : true,
@@ -436,11 +429,11 @@ And the response:
 --------------------------------------------------
 // TESTRESPONSE
 
-Nothing out of the ordinary here other than a field, `found`, stating that we found a document with the requested ID 1 and another field, `_source`, which returns the full JSON document that we indexed from the previous step.
+不同的是，响应中会有 `found` 字段，该字段说明找到了 ID 为 1 的文档，另外还有 `_source` 字段，这个字段返回了之前我们索引文档的 JSON 内容。
 
-=== Delete an Index
+=== 删除索引
 
-Now let's delete the index that we just created and then list all the indexes again:
+现在执行删除索引操作，并列举出所有索引：
 
 [source,js]
 --------------------------------------------------
@@ -450,7 +443,7 @@ GET /_cat/indices?v
 // CONSOLE
 // TEST[continued]
 
-And the response:
+响应如下：
 
 [source,txt]
 --------------------------------------------------
@@ -458,23 +451,23 @@ health status index uuid pri rep docs.count docs.deleted store.size pri.store.si
 --------------------------------------------------
 // TESTRESPONSE[_cat]
 
-Which means that the index was deleted successfully and we are now back to where we started with nothing in our cluster.
+意味着索引已经成功删除，现在回到了创建集群时的状态。
 
-Before we move on, let's take a closer look again at some of the API commands that we have learned so far:
+在继续学习之前，让我们回头看看迄今为止学到的一些 API 命令：
 
 [source,js]
 --------------------------------------------------
 PUT /customer
-PUT /customer/_doc/1
+PUT /customer/doc/1
 {
   "name": "John Doe"
 }
-GET /customer/_doc/1
+GET /customer/doc/1
 DELETE /customer
 --------------------------------------------------
 // CONSOLE
 
-If we study the above commands carefully, we can actually see a pattern of how we access data in Elasticsearch. That pattern can be summarized as follows:
+如果我们仔细研究上面的命令，我们可以发现访问 Elasticsearch 数据的模式。这个模式总结如下：
 
 [source,js]
 --------------------------------------------------
@@ -482,31 +475,32 @@ If we study the above commands carefully, we can actually see a pattern of how w
 --------------------------------------------------
 // NOTCONSOLE
 
-This REST access pattern is so pervasive throughout all the API commands that if you can simply remember it, you will have a good head start at mastering Elasticsearch.
+这个 REST 访问模式在所有的 API 命令中使用十分普遍，简单记住它是掌握 Elasticsearch 的一个好开端。
 
-== Modifying Your Data
+== 修改数据
 
-Elasticsearch provides data manipulation and search capabilities in near real time. By default, you can expect a one second delay (refresh interval) from the time you index/update/delete your data until the time that it appears in your search results. This is an important distinction from other platforms like SQL wherein data is immediately available after a transaction is completed.
+Elasticsearch 支持近实时的数据操作和搜索功能。默认情况下，在执行 索引/更新/删除 数据操作后到搜索结果可见大概有一秒的延迟（刷新间隔）。这是与类似 SQL 等其他平台的重要区别，这些平台数据在事务完成后是立即可见的。
 
 [float]
-=== Indexing/Replacing Documents
+=== 索引/替换 文档
 
-We've previously seen how we can index a single document. Let's recall that command again:
+回忆一下之前索引文档的命令：
 
 [source,js]
 --------------------------------------------------
-PUT /customer/_doc/1?pretty
+PUT /customer/doc/1?pretty
 {
   "name": "John Doe"
 }
 --------------------------------------------------
 // CONSOLE
 
-Again, the above will index the specified document into the customer index, with the ID of 1. If we then executed the above command again with a different (or same) document, Elasticsearch will replace (i.e. reindex) a new document on top of the existing one with the ID of 1:
+
+上文将 ID 为 1 的文档索引到 customer 索引，如果我们用另一个新文档执行以上命令，Elasticsearch 会将 ID 为 1 的替换为该新文档：
 
 [source,js]
 --------------------------------------------------
-PUT /customer/_doc/1?pretty
+PUT /customer/doc/1?pretty
 {
   "name": "Jane Doe"
 }
@@ -514,11 +508,11 @@ PUT /customer/_doc/1?pretty
 // CONSOLE
 // TEST[continued]
 
-The above changes the name of the document with the ID of 1 from "John Doe" to "Jane Doe". If, on the other hand, we use a different ID, a new document will be indexed and the existing document(s) already in the index remains untouched.
+上文将 ID 为 1 的文档从 "John Doe" 替换为 "Jane Doe"。另一方面，如果我们使用另一个 ID，新文档将会被索引，索引中已经存在的文档将保持不变。
 
 [source,js]
 --------------------------------------------------
-PUT /customer/_doc/2?pretty
+PUT /customer/doc/2?pretty
 {
   "name": "Jane Doe"
 }
@@ -526,15 +520,15 @@ PUT /customer/_doc/2?pretty
 // CONSOLE
 // TEST[continued]
 
-The above indexes a new document with an ID of 2.
+上文索引了一个 ID 为 2 的新文档。
 
-When indexing, the ID part is optional. If not specified, Elasticsearch will generate a random ID and then use it to index the document. The actual ID Elasticsearch generates (or whatever we specified explicitly in the previous examples) is returned as part of the index API call.
+当索引文档时 ID 是可选的。如果没有指定，Elasticsearch 会为文档生成一个随机 ID。ELasticsearch 生成的实际 ID（包括上面显式指定的 ID） 将作为索引 API 调用的一部分而返回。
 
-This example shows how to index a document without an explicit ID:
+下面这个例子展示了索引文档时不显式指定 ID：
 
 [source,js]
 --------------------------------------------------
-POST /customer/_doc?pretty
+POST /customer/doc?pretty
 {
   "name": "Jane Doe"
 }
@@ -542,17 +536,17 @@ POST /customer/_doc?pretty
 // CONSOLE
 // TEST[continued]
 
-Note that in the above case, we are using the `POST` verb instead of PUT since we didn't specify an ID.
+注意上例中因为我们没有指定 ID 所以我们使用 `POST` 代替 PUT。
 
-=== Updating Documents
+=== 更新文档
 
-In addition to being able to index and replace documents, we can also update documents. Note though that Elasticsearch does not actually do in-place updates under the hood. Whenever we do an update, Elasticsearch deletes the old document and then indexes a new document with the update applied to it in one shot.
+除了索引和替换文档之外，我们还可以更新文档。 需要注意的是 Elasticsearch 实际上并没有对原文档进行更新。 无论何时我们进行更新操作，Elasticsearch 都会删除旧文档，然后索引一个新文档。
 
-This example shows how to update our previous document (ID of 1) by changing the name field to "Jane Doe":
+下面这个例子演示了将之前的文档（ID 为 1） name 字段更新为  "Jane Doe"：
 
 [source,js]
 --------------------------------------------------
-POST /customer/_doc/1/_update?pretty
+POST /customer/doc/1/_update?pretty
 {
   "doc": { "name": "Jane Doe" }
 }
@@ -560,11 +554,11 @@ POST /customer/_doc/1/_update?pretty
 // CONSOLE
 // TEST[continued]
 
-This example shows how to update our previous document (ID of 1) by changing the name field to "Jane Doe" and at the same time add an age field to it:
+下面这个例子演示了将之前的文档（ID 为 1） name 字段更新为  "Jane Doe" 的同时新增了一个 age 字段：
 
 [source,js]
 --------------------------------------------------
-POST /customer/_doc/1/_update?pretty
+POST /customer/doc/1/_update?pretty
 {
   "doc": { "name": "Jane Doe", "age": 20 }
 }
@@ -572,11 +566,11 @@ POST /customer/_doc/1/_update?pretty
 // CONSOLE
 // TEST[continued]
 
-Updates can also be performed by using simple scripts. This example uses a script to increment the age by 5:
+可以使用 scripts 执行更新操作。下例使用 script 将 age 增加 5：
 
 [source,js]
 --------------------------------------------------
-POST /customer/_doc/1/_update?pretty
+POST /customer/doc/1/_update?pretty
 {
   "script" : "ctx._source.age += 5"
 }
@@ -584,34 +578,33 @@ POST /customer/_doc/1/_update?pretty
 // CONSOLE
 // TEST[continued]
 
-In the above example, `ctx._source` refers to the current source document that is about to be updated.
+上面例子中， `ctx._source` 指的是将被替换的当前源文档。
 
-Elasticsearch provides the ability to update multiple documents given a query condition (like an `SQL UPDATE-WHERE` statement). See {ref}/docs-update-by-query.html[`docs-update-by-query` API]
+Elasticsearch 提供了在查询时更新多条文档的能力（类似 `SQL UPDATE-WHERE`）。详见 {ref}/docs-update-by-query.html[`docs-update-by-query` API]
 
-=== Deleting Documents
+=== 删除文档
 
-Deleting a document is fairly straightforward. This example shows how to delete our previous customer with the ID of 2:
+删除一条文档十分简单。下例演示了如何删除 ID 为 2 的 customer。
 
 [source,js]
 --------------------------------------------------
-DELETE /customer/_doc/2?pretty
+DELETE /customer/doc/2?pretty
 --------------------------------------------------
 // CONSOLE
 // TEST[continued]
 
-See the {ref}/docs-delete-by-query.html[`_delete_by_query` API] to delete all documents matching a specific query.
-It is worth noting that it is much more efficient to delete a whole index
-instead of deleting all documents with the Delete By Query API.
+参考 {ref}/docs-delete-by-query.html[`_delete_by_query` API] 删除特定查询的所有匹配文档。
+需要注意的是删除整个索引比 Delete By Query API 高效的多。
 
-=== Batch Processing
+=== 批处理
 
-In addition to being able to index, update, and delete individual documents, Elasticsearch also provides the ability to perform any of the above operations in batches using the {ref}/docs-bulk.html[`_bulk` API]. This functionality is important in that it provides a very efficient mechanism to do multiple operations as fast as possible with as few network roundtrips as possible.
+除了索引、更新和删除文档外，Elasticsearch 还提供了 {ref}/docs-bulk.html[`_bulk` API] 操作执行上述任何操作的能力。这个功能十分重要，因为它在执行多个操作时提供了一个非常有效的机制，并尽可能减少网络往返。
 
-As a quick example, the following call indexes two documents (ID 1 - John Doe and ID 2 - Jane Doe) in one bulk operation:
+作为一个快速示例，下面的 bulk 操作同时索引了两条文档 （ID 1 - John Doe 和 ID 2 - Jane Doe）。
 
 [source,js]
 --------------------------------------------------
-POST /customer/_doc/_bulk?pretty
+POST /customer/doc/_bulk?pretty
 {"index":{"_id":"1"}}
 {"name": "John Doe" }
 {"index":{"_id":"2"}}
@@ -619,11 +612,11 @@ POST /customer/_doc/_bulk?pretty
 --------------------------------------------------
 // CONSOLE
 
-This example updates the first document (ID of 1) and then deletes the second document (ID of 2) in one bulk operation:
+下例使用 bulk 操作更新了第一条文档（ID 为 1）并删除了第二条文档（ID 为 2）。
 
 [source,sh]
 --------------------------------------------------
-POST /customer/_doc/_bulk?pretty
+POST /customer/doc/_bulk?pretty
 {"update":{"_id":"1"}}
 {"doc": { "name": "John Doe becomes Jane Doe" } }
 {"delete":{"_id":"2"}}
@@ -631,16 +624,16 @@ POST /customer/_doc/_bulk?pretty
 // CONSOLE
 // TEST[continued]
 
-Note above that for the delete action, there is no corresponding source document after it since deletes only require the ID of the document to be deleted.
+注意到上面的删除行为，因为删除只需要文档 ID 所以这里不需要相应的源文档。
 
-The Bulk API does not fail due to failures in one of the actions. If a single action fails for whatever reason, it will continue to process the remainder of the actions after it. When the bulk API returns, it will provide a status for each action (in the same order it was sent in) so that you can check if a specific action failed or not.
+Bulk API 不会因为一个操作失败而失败。如果一个动作因为某种原因失败了，它将继续执行剩下的动作。 Bulk API返回时将为每个操作提供一个状态（与发送的顺序相同），以便检查特定操作是否失败。
 
-== Exploring Your Data
+== 探索你的数据
 
 [float]
-=== Sample Dataset
+=== 样本数据集
 
-Now that we've gotten a glimpse of the basics, let's try to work on a more realistic dataset. I've prepared a sample of fictitious JSON documents of customer bank account information. Each document has the following schema:
+现在我们已经掌握了一些基本知识，让我们尝试一些更现实的数据集。 这里准备了一个关于客户银行账户信息的虚构的 JSON 文档样本。 每条文档结构如下：
 
 [source,js]
 --------------------------------------------------
@@ -660,12 +653,12 @@ Now that we've gotten a glimpse of the basics, let's try to work on a more reali
 --------------------------------------------------
 // NOTCONSOLE
 
-For the curious, this data was generated using http://www.json-generator.com/[`www.json-generator.com/`], so please ignore the actual values and semantics of the data as these are all randomly generated.
+为了保证数据多样，这些数据都是使用 http://www.json-generator.com/[`www.json-generator.com/`] 生成的，所以请忽略数据实际值和语义，因为这些数据都是随机产生的。
 
 [float]
-=== Loading the Sample Dataset
+=== 加载数据样本集
 
-You can download the sample dataset (accounts.json) from https://github.com/elastic/elasticsearch/blob/master/docs/src/test/resources/accounts.json?raw=true[here]. Extract it to our current directory and let's load it into our cluster as follows:
+你可以从 https://github.com/elastic/elasticsearch/blob/master/docs/src/test/resources/accounts.json?raw=true[here] 下载数据集（accounts.json）。解压到我们当前的目录下，并使用如下方法将其加载到集群中：
 
 [source,sh]
 --------------------------------------------------
@@ -686,7 +679,7 @@ GET /_cat/indices?v
 // TEST[setup:bank]
 ////
 
-And the response:
+响应如下：
 
 [source,txt]
 --------------------------------------------------
@@ -696,13 +689,14 @@ yellow open   bank  l7sSYV2cQXmu6_4rJWVIww   5   1       1000            0    12
 // TESTRESPONSE[s/128.6kb/\\d+(\\.\\d+)?[mk]?b/]
 // TESTRESPONSE[s/l7sSYV2cQXmu6_4rJWVIww/.+/ _cat]
 
-Which means that we just successfully bulk indexed 1000 documents into the bank index (under the `_doc` type).
+这意味着我们已经成功的将 1000 条文档批量索引到 bank 索引中（类型为 account ）。
 
-=== The Search API
+=== 搜索 API
 
-Now let's start with some simple searches. There are two basic ways to run searches: one is by sending search parameters through the {ref}/search-uri-request.html[REST request URI] and the other by sending them through the {ref}/search-request-body.html[REST request body]. The request body method allows you to be more expressive and also to define your searches in a more readable JSON format. We'll try one example of the request URI method but for the remainder of this tutorial, we will exclusively be using the request body method.
+现在我们可以开始一些简单的搜索。有两种执行搜索操作的基本方法：一种是通过 {ref}/search-uri-request.html[REST request URI]  发送搜索参数，另外一种是通过 {ref}/search-request-body.html[REST request body] 发送搜索请求。
+请求体方法更具表现性，并以更易读的 JSON 格式定义搜索。我们将尝试一个请求 URI 的例子，但在本教程的剩余部分中，我们将仅仅使用请求体方法。
 
-The REST API for search is accessible from the `_search` endpoint. This example returns all documents in the bank index:
+用于搜索的 REST API 可用 `_search` 访问。下例返回了 bank 索引的所有文档：
 
 [source,js]
 --------------------------------------------------
@@ -711,9 +705,9 @@ GET /bank/_search?q=*&sort=account_number:asc&pretty
 // CONSOLE
 // TEST[continued]
 
-Let's first dissect the search call. We are searching (`_search` endpoint) in the bank index, and the `q=*` parameter instructs Elasticsearch to match all documents in the index. The `sort=account_number:asc` parameter indicates to sort the results using the `account_number` field of each document in an ascending order. The `pretty` parameter, again, just tells Elasticsearch to return pretty-printed JSON results.
+首先解析搜索调用，我们在 bank 索引中执行搜索（ `_search` ），同时 `q=*` 参数表示匹配索引中的所有文档。`sort=account_number:asc` 参数表示对所有返回的文档结果按 account_number 升序排序。`pretty` 参数告诉 Elasticsearch 返回完美排版的 JSON 结果集。
 
-And the response (partially shown):
+响应如下（部分展示）:
 
 [source,js]
 --------------------------------------------------
@@ -731,14 +725,14 @@ And the response (partially shown):
     "max_score" : null,
     "hits" : [ {
       "_index" : "bank",
-      "_type" : "_doc",
+      "_type" : "account",
       "_id" : "0",
       "sort": [0],
       "_score" : null,
       "_source" : {"account_number":0,"balance":16623,"firstname":"Bradshaw","lastname":"Mckenzie","age":29,"gender":"F","address":"244 Columbus Place","employer":"Euron","email":"bradshawmckenzie@euron.com","city":"Hobucken","state":"CO"}
     }, {
       "_index" : "bank",
-      "_type" : "_doc",
+      "_type" : "account",
       "_id" : "1",
       "sort": [1],
       "_score" : null,
@@ -751,18 +745,18 @@ And the response (partially shown):
 // TESTRESPONSE[s/"took" : 63/"took" : $body.took/]
 // TESTRESPONSE[s/\.\.\./$body.hits.hits.2, $body.hits.hits.3, $body.hits.hits.4, $body.hits.hits.5, $body.hits.hits.6, $body.hits.hits.7, $body.hits.hits.8, $body.hits.hits.9/]
 
-As for the response, we see the following parts:
+从响应结果可以看到到如下部分：
 
-* `took` – time in milliseconds for Elasticsearch to execute the search
-* `timed_out` – tells us if the search timed out or not
-* `_shards` – tells us how many shards were searched, as well as a count of the successful/failed searched shards
-* `hits` – search results
-* `hits.total` – total number of documents matching our search criteria
-* `hits.hits` – actual array of search results (defaults to first 10 documents)
-* `hits.sort` - sort key for results (missing if sorting by score)
-* `hits._score` and `max_score` - ignore these fields for now
+* `took` – Elasticsearch 执行搜索的时间，单位为毫秒
+* `timed_out` – 是否超时
+* `_shards` – 搜索了多少分片，以及搜索 成功/失败 的分片数
+* `hits` – 搜索结果集
+* `hits.total` – 符合搜索条件的文件总数
+* `hits.hits` – 实际搜索结果数组（默认前 10 条）
+* `hits.sort` - 结果排序的字段（没有指定则以 score 排序）
+* `hits._score` 和 `max_score` - 现在可以忽略这些字段
 
-Here is the same exact search above using the alternative request body method:
+下面是使用请求体的搜索替代方法：
 
 [source,js]
 --------------------------------------------------
@@ -777,7 +771,7 @@ GET /bank/_search
 // CONSOLE
 // TEST[continued]
 
-The difference here is that instead of passing `q=*` in the URI, we POST a JSON-style query request body to the `_search` API. We'll discuss this JSON query in the next section.
+最大的不同是在 URI 中不传递 `q=*` ，我们为 `_search` API POST 一个 JSON-style 查询请求体。具体的 JSON 查询将在下一部分讨论.
 
 ////
 Hidden response just so we can assert that it is indeed the same but don't have
@@ -799,14 +793,14 @@ to clutter the docs with it:
     "max_score": null,
     "hits" : [ {
       "_index" : "bank",
-      "_type" : "_doc",
+      "_type" : "account",
       "_id" : "0",
       "sort": [0],
       "_score": null,
       "_source" : {"account_number":0,"balance":16623,"firstname":"Bradshaw","lastname":"Mckenzie","age":29,"gender":"F","address":"244 Columbus Place","employer":"Euron","email":"bradshawmckenzie@euron.com","city":"Hobucken","state":"CO"}
     }, {
       "_index" : "bank",
-      "_type" : "_doc",
+      "_type" : "account",
       "_id" : "1",
       "sort": [1],
       "_score": null,
@@ -821,13 +815,13 @@ to clutter the docs with it:
 
 ////
 
-It is important to understand that once you get your search results back, Elasticsearch is completely done with the request and does not maintain any kind of server-side resources or open cursors into your results. This is in stark contrast to many other platforms such as SQL wherein you may initially get a partial subset of your query results up-front and then you have to continuously go back to the server if you want to fetch (or page through) the rest of the results using some kind of stateful server-side cursor.
+需要明白的是，一旦你得到了搜索结果，ELasticsearch 则完成了这次请求并不会维护任何服务端资源或者为结果集开一个游标。这与类似 SQL 的其他平台形成了鲜明对比，其他平台可能会先获得查询的部分结果集，在你还需要获取（翻阅）剩下的结果时使用某种有状态的服务端游标。
 
-=== Introducing the Query Language
+=== 查询语言介绍
 
-Elasticsearch provides a JSON-style domain-specific language that you can use to execute queries. This is referred to as the {ref}/query-dsl.html[Query DSL]. The query language is quite comprehensive and can be intimidating at first glance but the best way to actually learn it is to start with a few basic examples.
+Elasticsearch 提供了一种执行查询时的 JSON-style 的特定领域语言。这常被称为 {ref}/query-dsl.html[Query DSL]。这种查询语言十分全面，乍看可能会被吓到，但是实际上最好的方法是先从一些简单的例子开始学习。
 
-Going back to our last example, we executed this query:
+回到上一个例子，我们执行了以下查询：
 
 [source,js]
 --------------------------------------------------
@@ -839,11 +833,9 @@ GET /bank/_search
 // CONSOLE
 // TEST[continued]
 
-Dissecting the above, the `query` part tells us what our query definition is and the `match_all` part is simply the type of query that we want to run. The `match_all` query is simply a search for all documents in the specified index.
+解析上述内容，`query` 部分告诉我们查询的定义是什么，`match_all` 是我们想执行的查询类型。`match_all` 在搜索时表示对指定索引返回所有文档。
 
-In addition to the `query` parameter, we also can pass other parameters to
-influence the search results. In the example in the section above we passed in
-`sort`, here we pass in `size`:
+除了 `query` 参数，我们可以传递其他参数以影响搜索结果。上面的例子中我们传递了 `sort` ，下面我们传递 `size` 。
 
 [source,js]
 --------------------------------------------------
@@ -856,9 +848,9 @@ GET /bank/_search
 // CONSOLE
 // TEST[continued]
 
-Note that if `size` is not specified, it defaults to 10.
+注意如果 `size` 没有指定，默认是 10。
 
-This example does a `match_all` and returns documents 11 through 20:
+下例执行了 `match_all` 并返回 11 到 20 的文档结果。
 
 [source,js]
 --------------------------------------------------
@@ -872,9 +864,9 @@ GET /bank/_search
 // CONSOLE
 // TEST[continued]
 
-The `from` parameter (0-based) specifies which document index to start from and the `size` parameter specifies how many documents to return starting at the from parameter. This feature is useful when implementing paging of search results. Note that if `from` is not specified, it defaults to 0.
+`from` 参数（从 0 开始）表示索引文档的开始位置，`size` 参数表示从 from 参数开始返回多少文档。这个功能在实现分页功能时十分有用。注意 `from` 没有指定时默认为 0。
 
-This example does a `match_all` and sorts the results by account balance in descending order and returns the top 10 (default size) documents.
+下例执行了 `match_all` 并按降序对 balance 进行排序，且返回了前 10（默认大小） 条文档。
 
 [source,js]
 --------------------------------------------------
@@ -887,11 +879,11 @@ GET /bank/_search
 // CONSOLE
 // TEST[continued]
 
-=== Executing Searches
+=== 执行搜索
 
-Now that we have seen a few of the basic search parameters, let's dig in some more into the Query DSL. Let's first take a look at the returned document fields. By default, the full JSON document is returned as part of all searches. This is referred to as the source (`_source` field in the search hits). If we don't want the entire source document returned, we have the ability to request only a few fields from within source to be returned.
+我们已经知道了一些基本搜索参数，现在挖掘一些 Query DSL 的其他内容。先看一眼返回的文档字段。默认情况下，搜索的返回结果中有一个完整的 JSON 文档。这个 JSON 被称为源（搜索匹配中的 `_source` 字段）。如果我们不需要返回整个源文档，我们可以请求源内容中的部分字段。
 
-This example shows how to return two fields, `account_number` and `balance` (inside of `_source`), from the search:
+下例展示了如何从搜索中返回 `account_number` 和 `balance`(`_source` 内部)两个字段：
 
 [source,js]
 --------------------------------------------------
@@ -904,13 +896,13 @@ GET /bank/_search
 // CONSOLE
 // TEST[continued]
 
-Note that the above example simply reduces the `_source` field. It will still only return one field named `_source` but within it, only the fields `account_number` and `balance` are included.
+需要注意的是上例中只会减少 `_source` 内的字段。它仍然会返回 `_source` 字段 ，但该字段中仅仅包含 `account_number` 和 `balance` 字段。
 
-If you come from a SQL background, the above is somewhat similar in concept to the `SQL SELECT FROM` field list.
+如果你有 SQL 背景可知上例与 `SQL SELECT FROM` 的概念相似。
 
-Now let's move on to the query part. Previously, we've seen how the `match_all` query is used to match all documents. Let's now introduce a new query called the {ref}/query-dsl-match-query.html[`match` query], which can be thought of as a basic fielded search query (i.e. a search done against a specific field or set of fields).
+现在把注意力转移到 query 部分。之前我们已经见过使用 `match_all` 查询匹配所有文档。现在介绍一种被称为 {ref}/query-dsl-match-query.html[`match` query] 的新查询方法，这个查询可以看做是基本的字段搜索查询（即针对特定字段或字段集进行的搜索）。
 
-This example returns the account numbered 20:
+下例返回 accout 值为 20 的结果：
 
 [source,js]
 --------------------------------------------------
@@ -922,7 +914,7 @@ GET /bank/_search
 // CONSOLE
 // TEST[continued]
 
-This example returns all accounts containing the term "mill" in the address:
+下例返回 address 字段中包含 "mill" 词条的所有账户。
 
 [source,js]
 --------------------------------------------------
@@ -934,7 +926,7 @@ GET /bank/_search
 // CONSOLE
 // TEST[continued]
 
-This example returns all accounts containing the term "mill" or "lane" in the address:
+下例返回 address 字段中包含 "mill" 或 "lane" 词条的所有账户。
 
 [source,js]
 --------------------------------------------------
@@ -946,7 +938,7 @@ GET /bank/_search
 // CONSOLE
 // TEST[continued]
 
-This example is a variant of `match` (`match_phrase`) that returns all accounts containing the phrase "mill lane" in the address:
+下例是 `match` （ `match_phrase` ） 的变体，它返回 address 字段包含 "mill lane"  短语的所有账户。
 
 [source,js]
 --------------------------------------------------
@@ -958,9 +950,9 @@ GET /bank/_search
 // CONSOLE
 // TEST[continued]
 
-Let's now introduce the {ref}/query-dsl-bool-query.html[`bool` query]. The `bool` query allows us to compose smaller queries into bigger queries using boolean logic.
+现在介绍 {ref}/query-dsl-bool-query.html[`bool` query]。`bool` 查询允许我们将多个小查询按 boolean 逻辑组合成大查询。
 
-This example composes two `match` queries and returns all accounts containing "mill" and "lane" in the address:
+下例组合了两个 `match` 查询并返回 address 字段中包含 "mill" 和 "lane" 词条的所有账户。
 
 [source,js]
 --------------------------------------------------
@@ -979,9 +971,9 @@ GET /bank/_search
 // CONSOLE
 // TEST[continued]
 
-In the above example, the `bool must` clause specifies all the queries that must be true for a document to be considered a match.
+上例中，`bool must` 子句指定匹配的文档必须符合所有查询条件。
 
-In contrast, this example composes two `match` queries and returns all accounts containing "mill" or "lane" in the address:
+相反，下例组合了两个 `match` 查询并返回 address 字段中包含 "mill" 或 "lane" 词条的所有账户。
 
 [source,js]
 --------------------------------------------------
@@ -1000,9 +992,9 @@ GET /bank/_search
 // CONSOLE
 // TEST[continued]
 
-In the above example, the `bool should` clause specifies a list of queries either of which must be true for a document to be considered a match.
+上例中，`bool should` 子句指定了一个查询列表，只要满足任意一个查询条件就被视为匹配的文档。
 
-This example composes two `match` queries and returns all accounts that contain neither "mill" nor "lane" in the address:
+下例组合了两个 `match` 查询并返回 address 字段中既不包含 "mill" 也不包含 "lane" 词条的所有账户。
 
 [source,js]
 --------------------------------------------------
@@ -1021,11 +1013,11 @@ GET /bank/_search
 // CONSOLE
 // TEST[continued]
 
-In the above example, the `bool must_not` clause specifies a list of queries none of which must be true for a document to be considered a match.
+上例中，`bool must_not` 子句指定了一个查询列表，所有查询条件都不满足才被视为匹配的文档。
 
-We can combine `must`, `should`, and `must_not` clauses simultaneously inside a `bool` query. Furthermore, we can compose `bool` queries inside any of these `bool` clauses to mimic any complex multi-level boolean logic.
+我们可以在一个 `bool` 查询中结合 `must` 、 `should` 、 和 `must_not` 子句。此外，我们可以在任意 `bool` 子句中编写 `bool` 查询来模拟任何复杂的多级 boolean 逻辑。
 
-This example returns all accounts of anybody who is 40 years old but doesn't live in ID(aho):
+下例返回了年龄为 40 岁且不住在 ID（aho）的账户。
 
 [source,js]
 --------------------------------------------------
@@ -1046,15 +1038,15 @@ GET /bank/_search
 // CONSOLE
 // TEST[continued]
 
-=== Executing Filters
+=== 执行过滤器
 
-In the previous section, we skipped over a little detail called the document score (`_score` field in the search results). The score is a numeric value that is a relative measure of how well the document matches the search query that we specified. The higher the score, the more relevant the document is, the lower the score, the less relevant the document is.
+上一节中，我们跳过了关于 score （搜索结果的 `_score` 字段）细节。score 是表示文档与指定搜索查询的匹配程度的一个数值。score 越高，文档越相关，score 越低，文档越不相关。
 
-But queries do not always need to produce scores, in particular when they are only used for "filtering" the document set. Elasticsearch detects these situations and automatically optimizes query execution in order not to compute useless scores.
+但是查询并不总是需要生成分数，特别是当它们仅仅用于 "filtering" 文档集。Elasticsearch 检测到这种场景时便会自动优化查询执行以便不计算无用的分数。
 
-The {ref}/query-dsl-bool-query.html[`bool` query] that we introduced in the previous section also supports `filter` clauses which allow to use a query to restrict the documents that will be matched by other clauses, without changing how scores are computed. As an example, let's introduce the {ref}/query-dsl-range-query.html[`range` query], which allows us to filter documents by a range of values. This is generally used for numeric or date filtering.
+上一节中介绍的 {ref}/query-dsl-bool-query.html[`bool` query] 同样支持 `filter` 子句，它允许使用 query 来限制将被其他子句匹配的文档，而不改变计算分数的方式。例如 {ref}/query-dsl-range-query.html[`range` query] 允许我们使用范围来过滤文档，这通常用于数字或日期过滤。
 
-This example uses a bool query to return all accounts with balances between 20000 and 30000, inclusive. In other words, we want to find accounts with a balance that is greater than or equal to 20000 and less than or equal to 30000.
+本例使用 bool 查询返回余额在 20000 到 30000 的所有账户。换句话说，我们要查找余额大于等于 20000 且小于等于 30000 的所有账户。
 
 [source,js]
 --------------------------------------------------
@@ -1078,15 +1070,15 @@ GET /bank/_search
 // CONSOLE
 // TEST[continued]
 
-Dissecting the above, the bool query contains a `match_all` query (the query part) and a `range` query (the filter part). We can substitute any other queries into the query and the filter parts. In the above case, the range query makes perfect sense since documents falling into the range all match "equally", i.e., no document is more relevant than another.
+解析上述内容，bool 查询包含一个 `match_all` 查询（查询部分） 和一个 `range` 查询（过滤器部分）。我们可以将任何其他查询替换为查询和过滤器部分。在这种情况下，range 查询是是十分有意义的因为落入该范围的文档完全 "equally"，即没有哪个文档比其他文档更相关。
 
-In addition to the `match_all`, `match`, `bool`, and `range` queries, there are a lot of other query types that are available and we won't go into them here. Since we already have a basic understanding of how they work, it shouldn't be too difficult to apply this knowledge in learning and experimenting with the other query types.
+除了 `match_all` 、 `match` 、 `bool` 和 `range` 查询，还有很多查询类型可用，我们不在这里介绍。由于我们已经对其工作原理有了基本理解，所以将这些知识应用到其他查询进行学习和实验并不难。
 
-=== Executing Aggregations
+=== 执行聚合
 
-Aggregations provide the ability to group and extract statistics from your data. The easiest way to think about aggregations is by roughly equating it to the SQL GROUP BY and the SQL aggregate functions. In Elasticsearch, you have the ability to execute searches returning hits and at the same time return aggregated results separate from the hits all in one response. This is very powerful and efficient in the sense that you can run queries and multiple aggregations and get the results back of both (or either) operations in one shot avoiding network roundtrips using a concise and simplified API.
+聚合提供了数据分组和提取统计数据的能力。理解聚合最简单的方法是将其大致等同于 SQL GROUP BY 和 SQL 聚合功能。在 ELasticsearch 中，你可以在执行搜索并返回匹配结果时在响应中返回与匹配不同的聚合结果。这十分强大和高效，你可以运行多个查询和多个聚合，并且一次获得所有（两个）操作结果，同时使用简化的 API 来避免网络往返。
 
-To start with, this example groups all the accounts by state, and then returns the top 10 (default) states sorted by count descending (also default):
+首先，下例按状态对所有账户分组，然后返回按降序（默认值）排列的前 10 个（默认）州。
 
 [source,js]
 --------------------------------------------------
@@ -1105,14 +1097,14 @@ GET /bank/_search
 // CONSOLE
 // TEST[continued]
 
-In SQL, the above aggregation is similar in concept to:
+上面的聚合在 SQL 中类似如下表示：
 
 [source,sh]
 --------------------------------------------------
 SELECT state, COUNT(*) FROM bank GROUP BY state ORDER BY COUNT(*) DESC
 --------------------------------------------------
 
-And the response (partially shown):
+响应如下（部分展示）：
 
 [source,js]
 --------------------------------------------------
@@ -1171,12 +1163,11 @@ And the response (partially shown):
 --------------------------------------------------
 // TESTRESPONSE[s/"took": 29/"took": $body.took/]
 
-We can see that there are 27 accounts in `ID` (Idaho), followed by 27 accounts
-in `TX` (Texas), followed by 25 accounts in `AL` (Alabama), and so forth.
+我们可以看到有 27 个账户住在 `ID` （Idaho） ，接下来是 `TX` （Texas）的 27 个账户，接下来是 `AL` （Alabama）的 25 个账户，等等。
 
-Note that we set `size=0` to not show search hits because we only want to see the aggregation results in the response.
+注意到我们设置 `size=0` 不展示搜索结果，因为我们只想在响应中看聚合结果。
 
-Building on the previous aggregation, this example calculates the average account balance by state (again only for the top 10 states sorted by count in descending order):
+在上面的聚合基础上，下例计算每个州（按数量降序排前 10 的状态）的平均账户余额。
 
 [source,js]
 --------------------------------------------------
@@ -1202,9 +1193,9 @@ GET /bank/_search
 // CONSOLE
 // TEST[continued]
 
-Notice how we nested the `average_balance` aggregation inside the `group_by_state` aggregation. This is a common pattern for all the aggregations. You can nest aggregations inside aggregations arbitrarily to extract pivoted summarizations that you require from your data.
+请注意我们是如何嵌套 `group_by_state` 聚合内的 `average_balance` 聚合。这是聚合的一个通用模式，你可以在任意聚合内嵌套聚合以便从数据中提取所需汇总信息。
 
-Building on the previous aggregation, let's now sort on the average balance in descending order:
+在上面的聚合基础上，现在我们按降序对平均 balance 进行排序。
 
 [source,js]
 --------------------------------------------------
@@ -1233,7 +1224,7 @@ GET /bank/_search
 // CONSOLE
 // TEST[continued]
 
-This example demonstrates how we can group by age brackets (ages 20-29, 30-39, and 40-49), then by gender, and then finally get the average account balance, per age bracket, per gender:
+下例演示了如何先按年龄段（20-29 岁，30-39 岁和 40-49 岁）进行分组，然后再按性别分组，最后得到每个年龄段中每个性别的平均账户 balance。
 
 [source,js]
 --------------------------------------------------
@@ -1280,8 +1271,8 @@ GET /bank/_search
 // CONSOLE
 // TEST[continued]
 
-There are many other aggregations capabilities that we won't go into detail here. The {ref}/search-aggregations.html[aggregations reference guide] is a great starting point if you want to do further experimentation.
+我们不会在这里详细介绍其他聚合功能。如果想进行进一步的尝试聚合可以参考 {ref}/search-aggregations.html[aggregations reference guide]。
 
-== Conclusion
+== 结论
 
-Elasticsearch is both a simple and complex product. We've so far learned the basics of what it is, how to look inside of it, and how to work with it using some of the REST APIs. Hopefully this tutorial has given you a better understanding of what Elasticsearch is and more importantly, inspired you to further experiment with the rest of its great features!
+Elasticsearch 是一个即简单又复杂的产品。到目前为止我们已经学习了一些基础知识、内部机制和一些 REST API 的使用。希望本教程能够让你加深对 Elasticsearch 的理解，更重要为你进一步尝试其他重要功能带来启发。
