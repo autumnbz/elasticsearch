@@ -1,41 +1,34 @@
 [[setup]]
-= Set up Elasticsearch
+= 设置 Elasticsearch
 
 [partintro]
 --
-This section includes information on how to setup Elasticsearch and get it
-running, including:
+这一章节内容包含如何设置 Elasticsearch 并使其运行，主要包括：
 
-* Downloading
-* Installing
-* Starting
-* Configuring
+* 下载
+* 安装
+* 启动
+* 配置
 
 [[supported-platforms]]
 [float]
-== Supported platforms
+== 平台支持
 
-The matrix of officially supported operating systems and JVMs is available here:
-link:/support/matrix[Support Matrix]. Elasticsearch is tested on the listed
-platforms, but it is possible that it will work on other platforms too.
+官方支持的操作系统和 JVM 矩阵信息可从此获得：link:/support/matrix[Support Matrix]。
+Elasticsearch 在列出的平台已通过测试，但在一些其他平台可能也能正常运行。
 
 [float]
 [[jvm-version]]
-== Java (JVM) Version
+== Java (JVM) 版本
 
-Elasticsearch is built using Java, and requires at least
-http://www.oracle.com/technetwork/java/javase/downloads/index.html[Java {jdk_major}]
-in order to run. Only Oracle's Java and the OpenJDK are supported. The same JVM
-version should be used on all Elasticsearch nodes and clients.
+Elasticsearch 是基于 Java 构建的，正常运行至少需要 http://www.oracle.com/technetwork/java/javase/downloads/index.html[Java {jdk_major}]。
+Elasticsearch 仅仅支持 Oracle 的 Java 和 OpenJDK，同时所有节点和客户端需使用同一 JVM 版本。
 
-We recommend installing Java version *{jdk} or a later version in the Java
-{jdk_major} release series*. We recommend using a
-link:/support/matrix[supported]
-http://www.oracle.com/technetwork/java/eol-135779.html[LTS version of Java].
-Elasticsearch will refuse to start if a known-bad version of Java is used.
+我们建议安装 *{jdk} 的 Java 版本或更高版本。我们建议使用 link:/support/matrix[supported]
+http://www.oracle.com/technetwork/java/eol-135779.html[LTS version of Java]。
+如果使用不支持的版本，Elasticsearch 将拒绝启动。
 
-The version of Java that Elasticsearch will use can be configured by setting
-the `JAVA_HOME` environment variable.
+Elasticsearch 使用的 Java 版本可通过 `JAVA_HOME` 环境变量配置。
 
 --
 
