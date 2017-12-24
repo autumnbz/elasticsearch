@@ -14,7 +14,7 @@
 [float]
 == 平台支持
 
-官方支持的操作系统和 JVM 矩阵信息可从此获得：link:/support/matrix[Support Matrix]。
+官方支持的操作系统和 JVM 信息列表可从此获得：link:/support/matrix[Support Matrix]。
 Elasticsearch 在列出的平台已通过测试，但在一些其他平台可能也能正常运行。
 
 [float]
