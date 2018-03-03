@@ -1,24 +1,22 @@
 [[rpm]]
-=== Install Elasticsearch with RPM
+=== 使用 RPM 安装 Elasticsearch
 
-The RPM for Elasticsearch can be <<install-rpm,downloaded from our website>>
-or from our  <<rpm-repo,RPM repository>>. It can be used to install
-Elasticsearch on any RPM-based system such as OpenSuSE, SLES, Centos, Red Hat,
-and Oracle Enterprise.
+RPM 包可以从 <<install-rpm,从官网下载>> 或者 <<rpm-repo,RPM 仓库>>获取。
+它适用于 OpenSuSE、SLES、Centos、Red Hat 和 Oracle Enterprise 等所有 RPM-based 系统。
 
-NOTE: RPM install is not supported on distributions with old versions of RPM,
-such as SLES 11 and CentOS 5.  Please see <<zip-targz>> instead.
+NOTE: 不支持 SLES 11 和 CentOS 5 等老版本的 RPM 安装。请使用 <<zip-targz>> 替换。
 
-The latest stable version of Elasticsearch can be found on the
-link:/downloads/elasticsearch[Download Elasticsearch] page. Other versions can
-be found on the link:/downloads/past-releases[Past Releases page].
+最新的稳定版本可以在
+link:/downloads/elasticsearch[Download Elasticsearch] 找到。
+其他版本可以在
+link:/downloads/past-releases[Past Releases page]找到。
 
-NOTE: Elasticsearch requires Java 8 or later. Use the
+NOTE: Elasticsearch 最低要求 Java 8。使用
 http://www.oracle.com/technetwork/java/javase/downloads/index.html[official Oracle distribution]
-or an open-source distribution such as http://openjdk.java.net[OpenJDK].
+或者开源版本 http://openjdk.java.net[OpenJDK]。
 
 [[rpm-key]]
-==== Import the Elasticsearch PGP Key
+==== 引入 Elasticsearch PGP Key
 
 include::key.asciidoc[]
 
@@ -28,19 +26,17 @@ rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
 -------------------------
 
 [[rpm-repo]]
-==== Installing from the RPM repository
+==== 从 RPM 仓库安装
 
 ifeval::["{release-state}"=="unreleased"]
 
-Version {version} of Elasticsearch has not yet been released.
+Elasticsearch Version {version} 暂未发布。
 
 endif::[]
 
 ifeval::["{release-state}"!="unreleased"]
 
-Create a file called `elasticsearch.repo` in the `/etc/yum.repos.d/` directory
-for RedHat based distributions, or in the `/etc/zypp/repos.d/` directory for
-OpenSuSE based distributions, containing:
+在 RedHat `/etc/yum.repos.d/` 或 OpenSuSE `/etc/zypp/repos.d/` 目录创建 `elasticsearch.repo` 文件，包括：
 
 ifeval::["{release-state}"=="released"]
 
@@ -74,7 +70,7 @@ type=rpm-md
 
 endif::[]
 
-And your repository is ready for use. You can now install Elasticsearch with one of the following commands:
+当仓库可用时，你可用使用以下命令之一安装 Elasticsearch：
 
 [source,sh]
 --------------------------------------------------
@@ -82,24 +78,24 @@ sudo yum install elasticsearch <1>
 sudo dnf install elasticsearch <2>
 sudo zypper install elasticsearch <3>
 --------------------------------------------------
-<1> Use `yum` on CentOS and older Red Hat based distributions.
-<2> Use `dnf` on Fedora and other newer Red Hat distributions.
-<3> Use `zypper` on OpenSUSE based distributions
+<1> 在 CentOS 或老版本 Red Hat 执行 `yum`。
+<2> 在 Fedora 或新版本 Red Hat 执行 `dnf`。
+<3> 在 OpenSUSE 版本执行 `zypper`。
 
 endif::[]
 
 [[install-rpm]]
-==== Download and install the RPM manually
+==== 手动下载安装 RPM
 
 ifeval::["{release-state}"=="unreleased"]
 
-Version {version} of Elasticsearch has not yet been released.
+Elasticsearch Version {version} 暂未发布。
 
 endif::[]
 
 ifeval::["{release-state}"!="unreleased"]
 
-The RPM for Elasticsearch v{version} can be downloaded from the website and installed as follows:
+Elasticsearch v{version} RPM 包可从官网下载安装：
 
 ["source","sh",subs="attributes"]
 --------------------------------------------
@@ -108,8 +104,8 @@ wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{version
 shasum -a 512 -c elasticsearch-{version}.rpm.sha512 <1>
 sudo rpm --install elasticsearch-{version}.rpm
 --------------------------------------------
-<1> Compares the SHA of the downloaded RPM and the published checksum, which should output
-    `elasticsearch-{version}.rpm: OK`.
+<1> 比较下载的 RPM 的 SHA 和 发布校验和，应该输出
+        `elasticsearch-{version}.zip: OK`。
 
 endif::[]
 
@@ -118,17 +114,16 @@ include::skip-set-kernel-parameters.asciidoc[]
 include::init-systemd.asciidoc[]
 
 [[rpm-running-init]]
-==== Running Elasticsearch with SysV `init`
+==== SysV `init` 运行 Elasticsearch
 
-Use the `chkconfig` command to configure Elasticsearch to start automatically
-when the system boots up:
+当系统启动时可使 `chkconfig` 命令手动配置启动 Elasticsearch：
 
 [source,sh]
 --------------------------------------------------
 sudo chkconfig --add elasticsearch
 --------------------------------------------------
 
-Elasticsearch can be started and stopped using the `service` command:
+可以用 `service` 命令启动和停止 Elasticsearch：
 
 [source,sh]
 --------------------------------------------
@@ -136,8 +131,7 @@ sudo -i service elasticsearch start
 sudo -i service elasticsearch stop
 --------------------------------------------
 
-If Elasticsearch fails to start for any reason, it will print the reason for
-failure to STDOUT. Log files can be found in `/var/log/elasticsearch/`.
+如果启动失败，Elasticsearch 会将错误日志打印输出。具体日志可以在 `/var/log/elasticsearch/` 找到。
 
 
 [[rpm-running-systemd]]
@@ -147,69 +141,66 @@ include::systemd.asciidoc[]
 include::check-running.asciidoc[]
 
 [[rpm-configuring]]
-==== Configuring Elasticsearch
+==== 配置 Elasticsearch
 
 include::etc-elasticsearch.asciidoc[]
 
-The RPM also has a system configuration file (`/etc/sysconfig/elasticsearch`),
-which allows you to set the following parameters:
+RPM 同样有一个系统配置文件 (`/etc/default/elasticsearch`)，该文件允许你设置如下参数：
 
 include::sysconfig-file.asciidoc[]
 
-NOTE: Distributions that use `systemd` require that system resource limits be
-configured via `systemd` rather than via the `/etc/sysconfig/elasticsearch`
-file.  See <<systemd>> for more information.
+NOTE: `systemd` 版本要求资源通过 `systemd` 配置而不是 `/etc/sysconfig/elasticsearch` 文件。
+更多详情请参考 <<systemd>>。
+
 
 [[rpm-layout]]
-==== Directory layout of RPM
+==== RPM 包目录结构
 
-The RPM places config files, logs, and the data directory in the appropriate
-locations for an RPM-based system:
+RPM 将配置文件、日志和数据目录放在 RPM 系统合适位置：
 
 
 [cols="<h,<,<m,<m",options="header",]
 |=======================================================================
 | Type | Description | Default Location | Setting
 | home
-  | Elasticsearch home directory or `$ES_HOME`
+  | Elasticsearch 根目录或 `$ES_HOME`
   | /usr/share/elasticsearch
  d|
 
 | bin
-  | Binary scripts including `elasticsearch` to start a node
-    and `elasticsearch-plugin` to install plugins
+  | 二进制脚本，包括启动节点的 `elasticsearch` 和安装插件的
+     `elasticsearch-plugin`
   | /usr/share/elasticsearch/bin
  d|
 
 | conf
-  | Configuration files including `elasticsearch.yml`
+  | 包含 `elasticsearch.yml` 的配置文件
   | /etc/elasticsearch
   | <<config-files-location,ES_PATH_CONF>>
 
 | conf
-  | Environment variables including heap size, file descriptors.
+  | 包含堆大小，文件描述符的环境变量。
   | /etc/sysconfig/elasticsearch
  d|
 
 | data
-  | The location of the data files of each index / shard allocated
-    on the node. Can hold multiple locations.
+  | 每个节点分配的 index / shard 数据文件。支持多路径。
   | /var/lib/elasticsearch
   | path.data
 
 | logs
-  | Log files location.
+  | Log 文件路径。
   | /var/log/elasticsearch
   | path.logs
 
 | plugins
-  | Plugin files location. Each plugin will be contained in a subdirectory.
+  | Plugin 文件路径。每个插件都包含在一个子目录中。
   | /usr/share/elasticsearch/plugins
   |
 
 | repo
-  | Shared file system repository locations. Can hold multiple locations. A file system repository can be placed in to any subdirectory of any directory specified here.
- d| Not configured
+  | 共享文件系统库路径。支持多路径。一个文件系统库可以在此处指定的任何目录的任何子目录中。
+ d| 未配置
   | path.repo
 
 |=======================================================================

@@ -1,392 +1,348 @@
 [[windows]]
-=== Install Elasticsearch with Windows MSI Installer
+=== 使用 Windows MSI Installer 安装 Elasticsearch
 
 beta[]
 
-Elasticsearch can be installed on Windows using the `.msi` package.  This can
-install Elasticsearch as a Windows service or allow it to be run manually using
-the included `elasticsearch.exe` executable.
+Windows 可用 `.msi` 包安装 Elasticsearch。可将 Elasticsearch 安装为 Windows 服务或以 `elasticsearch.exe` 手动执行。
 
-TIP: Elasticsearch has historically been installed on Windows using the <<zip-windows, .zip>> archive.
-You can continue using the `.zip` approach if you prefer.
+TIP: 可使用 <<zip-windows, .zip>> 在 Windows 上安装 Elasticsearch。如果你愿意，你可以继续使用 `.zip` 方法。
 
-The latest stable version of Elasticsearch can be found on the
-link:/downloads/elasticsearch[Download Elasticsearch] page.
-Other versions can be found on the
-link:/downloads/past-releases[Past Releases page].
+最新的稳定版本可以在
+link:/downloads/elasticsearch[Download Elasticsearch] 找到。
+其他版本可以在
+link:/downloads/past-releases[Past Releases page] 找到。
 
-NOTE: Elasticsearch requires Java 8 or later. Use the
+NOTE: Elasticsearch 最低要求 Java 8。使用
 http://www.oracle.com/technetwork/java/javase/downloads/index.html[official Oracle distribution]
-or an open-source distribution such as http://openjdk.java.net[OpenJDK].
+或者开源版本 http://openjdk.java.net[OpenJDK]。
 
 [[download-msi]]
-==== Download the `.msi` package
+==== 下载 `.msi` 包
 
 ifeval::["{release-state}"=="unreleased"]
 
-Version {version} of Elasticsearch has not yet been released.
+Elasticsearch Version {version} 暂未发布。
 
 endif::[]
 
 ifeval::["{release-state}"!="unreleased"]
 
-Download the `.msi` package for Elasticsearch v{version} from https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{version}.msi
+Elasticsearch v{version}  的 `.msi` 包可从此获取：https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{version}.msi
 
 endif::[]
 
 [[install-msi-gui]]
-==== Install using the graphical user interface (GUI)
+==== 使用图形用户界面进行安装 (GUI)
 
-Double-click the downloaded `.msi` package to launch a GUI wizard that will guide you through the 
-installation process. You can view help on any step by clicking the `?` button, which reveals an
-aside panel with additional information for each input:
+双击下载的 `.msi` 包启动 GUI 向导，该向导将指导你完成安装过程。你可以通过点击在面板上每个输入的附加 `？` 按钮来查看每步的帮助：
+
 
 [[msi-installer-help]]
 image::images/msi_installer/msi_installer_help.png[]
 
-Within the first screen, select the directory for the installation. In addition, select directories for where
-data, logs and configuration will reside or <<msi-command-line-options,roll with the default locations>>:
+在第屏中选择安装目录。 另外还可选择数据、日志和配置目录，或者<<msi-command-line-options,使用默认位置>>：
 
 [[msi-installer-locations]]
 image::images/msi_installer/msi_installer_locations.png[]
 
-Then select whether to install as a service or start Elasticsearch manually as needed. When
-installing as a service, you can also decide which account to run the service under as well
-as whether the service should be started after installation and when Windows is started or 
-restarted:
+接下来选择是作为服务安装还是根据需要手动启动 Elasticsearch。 服务安装时你还可以决定以哪个帐户运行服务和
+是否当 Windows 启动或重启时重启服务：
 
 [[msi-installer-service]]
 image::images/msi_installer/msi_installer_service.png[]
 
-IMPORTANT: When selecting an account to run the service with, be sure that the chosen account
-has sufficient privileges to access the installation and other deployment directories chosen.
+IMPORTANT: 当选择一个帐户运行服务时，请确保所选帐户具有足够的权限来访问选择的安装和其部署目录。
 
-Common configuration settings are exposed within the Configuration section, allowing the cluster
-name, node name and roles to be set, in addition to memory and network settings:
+通用配置设置是暴露在配置部分中，允许设置集群名称、节点名称和角色，以及内存和网络设置：
 
 [[msi-installer-configuration]]
 image::images/msi_installer/msi_installer_configuration.png[]
 
-A list of common plugins that can be downloaded and installed as
-part of the installation, with the option to configure a HTTPS proxy through which to download:
+可通过下载时 HTTPS 代理配置选项选择下载安装常用插件：
 
 [[msi-installer-selected-plugins]]
 image::images/msi_installer/msi_installer_selected_plugins.png[]
 
-Upon choosing to install X-Pack plugin, an additional step allows a choice of the type of X-Pack 
-license to install, in addition to X-Pack Security configuration and built-in user configuration:
+
+选择安装 X-Pack 插件后，可通过另一个步骤来选择 X-Pack 版本类型，X-Pack 安全配置和内置用户配置除外：
 
 [[msi-installer-xpack]]
 image::images/msi_installer/msi_installer_xpack.png[]
 
-NOTE: X-Pack includes a choice of a Trial or Basic license for 30 days. After that, you can obtain one of the 
-https://www.elastic.co/subscriptions[available subscriptions] or {ref}/security-settings.html[disable Security]. 
-The Basic license is free and includes the https://www.elastic.co/products/x-pack/monitoring[Monitoring] extension.
+NOTE: X-Pack 可选择试用 30 天 Trial 或 Basic 版本。30天之后你可选
+ https://www.elastic.co/subscriptions[available subscriptions] 或 {ref}/security-settings.html[disable Security] 之一。
+Basic 版本是免费的，并包括 https://www.elastic.co/products/x-pack/monitoring[Monitoring]。
 
-After clicking the install button, the installer will begin installation:
+点击安装按钮开始安装：
 
 [[msi-installer-installing]]
 image::images/msi_installer/msi_installer_installing.png[]
 
-and will indicate when it has been successfully installed:
+并会显示何时成功：
 
 [[msi-installer-success]]
 image::images/msi_installer/msi_installer_success.png[]
 
 [[install-msi-command-line]]
-==== Install using the command line
+==== 命令行安装
 
-The `.msi` can also install Elasticsearch using the command line. The simplest installation
-using the same defaults as the GUI is achieved by first navigating to the download directory,
-then running:
+`.msi` 可以使用命令行方式安装 Elasticsearch。使用与 GUI 相同的默认设置最简单的安装方式是首先导航到下载目录，然后运行：
 
 ["source","sh",subs="attributes,callouts"]
 --------------------------------------------
 msiexec.exe /i elasticsearch-{version}.msi /qn
 --------------------------------------------
 
-By default, msiexec does not wait for the installation process to complete, since it runs in the 
-Windows subsystem. To wait on the process to finish and ensure that `%ERRORLEVEL%` is set
-accordingly, it is recommended to use `start /wait` to create a process and wait for it to exit
+默认情况下，msiexec 不等待安装过程完成，因为它运行于 Windows 子系统。为了等待进程完成并保证 `%ERRORLEVEL%` 正确设置，
+建议使用 `start /wait` 创建一个进程并等待它退出。
 
 ["source","sh",subs="attributes,callouts"]
 --------------------------------------------
 start /wait msiexec.exe /i elasticsearch-{version}.msi /qn
 --------------------------------------------
 
-As with any MSI installation package, a log file for the installation process can be found 
-within the `%TEMP%` directory, with a randomly generated name adhering to the format 
-`MSI<random>.LOG`. The path to a log file can be supplied using the `/l` command line argument
+与任何 MSI 安装包一样，可以在 `%TEMP%` 目录找到安装过程的日志文件，该文件是一个随机生成的 `MSI<random>.LOG` 格式名称。
+可以使用 `/l` 命令参数提供日志文件的路径。
 
 ["source","sh",subs="attributes,callouts"]
 --------------------------------------------
 start /wait msiexec.exe /i elasticsearch-{version}.msi /qn /l install.log
 --------------------------------------------
 
-Supported Windows Installer command line arguments can be viewed using
+支持的 Windows 命令行参数可用以下方式查看：
 
 ["source","sh",subs="attributes,callouts"]
 --------------------------------------------
 msiexec.exe /help
 --------------------------------------------
 
-or by consulting the https://msdn.microsoft.com/en-us/library/windows/desktop/aa367988(v=vs.85).aspx[Windows Installer SDK Command-Line Options].
+或者参考 https://msdn.microsoft.com/en-us/library/windows/desktop/aa367988(v=vs.85).aspx[Windows Installer SDK Command-Line Options]。
 
 [[msi-command-line-options]]
-==== Command line options
+==== 命令行选项
 
-All settings exposed within the GUI are also available as command line arguments (referred to
-as _properties_ within Windows Installer documentation) that can be passed to msiexec:
+在 GUI 中公开的所有设置都可作为命令行参数使用（参考
+作为 Windows 安装文档中的 _properties_）可以传递给 msiexec：
 
 [horizontal]
-`INSTALLDIR`:: 
+`INSTALLDIR`::
 
-  The installation directory. The final directory in the path **must** 
-  be the version of Elasticsearch.
-  Defaults to ++%ProgramW6432%\Elastic\Elasticsearch{backslash}{version}++.
+  安装目录。路径最终目录 **必须** 是 Elasticsearch 版本。
+  默认 ++%ProgramW6432%\Elastic\Elasticsearch{backslash}{version}++.
 
-`DATADIRECTORY`:: 
+`DATADIRECTORY`::
 
-  The directory in which to store your data. 
-  Defaults to `%ALLUSERSPROFILE%\Elastic\Elasticsearch\data`
+  数据存放目录。
+  默认 `%ALLUSERSPROFILE%\Elastic\Elasticsearch\data`
 
-`CONFIGDIRECTORY`:: 
+`CONFIGDIRECTORY`::
 
-  The directory in which to store your configuration. 
-  Defaults to `%ALLUSERSPROFILE%\Elastic\Elasticsearch\config`
+  配置存放目录。
+  默认 `%ALLUSERSPROFILE%\Elastic\Elasticsearch\config`
 
-`LOGSDIRECTORY`:: 
+`LOGSDIRECTORY`::
 
-  The directory in which to store your logs. 
-  Defaults to `%ALLUSERSPROFILE%\Elastic\Elasticsearch\logs`
+  日志存放目录。
+  默认 `%ALLUSERSPROFILE%\Elastic\Elasticsearch\logs`
 
-`PLACEWRITABLELOCATIONSINSAMEPATH`:: 
+`PLACEWRITABLELOCATIONSINSAMEPATH`::
 
-  Whether the data, configuration and logs directories
-  should be created under the installation directory. Defaults to `false`
+  数据、配置和日志目录是否在安装目录下创建。默认为 `false`
 
-`INSTALLASSERVICE`:: 
+`INSTALLASSERVICE`::
 
-  Whether Elasticsearch is installed and configured as a Windows Service. 
-  Defaults to `true`
+  Elasticsearch 是否安装配置为 Windows 服务。
+  默认为 `true`
 
-`STARTAFTERINSTALL`:: 
+`STARTAFTERINSTALL`::
 
-  Whether the Windows Service is started after installation finishes. 
-  Defaults to `true`
+  安装后是否启动 Windows 服务。
+  默认为 `true`
 
-`STARTWHENWINDOWSSTARTS`:: 
+`STARTWHENWINDOWSSTARTS`::
 
-  Whether the Windows Service is started when Windows is started. 
-  Defaults to `true`
+  Windows 启动时是否启动 Elasticsearch Windows 服务。
+  默认为 `true`
 
-`USELOCALSYSTEM`:: 
+`USELOCALSYSTEM`::
 
-  Whether the Windows service runs under the LocalSystem Account. 
-  Defaults to `true`
+  是否在 LocalSystem  帐户下运行 Elasticsearch Windows 服务。
+  默认为 `true`
 
-`USENETWORKSERVICE`:: 
+`USENETWORKSERVICE`::
 
-  Whether the Windows service runs under the NetworkService Account. Defaults
-  to `false`
+  是否在 NetworkService 帐户下运行 Elasticsearch Windows 服务。默认为 `false`
 
-`USEEXISTINGUSER`:: 
+`USEEXISTINGUSER`::
 
-  Whether the Windows service runs under a specified existing account. Defaults
-  to `false`
+  是否在指定已存在帐户下运行 Elasticsearch Windows 服务。默认为 `false`
 
-`USER`:: 
+`USER`::
 
-  The username for the account under which the Windows service runs. Defaults to `""`
+  用于运行 Windows 服务帐户用户名。默认为 `""`
 
-`PASSWORD`:: 
+`PASSWORD`::
 
-  The password for the account under which the Windows service runs. Defaults to `""`
+  用于运行 Windows 服务帐户用户密码。默认为 `""`
 
-`CLUSTERNAME`:: 
+`CLUSTERNAME`::
 
-  The name of the cluster. Defaults to `elasticsearch`
+  集群名。默认为 `elasticsearch`
 
-`NODENAME`:: 
+`NODENAME`::
 
-  The name of the node. Defaults to `%COMPUTERNAME%`
+  节点名。默认为 `%COMPUTERNAME%`
 
-`MASTERNODE`:: 
+`MASTERNODE`::
 
-  Whether Elasticsearch is configured as a master node. Defaults to `true`
+  Elasticsearch 是否配置为主节点。默认为 `true`
 
-`DATANODE`:: 
+`DATANODE`::
 
-  Whether Elasticsearch is configured as a data node. Defaults to `true`
+  Elasticsearch 是否配置为数据节点。默认为 `true`
 
-`INGESTNODE`:: 
+`INGESTNODE`::
 
-  Whether Elasticsearch is configured as an ingest node. Defaults to `true`
+  Elasticsearch 是否配置为摄取节点。默认为 `true`
 
-`SELECTEDMEMORY`:: 
+`SELECTEDMEMORY`::
 
-  The amount of memory to allocate to the JVM heap for Elasticsearch. 
-  Defaults to `2048` unless the target machine has less than 4GB in total, in which case 
-  it defaults to 50% of total memory.
+  为 Elasticsearch 分配的 JVM 堆内存大小。默认是 `2048` ，如果机器内存小于 4GB 则为总内存的 50%。
 
-`LOCKMEMORY`:: 
+`LOCKMEMORY`::
 
-  Whether `bootstrap.memory_lock` should be used to try to lock the process
-  address space into RAM. Defaults to `false`
+  是否应用 `bootstrap.memory_lock` 锁定进程地址空间到 RAM 中。默认为 `false`
 
-`UNICASTNODES`:: 
+`UNICASTNODES`::
 
-  A comma separated list of hosts in the form `host:port` or `host` to be used for
-  unicast discovery. Defaults to `""`
+  用于单播发现的主机列表，在 `host:port` 或 `host` 中以逗号分隔。默认为 `""`
 
-`MINIMUMMASTERNODES`:: 
 
-  The minimum number of master-eligible nodes that must be visible 
-  in order to form a cluster. Defaults to `""`
+`MINIMUMMASTERNODES`::
 
-`NETWORKHOST`:: 
+  形成集群的最小主选举节点数。默认为 `""`
 
-  The hostname or IP address to bind the node to and _publish_ (advertise) this 
-  host to other nodes in the cluster. Defaults to `""`
+`NETWORKHOST`::
 
-`HTTPPORT`:: 
+  将节点绑定到集群中的其他节点并 _publish_ （advertise） 的主机名或 IP 地址。默认为 `""`
 
-  The port to use for exposing Elasticsearch APIs over HTTP. Defaults to `9200`
+`HTTPPORT`::
 
-`TRANSPORTPORT`:: 
+  在 HTTP 上暴露 APIs 的端口。默认为 `9200`
 
-  The port to use for internal communication between nodes within the cluster. 
-  Defaults to `9300`
+`TRANSPORTPORT`::
 
-`PLUGINS`:: 
+  集群内部节点之间的通信端口。默认为 `9300`
 
-  A comma separated list of the plugins to download and install as part of the installation. Defaults to `""`
+`PLUGINS`::
+
+  逗号分隔的插件列表，作为安装的一部分下载和安装。默认为 `""`
 
 `HTTPSPROXYHOST`::
 
-  The proxy host to use to download plugins over HTTPS. Defaults to `""`
+  通过 HTTPS 下载插件的代理主机。默认为 `""`
 
 `HTTPSPROXYPORT`::
 
-  The proxy port to use to download plugins over HTTPS. Defaults to `443`
+  通过 HTTPS 下载插件的代理端口。默认为 `443`
 
 `HTTPPROXYHOST`::
 
-  The proxy host to use to download plugins over HTTP. Defaults to `""`
+  通过 HTTP 下载插件的代理主机。默认为 `""`
 
 `HTTPPROXYPORT`::
 
-  The proxy port to use to download plugins over HTTP. Defaults to `80`
+  通过 HTTP 下载插件的代理端口。默认为 `80`
 
 `XPACKLICENSE`::
 
-  When installing X-Pack plugin, the type of license to install,
-  either `Basic` or `Trial`. Defaults to `Basic`
+  下载 X-Pack 插件时的 `Basic` 或 `Trial` 版本类型，默认为 `Basic`
 
 `XPACKSECURITYENABLED`::
 
-  When installing X-Pack plugin with a `Trial` license, whether X-Pack Security should be enabled.
-  Defaults to `true`
+  下载 `Trial` 版本时是否允许 X-Pack Security。默认为 `true`
 
 `BOOTSTRAPPASSWORD`::
 
-  When installing X-Pack plugin with a `Trial` license and X-Pack Security enabled, the password to
-  used to bootstrap the cluster and persisted as the `bootstrap.password` setting in the keystore.
-  Defaults to a randomized value.
+  当安装允许 X-Pack Security 的 `Trial` 版本时，用于引导集群的密钥并持久化为 `bootstrap.password` 。默认为随机值。
 
-`SKIPSETTINGPASSWORDS`:: 
+`SKIPSETTINGPASSWORDS`::
 
-  When installing X-Pack plugin with a `Trial` license and X-Pack Security enabled, whether the
-  installation should skip setting up the built-in users `elastic`, `kibana` and `logstash_system`.
-  Defaults to `false`
+  当安装允许 X-Pack Security 的 `Trial` 版本时，安装时是否跳过设置内置用户 `elastic` 、 `kibana` 和 `logstash_system` 。默认为 `false` 。
 
 `ELASTICUSERPASSWORD`::
 
-  When installing X-Pack plugin with a `Trial` license and X-Pack Security enabled, the password
-  to use for the built-in user `elastic`. Defaults to `""`
+  当安装允许 X-Pack Security 的 `Trial` 版本时， 内置用户 `elastic` 的密码，默认为 `""`
 
 `KIBANAUSERPASSWORD`::
 
-  When installing X-Pack plugin with a `Trial` license and X-Pack Security enabled, the password
-  to use for the built-in user `kibana`. Defaults to `""`
+  当安装允许 X-Pack Security 的 `Trial` 版本时， 内置用户 `kibana` 的密码，默认为 `""`
 
 `LOGSTASHSYSTEMUSERPASSWORD`::
 
-  When installing X-Pack plugin with a `Trial` license and X-Pack Security enabled, the password
-  to use for the built-in user `logstash_system`. Defaults to `""`  
+  当安装允许 X-Pack Security 的 `Trial` 版本时， 内置用户 `logstash_system` 的密码，默认为 `""`
 
-To pass a value, simply append the property name and value using the format `<PROPERTYNAME>="<VALUE>"` to
-the installation command. For example, to use a different installation directory to the default one and to install https://www.elastic.co/products/x-pack[X-Pack]:
+为了传递一个值，只需在安装命令后附加 `<PROPERTYNAME>="<VALUE>"` 属性名和值。例如，使用与默认目录不同的目录安装 https://www.elastic.co/products/x-pack[X-Pack]：
 
 ["source","sh",subs="attributes,callouts"]
 --------------------------------------------
 start /wait msiexec.exe /i elasticsearch-{version}.msi /qn INSTALLDIR="C:\Custom Install Directory" PLUGINS="x-pack"
 --------------------------------------------
 
-Consult the https://msdn.microsoft.com/en-us/library/windows/desktop/aa367988(v=vs.85).aspx[Windows Installer SDK Command-Line Options]
-for additional rules related to values containing quotation marks. 
+更多附加引导规则请参考 https://msdn.microsoft.com/en-us/library/windows/desktop/aa367988(v=vs.85).aspx[Windows Installer SDK Command-Line Options]。
 
 [[msi-installer-command-line-running]]
-==== Running Elasticsearch from the command line
+==== 命令行运行 Elasticsearch
 
-Once installed, Elasticsearch can be started from the command line, if not installed as a service
-and configured to start when installation completes, as follows:
+一旦安装完成，如果没有将 Elasticsearch 安装为服务或配置安装完成时启动，则可用命令行启动，命令如下：
 
 ["source","sh",subs="attributes,callouts"]
 --------------------------------------------
 .\bin\elasticsearch.exe
 --------------------------------------------
 
-The command line terminal will display output similar to the following:
+命令行终端内容类似如下展示：
 
 [[msi-installer-elasticsearch-exe]]
 image::images/msi_installer/elasticsearch_exe.png[]
 
-By default, Elasticsearch runs in the foreground, prints its logs to `STDOUT` in addition
-to the `<cluster name>.log` file within `LOGSDIRECTORY`, and can be stopped by pressing `Ctrl-C`.
+默认情况，Elasticsearch 是前台运行的，将日志打印到 `STDOUT` ，`<cluster name>.log` 文件内的 `LOGSDIRECTORY` 除外，并且可以通过 `Ctrl-C`停止。
 
 [[msi-installer-command-line-configuration]]
-==== Configuring Elasticsearch on the command line
+==== 命令行配置 Elasticsearch
 
-Elasticsearch loads its configuration from the `%ES_PATH_CONF%\elasticsearch.yml`
-file by default.  The format of this config file is explained in
-<<settings>>.
+Elasticsearch默认从 `$ES_HOME/config/elasticsearch.yml` 加载配置。配置的具体解释见 <<settings>>。
 
-Any settings that can be specified in the config file can also be specified on
-the command line, using the `-E` syntax as follows:
+任何可在配置文件中指定的设置都可在命令行指定，使用 `-E` 语法如下：
 
 ["source","sh",subs="attributes,callouts"]
 --------------------------------------------
 .\bin\elasticsearch.exe -E cluster.name=my_cluster -E node.name=node_1
 --------------------------------------------
 
-NOTE: Values that contain spaces must be surrounded with quotes.  For instance `-E path.logs="C:\My Logs\logs"`.
+NOTE: 包含空格的值必须用引号括起来。例如 `-Epath.logs="C:\My Logs\logs"` 。
 
-TIP: Typically, any cluster-wide settings (like `cluster.name`) should be
-added to the `elasticsearch.yml` config file, while any node-specific settings
-such as `node.name` could be specified on the command line.
+TIP: 通常情况，任何集群级的设置（例如 `cluster.name`）应该在 `elasticsearch.yml` 添加，而类似 `node.name` 节点级的设置可以用命令行指定。
 
 include::check-running.asciidoc[]
 
 [[msi-installer-windows-service]]
-==== Installing Elasticsearch as a Service on Windows
+==== 安装 Elasticsearch 作为 Windows 服务
 
-Elasticsearch can be installed as a service to run in the background or start
-automatically at boot time without any user interaction. This can be achieved upon installation
-using the following command line options
- 
-* `INSTALLASSERVICE=true` 
-* `STARTAFTERINSTALL=true` 
-* `STARTWHENWINDOWSSTARTS=true` 
+Elasticsearch 可作为后台服务运行而无需与用户交互。这可以在安装过程中使用以下命令行选项实现
 
-Once installed, Elasticsearch will appear within the Services control panel:
+* `INSTALLASSERVICE=true`
+* `STARTAFTERINSTALL=true`
+* `STARTWHENWINDOWSSTARTS=true`
+
+一旦安装完成，Elasticsearch 将出现在服务控制面板中：
 
 [[msi-installer-installed-service]]
 image::images/msi_installer/msi_installer_installed_service.png[]
 
-and can be stopped and restarted from within the control panel, or from the command line using:
+并可在控制面板中停止和重启，或者使用命令行：
 
-with Command Prompt:
+命令提示符方式:
 
 [source,sh]
 --------------------------------------------
@@ -394,72 +350,61 @@ sc.exe stop Elasticsearch
 sc.exe start Elasticsearch
 --------------------------------------------
 
-with PowerShell:
+PowerShell 方式:
 
 [source,powershell]
 --------------------------------------------
 Get-Service Elasticsearch | Stop-Service | Start-Service
 --------------------------------------------
 
-Changes can be made to jvm.options and elasticsearch.yml configuration files to configure the 
-service after installation. Most changes (like JVM settings) will require a restart of the 
-service in order to take effect.
+安装完成后可对 jvm.options 和 elasticsearch.yml 大多数更改（例如 JVM 设置）将的配置需要重启服务才能生效。
 
 [[upgrade-msi-gui]]
-==== Upgrade using the graphical user interface (GUI)
+==== 图形用户界面进行升级 (GUI)
 
-The `.msi` package supports upgrading an installed version of Elasticsearch to a newer 
-version of Elasticsearch. The upgrade process through the GUI handles upgrading all 
-installed plugins as well as retaining both your data and configuration.
+`.msi` 包支持将已安装的 Elasticsearch 版本升级到更新版本。通过 GUI 升级过程将升级
+安装所有插件，同时保留你的数据和配置。
 
-Downloading and clicking on a newer version of the `.msi` package will launch the GUI wizard. 
-The first step will list the read only properties from the previous installation:
+下载并点击更新的版本的 `.msi` 包将启动 GUI 向导。第一步将从已安装版本列出只读属性:
 
 [[msi-installer-upgrade-notice]]
 image::images/msi_installer/msi_installer_upgrade_notice.png[]
 
-The following configuration step allows certain configuration options to be changed:
+下面的配置步骤允许更改某些配置选项：
 
 [[msi-installer-upgrade-configuration]]
 image::images/msi_installer/msi_installer_upgrade_configuration.png[]
 
-Finally, the plugins step allows currently installed plugins to be upgraded or removed, and 
-for plugins not currently installed, to be downloaded and installed:
+最后，插件步骤允许升级或删除当前安装的插件，对于未安装的插件则要下载安装：
 
 [[msi-installer-upgrade-plugins]]
 image::images/msi_installer/msi_installer_upgrade_plugins.png[]
 
 [[upgrade-msi-command-line]]
-==== Upgrade using the command line
+==== 命令行升级
 
-The `.msi` can also upgrade Elasticsearch using the command line. 
+`.msi` 支持使用命令行升级 Elasticsearch 版本。
 
 [IMPORTANT]
 ===========================================
-A command line upgrade requires passing the **same** command line properties as
-used at first install time; the Windows Installer does not remember these properties. 
+命令行升级需要传递首次安装时 **相同** 的命令行属性；Windows 安装程序并不记录这些属性。
 
-For example, if you originally installed with the command line options `PLUGINS="x-pack"` and
-`LOCKMEMORY="true"`, then you must pass these same values when performing an
-upgrade from the command line.
+例如，你最初以 `PLUGINS="x-pack"` 和 `LOCKMEMORY="true"` 安装，那你必须在执行升级命令行时传递相同值：
 
-The **exception** to this is `INSTALLDIR` (if originally specified), which must be a different directory to the 
-current installation. 
-If setting `INSTALLDIR`, the final directory in the path **must** be the version of Elasticsearch e.g.
+`INSTALLDIR` 是一个 **例外**（如果最初指定的话），它必须与当前安装目录不同。
+如果设置 `INSTALLDIR` ，路径中的最终目录 **必须** 是 Elasticsearch 版本。
 
 ++C:\Program Files\Elastic\Elasticsearch{backslash}{version}++
 ===========================================
 
-The simplest upgrade, assuming Elasticsearch was installed using all defaults, 
-is achieved by first navigating to the download directory, then running:
+最简单的升级，假设 Elasticsearch 是在下载目录以默认方式安装的，那么运行：
 
 ["source","sh",subs="attributes,callouts"]
 --------------------------------------------
 start /wait msiexec.exe /i elasticsearch-{version}.msi /qn
 --------------------------------------------
 
-Similar to the install process, a path to a log file for the upgrade process can
-be passed using the `/l` command line argument
+与安装过程类似，升级日志文件路径可使用 `/l` 命令行参数传递
 
 ["source","sh",subs="attributes,callouts"]
 --------------------------------------------
@@ -467,38 +412,33 @@ start /wait msiexec.exe /i elasticsearch-{version}.msi /qn /l upgrade.log
 --------------------------------------------
 
 [[uninstall-msi-gui]]
-==== Uninstall using Add/Remove Programs
+==== Add/Remove 卸载
 
-The `.msi` package handles uninstallation of all directories and files added as part of installation.
+`.msi` 包可执行安装时添加的所有目录和文件的卸载。
 
-WARNING: Uninstallation will remove **all** directories and their contents created as part of 
-installation, **including data within the data directory**. If you wish to retain your data upon
-uninstallation, it is recommended that you make a copy of the data directory before uninstallation.
+卸载将删除 **所有**  目录和它们的安装内容，**包括数据目录中的数据**。如果你想在卸载时保留你的数据
+，建议你在卸载之前复制数据目录。
 
-MSI installer packages do not provide a GUI for uninstallation. An installed program can be uninstalled
-by pressing the Windows key and typing `add or remove programs` to open the system settings.
+MSI 安装包不提供卸载 GUI。通过按下 Windows 键并键入 `add or remove programs` 打开系统设置卸载已安装程序。
 
-Once opened, find the Elasticsearch installation within the list of installed applications, click
-and choose `Uninstall`:
+一旦打开，在已安装的应用程序列表中找到 Elasticsearch，单击并选择 `Uninstall` ：
 
 [[msi-installer-uninstall]]
 image::images/msi_installer/msi_installer_uninstall.png[]
 
-This will launch the uninstallation process.
+这将启动卸载程序。
 
 [[uninstall-msi-command-line]]
-==== Uninstall using the command line
+==== 命令行卸载
 
-Uninstallation can also be performed from the command line by navigating to the directory
-containing the `.msi` package and running:
+导航到 `.msi` 目录也可用命令行执行卸载，运行:
 
 ["source","sh",subs="attributes,callouts"]
 --------------------------------------------
 start /wait msiexec.exe /x elasticsearch-{version}.msi /qn
 --------------------------------------------
 
-Similar to the install process, a path to a log file for the uninstallation process can
-be passed using the `/l` command line argument
+与安装过程类似，卸载日志文件路径可使用 `/l` 命令行参数传递
 
 ["source","sh",subs="attributes,callouts"]
 --------------------------------------------

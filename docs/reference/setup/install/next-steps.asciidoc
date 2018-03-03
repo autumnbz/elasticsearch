@@ -1,11 +1,9 @@
 [role="exclude"]
-==== Next steps
+==== 下一步
 
-You now have a test Elasticsearch environment set up.  Before you start
-serious development or go into production with Elasticsearch, you will need to
-do some additional setup:
+你现在已经设置了一个 Elasticsearch 测试环境。在你开始用 Elasticsearch 进行严肃的开发或生产阶段，你将需要
+做一些额外的设置：
 
-* Learn how to <<settings,configure Elasticsearch>>.
-* Configure <<important-settings,important Elasticsearch settings>>.
-* Configure <<system-config,important system settings>>.
-
+* 学习如何 <<settings,配置 Elasticsearch>>.
+* 配置 <<important-settings,重要 Elasticsearch 设置>>.
+* 配置 <<system-config,重要系统设置>>.

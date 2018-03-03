@@ -1,54 +1,47 @@
 [[install-elasticsearch]]
-== Installing Elasticsearch
+== 安装 Elasticsearch
 
-Elasticsearch is provided in the following package formats:
+Elasticsearch 提供以下安装包格式：
 
 [horizontal]
 `zip`/`tar.gz`::
 
-The `zip` and `tar.gz` packages are suitable for installation on any system
-and are the easiest choice for getting started with Elasticsearch on most systems.
+`zip` 和 `tar.gz` 包适合在任何操作系统上安装，同时也是大多数系统入门 Elasticsearch 的最简单选择。
 +
-<<zip-targz>> or <<zip-windows>>
+<<zip-targz>> 或者 <<zip-windows>>
 
 `deb`::
 
-The `deb` package is suitable for Debian, Ubuntu, and other Debian-based
-systems.  Debian packages may be downloaded from the Elasticsearch website or
-from our Debian repository.
+`deb` 包适用于 Debian、Ubuntu 和其他 Debian-based 系统。Debian 包可从 Elasticsearch 官网和 Debian 库下载。
 +
 <<deb>>
 
 `rpm`::
 
-The `rpm` package is suitable for installation on Red Hat, Centos, SLES,
-OpenSuSE and other RPM-based systems.  RPMs may be downloaded from the
-Elasticsearch website or from our RPM repository.
+`rpm` 包适用于 Red Hat、Centos、SLES、
+OpenSuSE 和其他 RPM-based 系统。RPMs 可以从 Elasticsearch 官网和 RPM 库下载。
 +
 <<rpm>>
 
 `msi`::
 
-The `msi` package is suitable for installation on Windows 64-bit systems with at least
-.NET 4.5 framework installed, and is the easiest choice for getting started with
-Elasticsearch on Windows. MSIs may be downloaded from the Elasticsearch website.
+`msi` 包适用于最低安装了.NET 4.5 framework 的 Windows 64-bit 操作系统，同时也是 Windows
+入门 Elasticsearch 的最简单选择。MSIs 同样可以从 Elasticsearch 官网下载。
 +
 <<windows>>
 
 `docker`::
 
-Images are available for running Elasticsearch as Docker containers. They may be
-downloaded from the Elastic Docker Registry. The default image ships with
-{xpack-ref}/index.html[X-Pack] pre-installed.
+Docker 容器运行 Elasticsearch 的镜像可从 Elastic Docker 注册处下载。默认镜像预安装了
+{xpack-ref}/index.html[X-Pack]。
 +
 {ref}/docker.html[Install {es} with Docker]
 
 [float]
 [[config-mgmt-tools]]
-=== Configuration Management Tools
+=== 配置管理工具
 
-We also provide the following configuration management tools to help with
-large deployments:
+我们提供以下配置管理工具来帮助大型部署：
 
 [horizontal]
 Puppet:: https://github.com/elastic/puppet-elasticsearch[puppet-elasticsearch]

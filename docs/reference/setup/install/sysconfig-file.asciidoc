@@ -1,40 +1,31 @@
 [horizontal]
 `JAVA_HOME`::
 
-  Set a custom Java path to be used.
+  自定义 Java 路径
 
 `MAX_OPEN_FILES`::
 
-    Maximum number of open files, defaults to `65536`.
+    最大打开文件数，默认是 `65536`。
 
 `MAX_LOCKED_MEMORY`::
 
-    Maximum locked memory size. Set to `unlimited` if you use the
-    `bootstrap.memory_lock` option in elasticsearch.yml.
+    最大锁定内存大小。如果使用 elasticsearch.yml 使用 `bootstrap.memory_lock` 则设置为 `unlimited`。
 
 `MAX_MAP_COUNT`::
 
-    Maximum number of memory map areas a process may have. If you use `mmapfs`
-    as index store type, make sure this is set to a high value. For more
-    information, check the
-    https://github.com/torvalds/linux/blob/master/Documentation/sysctl/vm.txt[linux kernel documentation]
-    about `max_map_count`. This is set via `sysctl` before starting
-    Elasticsearch. Defaults to `262144`.
+    进程拥有的最大内存映射区数量。 如果你使用 `mmapfs` 作为索引存储类型，请确保将其设置为较高值。
+    更多细节请查看 https://github.com/torvalds/linux/blob/master/Documentation/sysctl/vm.txt[linux kernel documentation] 关于 `max_map_count` 介绍。
+    在启动 Elasticsearch 通过 `sysctl`设置，默认为 `262144`。
 
 `ES_PATH_CONF`::
 
-    Configuration file directory (which needs to include `elasticsearch.yml`,
-    `jvm.options`, and `log4j2.properties` files); defaults to
-    `/etc/elasticsearch`.
+    配置文件目录（需要包括 `elasticsearch.yml`，`jvm.options`， 和 `log4j2.properties` 文件），默认 `/etc/elasticsearch`。
 
 `ES_JAVA_OPTS`::
 
-    Any additional JVM system properties you may want to apply.
+    任意你需要使用的 JVM 系统参数。
 
 `RESTART_ON_UPGRADE`::
 
-    Configure restart on package upgrade, defaults to `false`. This means you
-    will have to restart your Elasticsearch instance after installing a
-    package manually. The reason for this is to ensure, that upgrades in a
-    cluster do not result in a continuous shard reallocation resulting in high
-    network traffic and reducing the response times of your cluster.
+    配置软件包升级重启，默认为 `false`。 这意味着你在手动安装完成后必须重新启动 Elasticsearch 实例。这是为了确保升级
+    在集群中不会因连续的碎片重分配导致的高网络流量降低集群的响应时间。
