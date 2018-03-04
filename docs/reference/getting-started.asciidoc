@@ -4,20 +4,20 @@
 [partintro]
 --
 
-Elasticsearch 是一个高度可扩展的开源全文搜索和分析引擎。它具有存储、搜索以及快速近实时分析海量数据的功能，并通常为具有复杂搜索特性和需求的应用提供底层 引擎/计算。
+Elasticsearch 是一个高度可扩展的开源全文搜索和分析引擎。它具有存储、搜索以及快速近实时分析海量数据的功能，通常为具有复杂搜索特性和需求的应用提供底层 引擎/技术。
 下面是 Elasticsearch 的几个使用用例:
 
 * 你正在经营一家支持客户搜索在售商品的网上商店。在这种场景下，你可以使用 Elasticsearch 存储所有的产品目录和库存，并提供搜索和自动补全的功能。
-* 你想收集日志和事务数据并分析和挖掘这些数据，以便于查找趋势、统计信息、汇总信息或者异常情形。在这种场景下，你可以使用 Logstash(Elasticsearch/Logstash/Kibana 栈的一部分) 来收集、聚合和解析数据，然后通过 Logstash 将这些数据存入 Elasticsearch。一旦这些数据存在 Elasticsearch 中，你就可以使用搜索和聚合方法来挖掘你感兴趣的信息。
-* 你运转一个为某些精明的客户指定一条类似 “我对购买一个特定的电子产品感兴趣，如果下个月任何供应商的报价低于 $X 则通知我” 的价格提醒平台。在这种场景下，你可以收集供应商价格并将这些价格推送到 Elasticsearch,然后使用反向搜索(过滤)功能来匹配客户查询的价格变动，并在找到满足匹配条件情形下给客户提醒。
-* 你有分析/商业智能需求，并希望快速调查、分析、可视化以及基于海量数据（比如数百万或数十亿的记录）的问题咨询。在这种场景下,你可以使用 Elasticsearch 存储你的数据,然后使用 Kibana(Elasticsearch/Logstash/Kibana 栈的一部分)来构建自定义仪表板以呈现对你很重要的可视化数据。此外，你可以使用 Elasticsearch 聚合功能来对数据执行复杂的商业智能查询。
+* 你想收集日志和事务数据并分析和挖掘这些数据，以便于查找趋势、统计信息、汇总信息或者异常情形。在这种场景下，你可以使用 Logstash（Elasticsearch/Logstash/Kibana 栈的一部分）来收集、聚合和解析数据，然后通过 Logstash 将这些数据存入 Elasticsearch。一旦这些数据存在 Elasticsearch 中，你就可以使用搜索和聚合方法来挖掘你感兴趣的信息。
+* 你运转一个为某些精明的客户指定一条类似 “我对购买一个特定的电子产品感兴趣，如果下个月任何供应商的报价低于 $X 则通知我” 的价格提醒平台。在这种场景下，你可以收集供应商价格并将这些价格推送到 Elasticsearch，然后使用反向搜索(过滤)功能来匹配客户查询的价格变动，并在找到满足匹配条件情形下给客户提醒。
+* 你有分析/商业智能需求，并希望快速调查、分析、可视化以及基于海量数据（比如数百万或数十亿的记录）的问题咨询。在这种场景下，你可以使用 Elasticsearch 存储你的数据，然后使用 Kibana（Elasticsearch/Logstash/Kibana 栈的一部分）来构建自定义仪表板以呈现对你很重要的可视化数据。此外，你可以使用 Elasticsearch 聚合功能来对数据执行复杂的商业智能查询。
 
-在本教程的剩余部分中将指导你开始使用、运行、深入了解 Elasticsearch，以及执行如索引、搜索、和修改数据等基本操作。在本教程的最后，你应该会很好地了解Elasticsearch是什么，以及它是如何工作的，并希望从中可以收获启发以便利用它来构建复杂的搜索应用程序，或者从你的数据中挖掘情报。
+在本教程的剩余部分中将指导你开始使用、运行、深入了解 Elasticsearch，以及执行如索引、搜索、和修改数据等基本操作。在本教程的最后，你应该会很好地了解 Elasticsearch 是什么，以及它是如何工作的，并希望从中可以收获启发以便利用它来构建复杂的搜索应用程序，或者从你的数据中挖掘情报。
 --
 
 == 基本概念
 
-以下是一些关于 Elasticsearch 的核心概念。理解这些概念可以极大的简化学习过程。
+以下是一些关于 Elasticsearch 的核心概念。理解这些概念可以极大地简化学习过程。
 
 [float]
 === 近实时 (NRT)
@@ -31,13 +31,13 @@ Elasticsearch 是一个近实时搜索平台。这意味着从索引文档到文
 
 在不同的环境中请确保不要使用相同的集群名，否则可能导致节点加入错误的集群。例如，你可以使用 `logging-dev` 、`logging-stage` 、`logging-prod` 来标识开发集群、展示集群、生产集群。
 
-注意只有一个节点的集群是完全合适和合理的。此外，你也可以有多个唯一名称标识的独立集群。
+注意，只有一个节点的集群是合理和完全可行的。此外，你也可以使用多个独立集群，每个集群都有唯一的集群名称。
 
 [float]
 === 节点
 
 节点是集群中具有存储数据及参与集群索引、搜索功能的一台服务器。和集群类似，一个节点由一个名称标识，默认情况下该名称是在启动时分配的一个随机通用唯一识别码（UUID）。
-如果你不想要默认名称可以自定义。节点名称在管理和确认网络中哪些服务器在 Elasticsearch 集群的作用十分重要。
+你如果不想要默认名称，可以自定义。为了在管理中确认网络中的服务器对应 Elasticsearch 集群中的哪些节点，节点名称是十分重要的。
 
 节点可以配置成按集群名称加入特定集群。默认情况下，每个节点设置成加入名为 `elasticsearch` 的集群，这意味着一旦你启动了网络中的多个节点，且假设这些节点可以相互发现，那么这些节点将自动组成一个名为 `elasticsearch` 的集群。
 
@@ -62,7 +62,7 @@ deprecated[6.0.0,参考 <<removal-of-types>>]
 
 文档是可被索引的基本单元。例如你可以使用三条文档分别存储单个客户、单个产品以及单个订单。文档是由互联网中常见的数据交换格式 http://json.org/[JSON] (JavaScript Object Notation) 呈现的。
 
-在索引/类型中可以存储任意多的文档。需要注意的是尽管文档表面上是存储在索引中，但实际上文档必须被 索引/分配 给索引内的类型。
+在 索引/类型 中可以存储任意多的文档。需要注意的是尽管文档表面上是存储在索引中，但实际上文档必须被 索引/分配 给索引内的类型。
 
 [[getting-started-shards-and-replicas]]
 [float]
@@ -74,8 +74,8 @@ deprecated[6.0.0,参考 <<removal-of-types>>]
 
 分片如此重要主要有两个原因：
 
-* 它允许水平 划分/缩放 你的内容。
-* 它允许你跨分片（可能在多个节点上）进行分发和并行操作以提升 性能/吞吐量。
+* 它允许水平 分割/扩展 你的内容。
+* 它允许你跨分片（可能在多个节点上）进行分布式和并行操作以提升 性能/吞吐量。
 
 
 分片分发和文档搜索时聚合的机制是完全由 Elasticsearch 管理的，且对用户来说是透明的。
@@ -90,7 +90,7 @@ deprecated[6.0.0,参考 <<removal-of-types>>]
 
 总之，每个索引可以分为多个分片。一个索引可以有 0 个（意味着没有副本）或者多个副本。一旦设置了副本，每个索引都将有主分片（原始分片）和副分片（主分片的拷贝）。分片和副本数在创建索引时定义，创建索引之后，你可以随时动态改变副本数，但是不能随意改变分片数。
 
-默认情况下，Elasticsearch 中的每个索引由 5 个主分片和 1 个副本组成，这意味着你的集群至少需要两个节点，索引将包含 5 个主分片和 5 个副本（1个完整副本），总共10个分片。
+默认情况下，Elasticsearch 中的每个索引由 5 个主分片和 1 个副本组成，这意味着你的集群至少需要两个节点，索引将包含 5 个主分片和 5 个副本（1个完整副本），总共 10 个分片。
 
 NOTE: 每个 Elasticsearch 分片是一个 Lucence 索引。一个 Lucene 索引有最大支持文档数。从 https://issues.apache.org/jira/browse/LUCENE-5843[`LUCENE-5843`] 开始, 最大限制是 `2,147,483,519` (= Integer.MAX_VALUE - 128)。
 你可以使用 {ref}/cat-shards.html[`_cat/shards`] API 管理分片数。
@@ -99,7 +99,7 @@ NOTE: 每个 Elasticsearch 分片是一个 Lucence 索引。一个 Lucene 索引
 
 == 安装
 
-Elasticsearch 最低需要Java 8 支持。 在撰写本文时强烈建议你使用 Oracle JDK 版本 {jdk}。Java 在不同平台的安装方法不同，所以我们不会在这里详细讨论安装细节。Oracle 的建议安装文档可以在 http://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html[Oracle's website] 找到。需要知道的是，在安装 Elasticsearch 之前请先检查你的 Java 版本（请按需进行 安装/升级）：
+Elasticsearch 最低需要 Java 8 支持。 在撰写本文时强烈建议你使用 Oracle JDK 版本 {jdk}。Java 在不同平台的安装方法不同，所以我们不会在这里详细讨论安装细节。Oracle 的建议安装文档可以在 http://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html[Oracle's website] 找到。需要知道的是，在安装 Elasticsearch 之前请先检查你的 Java 版本（请按需进行 安装/升级）：
 
 [source,sh]
 --------------------------------------------------
@@ -110,7 +110,7 @@ echo $JAVA_HOME
 当设置好了 Java 环境之后，我们可以下载运行 Elasticsearch。所有已发布的二进制版本可以从 http://www.elastic.co/downloads[`www.elastic.co/downloads`] 下载。对于每一个发布版本，你可以从 `zip` 、 `tar` 、 `DEB` 、 `RPM` 或者 Windows `MSI` 中选择合适版本进行安装。
 
 [float]
-=== 安装 tar 示例
+=== tar 安装示例
 
 简单起见，我们使用 {ref}/zip-targz.html[tar] 文件。
 
@@ -129,7 +129,7 @@ curl -L -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{v
 tar -xvf elasticsearch-{version}.tar.gz
 --------------------------------------------------
 
-解压后当前目录中将创建一组文件和文件夹。接着进入 bin 目录:
+解压后当前目录中将创建一组文件和文件夹。接着进入 bin 目录：
 
 ["source","sh",subs="attributes,callouts"]
 --------------------------------------------------
@@ -171,7 +171,7 @@ image::images/msi_installer/msi_installer_locations.png[]
 [[getting-started-msi-installer-service]]
 image::images/msi_installer/msi_installer_no_service.png[]
 
-只需保留配置的默认值：
+对于配置，只需保留默认值：
 
 [[getting-started-msi-installer-configuration]]
 image::images/msi_installer/msi_installer_configuration.png[]
@@ -250,7 +250,7 @@ cd $env:PROGRAMFILES\Elastic\Elasticsearch\bin
 ./elasticsearch -Ecluster.name=my_cluster_name -Enode.name=my_node_name
 --------------------------------------------------
 
-还需注意的是标记为 http 的行提供了节点可访问的 HTTP 地址（ `192.168.8.112` ）和端口（ `9200` ）信息。默认情况下，Elasticsearch 使用端口 `9200` 来提供 REST API 访问。如果需要，这个端口是可配置的。
+还需注意标记为 http 的行，它提供了关于可访问的 HTTP 地址（ `192.168.8.112` ）和端口（ `9200` ）的信息。默认情况下，Elasticsearch 使用端口 9200 来允许 REST API 访问。如果有必要，这个端口是可配置的。
 
 == 探索你的集群
 
@@ -1070,15 +1070,15 @@ GET /bank/_search
 // CONSOLE
 // TEST[continued]
 
-解析上述内容，bool 查询包含一个 `match_all` 查询（查询部分） 和一个 `range` 查询（过滤器部分）。我们可以将任何其他查询替换为查询和过滤器部分。在这种情况下，range 查询是是十分有意义的因为落入该范围的文档完全 "equally"，即没有哪个文档比其他文档更相关。
+解析上述内容，bool 查询包含一个 `match_all` 查询（查询部分）和一个 `range` 查询（过滤器部分）。我们可以将任何其他查询替换为查询和过滤器部分。在这种情况下，range 查询是是十分有意义的因为落入该范围的文档完全 "equally"，即没有哪个文档比其他文档更相关。
 
 除了 `match_all` 、 `match` 、 `bool` 和 `range` 查询，还有很多查询类型可用，我们不在这里介绍。由于我们已经对其工作原理有了基本理解，所以将这些知识应用到其他查询进行学习和实验并不难。
 
 === 执行聚合
 
-聚合提供了数据分组和提取统计数据的能力。理解聚合最简单的方法是将其大致等同于 SQL GROUP BY 和 SQL 聚合功能。在 ELasticsearch 中，你可以在执行搜索并返回匹配结果时在响应中返回与匹配不同的聚合结果。这十分强大和高效，你可以运行多个查询和多个聚合，并且一次获得所有（两个）操作结果，同时使用简化的 API 来避免网络往返。
+聚合提供了分组和统计数据的功能。理解聚合最简单的方法是将其大致等同于 SQL GROUP BY 和 SQL 聚合功能。在 ELasticsearch 中，你可以在执行搜索后的一个响应中同时返回命中结果和聚合结果。你可以使用简洁的 API 运行查询和多个聚合，并且一次获得两个（或其一）操作结果，避免了（多次）网络往返通信，这非常强大和高效。
 
-首先，下例按状态对所有账户分组，然后返回按降序（默认值）排列的前 10 个（默认）州。
+作为开始的一个例子，我们按照 state（州名）分组，并按照 state（州名）的计数降序（默认）排序，返回前 10（默认）个数据：
 
 [source,js]
 --------------------------------------------------
@@ -1167,7 +1167,7 @@ SELECT state, COUNT(*) FROM bank GROUP BY state ORDER BY COUNT(*) DESC
 
 注意到我们设置 `size=0` 不展示搜索结果，因为我们只想在响应中看聚合结果。
 
-在上面的聚合基础上，下例计算每个州（按数量降序排前 10 的状态）的平均账户余额。
+在上面的聚合基础上，下例计算每个州（仅对于按照州名计数降序排序的前 10 个）的平均账户余额。
 
 [source,js]
 --------------------------------------------------
@@ -1193,7 +1193,7 @@ GET /bank/_search
 // CONSOLE
 // TEST[continued]
 
-请注意我们是如何嵌套 `group_by_state` 聚合内的 `average_balance` 聚合。这是聚合的一个通用模式，你可以在任意聚合内嵌套聚合以便从数据中提取所需汇总信息。
+注意我们是如何在 `group_by_state` 聚合内嵌套 `average_balance` 聚合的。这是聚合的一个通用模式，你可以在任意聚合内嵌套聚合以便从数据中提取所需汇总信息。
 
 在上面的聚合基础上，现在我们按降序对平均 balance 进行排序。
 
