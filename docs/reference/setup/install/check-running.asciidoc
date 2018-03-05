@@ -1,4 +1,4 @@
-==== 检验 Elasticsearch 是否启动
+==== 验证 Elasticsearch 是否启动
 
 你可向 `localhost` 的 `9200` 端口发送 HTTP 请求：
 

@@ -38,7 +38,7 @@ sudo journalctl -f
 sudo journalctl --unit elasticsearch
 --------------------------------------------
 
-查看 Elasticsearch 自给定时间到当前的 journal 条目：
+查看 Elasticsearch 从指定时间到当前的 journal entries：
 
 [source,sh]
 --------------------------------------------

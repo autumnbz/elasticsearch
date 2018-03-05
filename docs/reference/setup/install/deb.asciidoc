@@ -28,13 +28,13 @@ wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add
 
 ifeval::["{release-state}"=="unreleased"]
 
-Version {version} of Elasticsearch has not yet been released.
+Elasticsearch Version {version} 暂未发布。
 
 endif::[]
 
 ifeval::["{release-state}"!="unreleased"]
 
-在运行之前你需要在 Debian 安装 `apt-transport-https` 包。
+运行之前你需要在 Debian 安装 `apt-transport-https` 包。
 
 [source,sh]
 --------------------------------------------------
@@ -68,10 +68,10 @@ endif::[]
 不适用 `add-apt-repository` 有以下原因：
 
 
-. `add-apt-repository` 将条目添加到系统 `/etc/apt/sources.list` 文件
+. `add-apt-repository` 将 entries 添加到系统 `/etc/apt/sources.list` 文件，
   而不是`/etc/apt/sources.list.d` 中干净的 per-repository 文件。
 . `add-apt-repository` 在很多版本上不是默认安装的并且需要很多非默认依赖。
-. 旧版本的 `add-apt-repository` 经常添加一个 `deb-src` 条目会造成错误，因为我们不提供源代码包。如果你添加 `deb-src` 条目，直到删除 `deb-src` 前你会看到以下错误：
+. 旧版本的 `add-apt-repository` 经常添加一个 `deb-src` entry，这会造成错误，因为我们不提供源代码包。如果你添加 `deb-src` entry，除非删除 `deb-src` 否则你会看到以下错误：
 
 
     Unable to find expected entry 'main/source/Sources' in Release file
@@ -88,13 +88,13 @@ sudo apt-get update && sudo apt-get install elasticsearch
 
 [WARNING]
 ==================================================
-如果同一个 Elasticsearch 库中存在两个条目，则在 `apt-get update` 中会看到类似这样的错误：
+如果同一个 Elasticsearch 库中存在两个 entries，则在 `apt-get update` 中会看到类似这样的错误：
 
 ["literal",subs="attributes,callouts"]
 
 Duplicate sources.list entry https://artifacts.elastic.co/packages/{major-version}/apt/ ...`
 
-检查 +/etc/apt/sources.list.d/elasticsearch-{major-version}.list+ 或者从 `/etc/apt/sources.list.d/` 和 `/etc/apt/sources.list` 文件中定位重复项。
+检查 +/etc/apt/sources.list.d/elasticsearch-{major-version}.list+ 或者从 `/etc/apt/sources.list.d/` 和 `/etc/apt/sources.list` 文件中定位重复 entry。
 ==================================================
 
 endif::[]
@@ -106,7 +106,7 @@ include::skip-set-kernel-parameters.asciidoc[]
 
 ifeval::["{release-state}"=="unreleased"]
 
-Version {version} of Elasticsearch has not yet been released.
+Elasticsearch Version {version} 暂未发布。
 
 endif::[]
 
@@ -131,7 +131,7 @@ include::init-systemd.asciidoc[]
 [[deb-running-init]]
 ==== SysV `init` 运行 Elasticsearch
 
-当系统启动时可使用 `update-rc.d` 命令手动配置启动 Elasticsearch：
+系统启动时可使用 `update-rc.d` 命令手动配置启动 Elasticsearch：
 
 [source,sh]
 --------------------------------------------------
@@ -159,17 +159,17 @@ include::check-running.asciidoc[]
 
 include::etc-elasticsearch.asciidoc[]
 
-Debian package 同样有一个系统配置 (`/etc/default/elasticsearch`)，允许你设置如下参数：
+Debian package 同样有一个系统配置文件 (`/etc/default/elasticsearch`)，该文件允许你设置如下参数：
 
 include::sysconfig-file.asciidoc[]
 
-NOTE: 使用`systemd` 受系统资源限制，可以通过 `systemd` 配置而不是 `/etc/sysconfig/elasticsearch`文件。
+NOTE: `systemd` 版本要求资源通过 `systemd` 配置而不是 `/etc/sysconfig/elasticsearch` 文件。
 更多详情请参考 <<systemd>>。
 
 [[deb-layout]]
 ==== Debian 包目录结构
 
-Debian 包将配置文件、日志和数据目录放在 Debian 系统的适当的位置：
+Debian 包将配置文件、日志和数据目录放在 Debian 系统合适位置：
 
 
 [cols="<h,<,<m,<m",options="header",]
@@ -181,7 +181,7 @@ Debian 包将配置文件、日志和数据目录放在 Debian 系统的适当�
  d|
 
 | bin
-  | 二进制脚本包括启动节点的 `elasticsearch` 和安装插件的
+  | 二进制脚本，包括启动节点的 `elasticsearch` 和安装插件的
      `elasticsearch-plugin`
   | /usr/share/elasticsearch/bin
  d|

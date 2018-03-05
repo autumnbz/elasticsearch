@@ -3,7 +3,7 @@
 
 Elasticsearch 在 Windows 可用 `.zip` 包安装，并使用 `elasticsearch-service.bat` 命令启动 Elasticsearch 服务。
 
-TIP: 历史上使用 `.zip` 在 Windows 上安装 Elasticsearch。
+TIP: 可使用 `.zip` 在 Windows 上安装 Elasticsearch。
 <<windows, MSI installer package>> 提供了最简单的入门体验。如果你愿意，你可以继续使用 `.zip` 方法。
 
 最新的稳定版本可以在
@@ -20,13 +20,13 @@ http://www.oracle.com/technetwork/java/javase/downloads/index.html[official Orac
 
 ifeval::["{release-state}"=="unreleased"]
 
-Version {version} of Elasticsearch has not yet been released.
+Elasticsearch Version {version} 暂未发布。
 
 endif::[]
 
 ifeval::["{release-state}"!="unreleased"]
 
-Elasticsearch v{version}  的 `.zip` 包从此获取：https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{version}.zip
+Elasticsearch v{version}  的 `.zip` 包可从此获取：https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{version}.zip
 
 解压文件后会创建一个 +elasticsearch-{version}+ 的文件，我们将其称为 `%ES_HOME%`。在 window 终端，
 `cd` 进入 `%ES_HOME%` 目录，示例如下：
@@ -171,21 +171,21 @@ NOTE: 重要的是，`elasticsearch-service.bat` 依赖 http://commons.apache.or
 NOTE: 对于任何 Elasticsearch 安装来说，当从命令行运行 Elasticsearch 或安装 Elasticsearch 作为服务时，<<heap-size,堆大小>> 可以配置。
 在已安装的服务上调整堆大小，可使用服务管理：`bin\elasticsearch-service.bat manager`。
 
-使用管理 GUI::
+使用 GUI 管理器::
 
-还可以使用管理器 GUI（ `elasticsearch-service-mgr.exe` ）安装服务，该界面提供详细安装服务过程，包括其状态、启动类型、JVM、启动和停止设置等等。 只需从
+还可以使用 GUI（ `elasticsearch-service-mgr.exe` ）管理器安装服务，该界面提供详细安装服务过程，包括其状态、启动类型、JVM、启动和停止设置等等。 只需从
 命令行调用 `elasticsearch-service.bat manager` 便可打开管理器窗口：
 
 image::images/service-manager-win.png["Windows Service Manager GUI",align="center"]
 
-大多数通过管理 GUI 改变（例如 JVM 设置）的配置需要重启服务才能生效。
+大多数通过 GUI 管理器改变（例如 JVM 设置）的配置需要重启服务才能生效。
 
 [[windows-layout]]
 ==== `.zip` 目录结构
 
 `.zip` 包是一体的。所有文件和目录默认情况下在 `$ES_HOME` -- 解压时建立。
 
-这十分方便因为不需要建立任何目录来启动 Elasticsearch，卸载 Elasticsearch 也只需要移除 `$ES_HOME` 目录。
+因为不需要建立任何目录来启动 Elasticsearch 所以十分方便，卸载 Elasticsearch 也只需要移除 `$ES_HOME` 目录。
 然而，还是建议改变默认的 config、data 和 logs 目录位置以便在未来你不用删除重要数据。
 
 
@@ -198,7 +198,7 @@ image::images/service-manager-win.png["Windows Service Manager GUI",align="cente
   |
 
 | bin
-  | 二进制脚本包括启动节点的 `elasticsearch` 和安装插件的
+  | 二进制脚本，包括启动节点的 `elasticsearch` 和安装插件的
      `elasticsearch-plugin`
   | %ES_HOME%\bin
  d|
