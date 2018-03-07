@@ -1,68 +1,54 @@
 [[jvm-options]]
-=== Setting JVM options
+=== 设置 JVM 参数
 
-You should rarely need to change Java Virtual Machine (JVM) options. If you do,
-the most likely change is setting the <<heap-size,heap size>>. The remainder of
-this document explains in detail how to set JVM options.
+你应该很少需要更改 Java 虚拟机（JVM）选项。 如果你这样做，最有可能的变化是设置 <<heap-size,堆大小>>。本文档详细介绍了如何设置 JVM 选项。
 
-The preferred method of setting JVM options (including system properties and JVM
-flags) is via the `jvm.options` configuration file. The default location of this
-file is `config/jvm.options` (when installing from the tar or zip distributions)
-and `/etc/elasticsearch/jvm.options` (when installing from the Debian or RPM
-packages).
+设置 JVM 选项（包括系统属性和 JVM 标志）的首选方法是通过 `jvm.options` 配置文件。该文件默认位置是 `config/jvm.options` （tar 或 zip 版本安装方式）
+和 `/etc/elasticsearch/jvm.options` （Debian 或 RPM 包安装方式）。
 
-This file contains a line-delimited list of JVM arguments following
-a special syntax:
+该文件包含横线分隔的特殊 JVM 参数列表语法：
 
-* lines consisting of whitespace only are ignored
-* lines beginning with `#` are treated as comments and are ignored
+* 仅包含空白的行将被忽略
+* 以 `#` 开始的行视为注释并被忽略
 +
 [source,text]
 -------------------------------------
 # this is a comment
 -------------------------------------
 
-* lines beginning with a `-` are treated as a JVM option that applies
-  independent of the version of the JVM
+* 以 `-` 开始的行视为适用于独立 JVM 版本选项
 +
 [source,text]
 -------------------------------------
 -Xmx2g
 -------------------------------------
 
-* lines beginning with a number followed by a `:` followed by a `-` are treated
-  as a JVM option that applies only if the version of the JVM matches the number
+* 数字后跟着 `:` 和 `-` 视为适用于匹配该数值的 JVM 版本选项。
 +
 [source,text]
 -------------------------------------
 8:-Xmx2g
 -------------------------------------
 
-* lines beginning with a number followed by a `-` followed by a `:` are treated
-  as a JVM option that applies only if the version of the JVM is greater than or
-  equal to the number
+* 数字后跟着 `-` 和 `:` 视为适用于不低于该数值的 JVM 版本选项。
 +
 [source,text]
 -------------------------------------
 8-:-Xmx2g
 -------------------------------------
 
-* lines beginning with a number followed by a `-` followed by a number followed
-  by a `:` are treated as a JVM option that applies only if the version of the
-  JVM falls in the range of the two numbers
+* 数字后跟着 `-` 再跟着数字视为只适用于该俩数值间的 JVM 版本选项。
 +
 [source,text]
 -------------------------------------
 8-9:-Xmx2g
 -------------------------------------
 
-* all other lines are rejected
+* 所有其他行都会被拒绝
 
-You can add custom JVM flags to this file and check this configuration into your
-version control system.
+你可以将自定义 JVM 标识添加到该文件，并在版本控制系统里检查该配置。
 
-An alternative mechanism for setting Java Virtual Machine options is via the
-`ES_JAVA_OPTS` environment variable. For instance:
+另一种设置 Java 虚拟机选项的方式是使用 `ES_JAVA_OPTS` 环境变量。例如：
 
 [source,sh]
 ---------------------------------
@@ -70,17 +56,11 @@ export ES_JAVA_OPTS="$ES_JAVA_OPTS -Djava.io.tmpdir=/path/to/temp/dir"
 ./bin/elasticsearch
 ---------------------------------
 
-When using the RPM or Debian packages, `ES_JAVA_OPTS` can be specified in the
-<<sysconfig,system configuration file>>.
+当使用 RPM 或 Debian 包时， `ES_JAVA_OPTS` 可从
+<<sysconfig,system configuration file>> 指定。
 
-The JVM has a built-in mechanism for observing the `JAVA_TOOL_OPTIONS`
-environment variable. We intentionally ignore this environment variable in our
-packaging scripts. The primary reason for this is that on some OS (e.g., Ubuntu)
-there are agents installed by default via this environment variable that we do
-not want interfering with Elasticsearch.
+JVM 具有观察 `JAVA_TOOL_OPTIONS` 环境变量的内置机制。 我们在打包脚本中故意忽略这个环境变量。主要原因是在某些操作系统上（例如 Ubuntu），
+我们不想通过干涉 Elasticsearch 环境变量安装默认代理。
 
-Additionally, some other Java programs support the `JAVA_OPTS` environment
-variable. This is *not* a mechanism built into the JVM but instead a convention
-in the ecosystem. However, we do not support this environment variable, instead
-supporting setting JVM options via the `jvm.options` file or the environment
-variable `ES_JAVA_OPTS` as above.
+另外，还有一些其他 Java 程序支持 `JAVA_OPTS` 环境变量。这 *不是* JVM 内置的机制，而是一种生态约定。 然而，我们不支持这个环境变量，
+而支持通过 `jvm.options` 文件或上文提及的 `ES_JAVA_OPTS` 环境变量设置 JVM 选项。

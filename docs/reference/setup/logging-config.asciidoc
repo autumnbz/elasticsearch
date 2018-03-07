@@ -1,23 +1,13 @@
 [[logging]]
-=== Logging configuration
+=== 日志配置
 
-Elasticsearch uses https://logging.apache.org/log4j/2.x/[Log4j 2] for
-logging. Log4j 2 can be configured using the log4j2.properties
-file. Elasticsearch exposes three properties, `${sys:es.logs.base_path}`,
-`${sys:es.logs.cluster_name}`, and `${sys:es.logs.node_name}` (if the node name
-is explicitly set via `node.name`) that can be referenced in the configuration
-file to determine the location of the log files. The property
-`${sys:es.logs.base_path}` will resolve to the log directory,
-`${sys:es.logs.cluster_name}` will resolve to the cluster name (used as the
-prefix of log filenames in the default configuration), and
-`${sys:es.logs.node_name}` will resolve to the node name (if the node name is
-explicitly set).
+Elasticsearch 使用 https://logging.apache.org/log4j/2.x/[Log4j 2] 记录日志。
+ Log4j 2 可通过 log4j2.properties 配置。 Elasticsearch 暴露了三个属性，`${sys:es.logs.base_path}` 、
+`${sys:es.logs.cluster_name}` 和 `${sys:es.logs.node_name}` （如果通过 `node.name` 显式设置节点名称） 可在配置文件中指定并决定日志文件位置。
+`${sys:es.logs.base_path}` 属性解析为日志目录，`${sys:es.logs.cluster_name}` 属性解析为集群名（默认配置中作为日志文件名前缀），`${sys:es.logs.node_name}` 属性解析为节点名（如果显式设置节点名）。
 
-For example, if your log directory (`path.logs`) is `/var/log/elasticsearch` and
-your cluster is named `production` then `${sys:es.logs.base_path}` will resolve
-to `/var/log/elasticsearch` and
-`${sys:es.logs.base_path}${sys:file.separator}${sys:es.logs.cluster_name}.log`
-will resolve to `/var/log/elasticsearch/production.log`.
+举个例子，如果你的日志目录（`path.logs` ）是 `/var/log/elasticsearch` ，集群名是 `production` ，那么 `${sys:es.logs.base_path}` 将解析为 `/var/log/elasticsearch` ，
+ `${sys:es.logs.base_path}${sys:file.separator}${sys:es.logs.cluster_name}.log` 将解析为 `/var/log/elasticsearch/production.log` 。
 
 [source,properties]
 --------------------------------------------------
@@ -43,32 +33,26 @@ appender.rolling.strategy.action.condition.nested_condition.type = IfAccumulated
 appender.rolling.strategy.action.condition.nested_condition.exceeds = 2GB <13>
 --------------------------------------------------
 
-<1> Configure the `RollingFile` appender
-<2> Log to `/var/log/elasticsearch/production.log`
-<3> Roll logs to `/var/log/elasticsearch/production-yyyy-MM-dd-i.log`; logs
-    will be compressed on each roll and `i` will be incremented
-<4> Use a time-based roll policy
-<5> Roll logs on a daily basis
-<6> Align rolls on the day boundary (as opposed to rolling every twenty-four
-    hours)
-<7> Using a size-based roll policy
-<8> Roll logs after 256 MB
-<9> Use a delete action when rolling logs
-<10> Only delete logs matching a file pattern
-<11> The pattern is to only delete the main logs
-<12> Only delete if we have accumulated too many compressed logs
-<13> The size condition on the compressed logs is 2 GB
+<1> 配置 `RollingFile` 追加方式
+<2> 日志名为 `/var/log/elasticsearch/production.log`
+<3> 滚动日志为 `/var/log/elasticsearch/production-yyyy-MM-dd-i.log`；每个滚动日志将被压缩，并且 `i` 会增加
+<4> 使用基于时间的滚动策略
+<5> 滚动日志天数
+<6> 日边界对其滚动（与每 24 小时滚动相反）
+<7> 使用基于尺寸的滚动策略
+<8> 每 256 MB 滚动
+<9> 滚动日志时执行删除操作
+<10> 只删除匹配文件模式的日志
+<11> 该模式仅用于删除主日志
+<12> 只有累积了太多压缩日志时才能删除
+<13> 压缩日志大小条件为 2 GB
 
-NOTE: Log4j's configuration parsing gets confused by any extraneous whitespace;
-if you copy and paste any Log4j settings on this page, or enter any Log4j
-configuration in general, be sure to trim any leading and trailing whitespace.
+NOTE: Log4j 的解析配置会被无关的空白符混淆；如果你复制粘贴此页面上的任何 Log4j 设置，或者输入任何通用 Log4j，请确认修剪开头和结尾空格。
 
-Note than you can replace `.gz` by `.zip` in `appender.rolling.filePattern` to
-compress the rolled logs using the zip format. If you remove the `.gz`
-extension then logs will not be compressed as they are rolled.
+注意，你可以将 `appender.rolling.filePattern` 中的 `.gz` 替换为 `.zip`，这样可以
+使用 zip 格式压缩滚动日志。 如果你删除 `.gz` ，那么日志将不会被压缩，因为它们是滚动的。
 
-If you want to retain log files for a specified period of time, you can use a
-rollover strategy with a delete action.
+如果你想保留一段时间的日志文件，你可以使用一个带有删除操作的滚动策略。
 
 [source,properties]
 --------------------------------------------------
@@ -81,43 +65,32 @@ appender.rolling.strategy.action.condition.nested_condition.type = IfLastModifie
 appender.rolling.strategy.action.condition.nested_condition.age = 7D <7>
 --------------------------------------------------
 
-<1> Configure the `DefaultRolloverStrategy`
-<2> Configure the `Delete` action for handling rollovers
-<3> The base path to the Elasticsearch logs
-<4> The condition to apply when handling rollovers
-<5> Delete files from the base path matching the glob
-    `${sys:es.logs.cluster_name}-*`; this is the glob that log files are rolled
-    to; this is needed to only delete the rolled Elasticsearch logs but not also
-    delete the deprecation and slow logs
-<6> A nested condition to apply to files matching the glob
-<7> Retain logs for seven days
+<1> 配置 `DefaultRolloverStrategy`
+<2> 配置 `Delete` 操作处理滚动
+<3> Elasticsearch 日志基本路径
+<4> 滚动处理应用条件
+<5> 删除匹配 `${sys:es.logs.cluster_name}-*` 路径的滚动日志文件；
+    这只需要删除滚动 Elasticsearch 日志，而不是删除过期和慢日志
+<6> 适用于匹配 glob 文件的嵌套条件
+<7> 保留七天日志
 
-Multiple configuration files can be loaded (in which case they will get merged)
-as long as they are named `log4j2.properties` and have the Elasticsearch config
-directory as an ancestor; this is useful for plugins that expose additional
-loggers. The logger section contains the java packages and their corresponding
-log level. The appender section contains the destinations for the logs.
-Extensive information on how to customize logging and all the supported
-appenders can be found on the
-http://logging.apache.org/log4j/2.x/manual/configuration.html[Log4j
-documentation].
+可以加载多个配置文件（在这种情况下，它们将被合并），只要这些配置文件被命名为 `log4j2.properties` ，同时它们的祖先目录为 Elasticsearch 配置
+目录；这对于暴露附加日志的插件非常有用。日志部分包含 java 包及其相应的日志级别。
+appender 部分包含日志地址。如何自定义日志及追加支持的所有信息请参考
+ http://logging.apache.org/log4j/2.x/manual/configuration.html[Log4j
+文档] 。
 
 [float]
 [[configuring-logging-levels]]
-=== Configuring logging levels
+=== 配置日志等级
 
-There are four ways to configuring logging levels, each having situations in which they are appropriate to use.
+有四种方式配置日志等级，每种方式有其适应场景。
 
-1. Via the command-line: `-E <name of logging hierarchy>=<level>` (e.g.,
-   `-E logger.org.elasticsearch.transport=trace`). This is most appropriate when
-   you are temporarily debugging a problem on a single node (for example, a
-   problem with startup, or during development).
-2. Via `elasticsearch.yml`: `<name of logging hierarchy>: <level>` (e.g.,
-   `logger.org.elasticsearch.transport: trace`). This is most appropriate when
-   you are temporarily debugging a problem but are not starting Elasticsearch
-   via the command-line (e.g., via a service) or you want a logging level
-   adjusted on a more permanent basis.
-3. Via <<cluster-logger,cluster settings>>:
+1. 通过命令行： `-E <name of logging hierarchy>=<level>` （例如 `-E logger.org.elasticsearch.transport=trace` ）
+   这对单节点临时调试问题（例如启动或开发阶段问题）是最合适的。
+2. 通过 `elasticsearch.yml` : `<name of logging hierarchy>: <level>` （例如 `logger.org.elasticsearch.transport: trace` ）。
+   这对非命令行（例如通过服务）启动 Elasticsearch 的临时调试问题， 或者想以更固定方式调整日志级别是最合适的。
+3. 通过 <<cluster-logger,集群设置>>:
 +
 --
 [source,js]
@@ -131,7 +104,7 @@ PUT /_cluster/settings
 -------------------------------
 // NOTCONSOLE
 
-For example:
+例如：
 
 [source,js]
 -------------------------------
@@ -144,11 +117,10 @@ PUT /_cluster/settings
 -------------------------------
 // CONSOLE
 
-This is most appropriate when you need to dynamically need to adjust a logging
-level on an actively-running cluster.
+当你需要动态调整运行集群的日志级别时，这是最合适的。
 
 --
-4. Via the `log4j2.properties`:
+4. 通过 `log4j2.properties`:
 +
 --
 [source,properties]
@@ -157,7 +129,7 @@ logger.<unique_identifier>.name = <name of logging hierarchy>
 logger.<unique_identifier>.level = <level>
 --------------------------------------------------
 
-For example:
+例如：
 
 [source,properties]
 --------------------------------------------------
@@ -165,33 +137,24 @@ logger.transport.name = org.elasticsearch.transport
 logger.transport.level = trace
 --------------------------------------------------
 
-This is most appropriate when you need fine-grained control over the logger (for
-example, you want to send the logger to another file, or manage the logger
-differently; this is a rare use-case).
+当您需要对日志进行细粒度控制时（例如，你想发送日志到其他文件，或者管理不同日志；这种场景比较罕见），这是最合适的。
 --
 
 [float]
 [[deprecation-logging]]
-=== Deprecation logging
+=== 弃用日志
 
-In addition to regular logging, Elasticsearch allows you to enable logging
-of deprecated actions. For example this allows you to determine early, if
-you need to migrate certain functionality in the future. By default,
-deprecation logging is enabled at the WARN level, the level at which all
-deprecation log messages will be emitted.
+除了常规日志，Elasticsearch 允许你启用日志记录已弃用的操作。 例如，这可以让你尽早决定是否需要在将来迁移某些功能。
+弃用日志默认在 WARN 级别启用，该级别下所有弃用日志消息将被收集。
 
 [source,properties]
 --------------------------------------------------
 logger.deprecation.level = warn
 --------------------------------------------------
 
-This will create a daily rolling deprecation log file in your log directory.
-Check this file regularly, especially when you intend to upgrade to a new
-major version.
+这将在日志目录创建一个日滚动弃用日志文件。定期检查此文件，特别是当你打算升级到新主版本。
 
-The default logging configuration has set the roll policy for the deprecation
-logs to roll and compress after 1 GB, and to preserve a maximum of five log
-files (four rolled logs, and the active log).
+默认弃用日志配置设置为滚动策略，日志在 1 GB 之后滚动并压缩，并最多保留五个日志
+文件（四个滚动日志和当前活动日志）。
 
-You can disable it in the `config/log4j2.properties` file by setting the deprecation
-log level to `error`.
+你可以在 `config/log4j2.properties` 文件设置弃用日志级别为 `error` 来禁止它。

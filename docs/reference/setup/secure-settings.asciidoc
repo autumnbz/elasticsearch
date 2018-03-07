@@ -1,37 +1,33 @@
 [[secure-settings]]
 === Secure Settings
 
-Some settings are sensitive, and relying on filesystem permissions to protect
-their values is not sufficient. For this use case, Elasticsearch provides a
-keystore, which may be password protected, and the `elasticsearch-keystore`
-tool to manage the settings in the keystore.
+有些设置是敏感的，仅仅依靠文件系统权限来保护这些值是不够的。在这种场景下，Elasticsearch 提供
+一个密码保护的 keystore，同时提供 `elasticsearch-keystore` 工具管理 keystore 设置。
 
-NOTE: All commands here should be run as the user which will run Elasticsearch.
+NOTE: 应该以运行 Elasticsearch 的用户身份运行这里的所有命令。
 
-NOTE: Only some settings are designed to be read from the keystore. See
-documentation for each setting to see if it is supported as part of the keystore.
+NOTE: 只有部分设置被设计为从 keystore 读取。查看文档可知道 keystore 是否支持每个设置。
 
-NOTE: All the modifications to the keystore take affect only after restarting
-Elasticsearch.
+NOTE: 对 keystore 的所有修改只有在重启 Elasticsearch 后才会生效。
 
 [float]
 [[creating-keystore]]
-=== Creating the keystore
+=== 创建 keystore
 
-To create the `elasticsearch.keystore`, use the `create` command:
+使用 `create` 命令创建 `elasticsearch.keystore`：
 
 [source,sh]
 ----------------------------------------------------------------
 bin/elasticsearch-keystore create
 ----------------------------------------------------------------
 
-The file `elasticsearch.keystore` will be created alongside `elasticsearch.yml`.
+`elasticsearch.keystore` 文件将会与 `elasticsearch.yml` 一起创建。
 
 [float]
 [[list-settings]]
-=== Listing settings in the keystore
+=== 列出 keystore 设置
 
-A list of the settings in the keystore is available with the `list` command:
+使用 `list` 命令查看 keystore 内的设置列表：
 
 [source,sh]
 ----------------------------------------------------------------
@@ -40,18 +36,16 @@ bin/elasticsearch-keystore list
 
 [float]
 [[add-string-to-keystore]]
-=== Adding string settings
+=== 添加 string 设置
 
-Sensitive string settings, like authentication credentials for cloud
-plugins, can be added using the `add` command:
+类似云插件的认证凭证的敏感 string 设置，可用 `add` 命令添加：
 
 [source,sh]
 ----------------------------------------------------------------
 bin/elasticsearch-keystore add the.setting.name.to.set
 ----------------------------------------------------------------
 
-The tool will prompt for the value of the setting. To pass the value
-through stdin, use the `--stdin` flag:
+该工具支持通过 stdin 提示输入设置值。使用 `--stdin` 标识：
 
 [source,sh]
 ----------------------------------------------------------------
@@ -60,12 +54,11 @@ cat /file/containing/setting/value | bin/elasticsearch-keystore add --stdin the.
 
 [float]
 [[remove-settings]]
-=== Removing settings
+=== 删除设置
 
-To remove a setting from the keystore, use the `remove` command:
+使用 `remove` 命令删除 keystore 设置：
 
 [source,sh]
 ----------------------------------------------------------------
 bin/elasticsearch-keystore remove the.setting.name.to.remove
 ----------------------------------------------------------------
-
