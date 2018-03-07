@@ -1,12 +1,11 @@
 [[secure-settings]]
-=== Secure Settings
+=== 安全设置
 
-有些设置是敏感的，仅仅依靠文件系统权限来保护这些值是不够的。在这种场景下，Elasticsearch 提供
-一个密码保护的 keystore，同时提供 `elasticsearch-keystore` 工具管理 keystore 设置。
+有些设置是敏感的，仅仅依靠文件系统权限来保护这些值是不够的。在这种场景下，Elasticsearch 提供一个密码保护的 keystore，同时提供 `elasticsearch-keystore` 工具管理 keystore 设置。
 
 NOTE: 应该以运行 Elasticsearch 的用户身份运行这里的所有命令。
 
-NOTE: 只有部分设置被设计为从 keystore 读取。查看文档可知道 keystore 是否支持每个设置。
+NOTE: 只有部分设置设计为从 keystore 读取。查看文档可知道 keystore 是否支持每个设置。
 
 NOTE: 对 keystore 的所有修改只有在重启 Elasticsearch 后才会生效。
 
@@ -38,7 +37,7 @@ bin/elasticsearch-keystore list
 [[add-string-to-keystore]]
 === 添加 string 设置
 
-类似云插件的认证凭证的敏感 string 设置，可用 `add` 命令添加：
+类似云插件认证凭证的敏感 string 设置，可用 `add` 命令添加：
 
 [source,sh]
 ----------------------------------------------------------------
