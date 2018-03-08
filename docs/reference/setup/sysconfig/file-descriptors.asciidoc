@@ -6,13 +6,13 @@
 在 Windows 上 JVM 使用一个仅受可用资源限制的 https://msdn.microsoft.com/en-us/library/windows/desktop/aa363858(v=vs.85).aspx[API] 。
 
 Elasticsearch 使用大量文件描述符或文件句柄。 用尽文件描述符是灾难性的，并且很可能导致数据丢失。
-确保为 Elasticsearch 运行用户增加打开文件描述符数量为 65,536 或更高。
+确保为 Elasticsearch 运行用户提高打开文件描述符数量为 65,536 或更高。
 
 对于 `.zip` 和 `.tar.gz` 包，在运行 Elasticsearch 前以 root 设置 <<ulimit,`ulimit -n 65536`>> ，或者设置<<limits.conf,`/etc/security/limits.conf`>> 里的 `nofile` 为 `65536` 。
 
-在 macOS，你必须向 Elasticsearch JVM 传递  `-XX:-MaxFDLimit` 选项以便使用更多的文件描述符。
+对于 macOS，你必须向 Elasticsearch JVM 传递  `-XX:-MaxFDLimit` 选项以便使用更多的文件描述符。
 
-RPM和 Debian 包默认最大文件描述符为 65536，因此不需要进一步配置。
+RPM 和 Debian 包默认最大文件描述符为 65536，因此不需要进一步配置。
 
 您可以使用 <<cluster-nodes-stats>> API 检查每个节点配置的 `max_file_descriptors` ：
 

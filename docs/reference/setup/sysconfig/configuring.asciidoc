@@ -14,7 +14,7 @@
 [[ulimit]]
 ==== `ulimit`
 
-在 Linux 系统上，`ulimit` 可用于临时改变资源。在切换为运行 Elasticsearch 的账号前，通常需要 `root` 权限。
+在 Linux 系统上，`ulimit` 可用于临时改变资源。在切换为运行 Elasticsearch 的用户前，通常需要 `root` 权限。
 例如，设置打开文件句柄（ `ulimit -n` ）数为 65,536，你可以这样做：
 
 [source,sh]
@@ -25,7 +25,7 @@ su elasticsearch <3>
 --------------------------------
 <1> 切换 `root`.
 <2> 改变最大打开文件数。
-<3> 切换 `elasticsearch` 账号用于启动 Elasticsearch。
+<3> 切换 `elasticsearch` 用户用于启动 Elasticsearch。
 
 新的 limit 仅适用于当前会话。
 
@@ -35,7 +35,7 @@ su elasticsearch <3>
 ==== `/etc/security/limits.conf`
 
 在 Linux 系统上，可以通过编辑 `/etc/security/limits.conf` 文件来为指定用户设置固定 limits。
-为了将 `elasticsearch` 账号最大打开文件数设为 65,536，可在 `limits.conf` 文件中添加以下行：
+为了将 `elasticsearch` 用户最大打开文件数设为 65,536，可在 `limits.conf` 文件中添加以下行：
 
 
 [source,sh]
@@ -43,7 +43,7 @@ su elasticsearch <3>
 elasticsearch  -  nofile  65536
 --------------------------------
 
-此更改仅在 `elasticsearch` 账号开启新 session 时生效。
+此更改仅在 `elasticsearch` 用户开启新 session 时生效。
 
 [NOTE]
 .Ubuntu 和 `limits.conf`

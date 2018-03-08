@@ -10,6 +10,6 @@ Linux 上可以用 `root` 运行以下命令提升该限制：
 sysctl -w vm.max_map_count=262144
 -------------------------------------
 
-更新 `/etc/sysctl.conf` 文件内的 `vm.max_map_count` 值可永久设置该值。重启后运行 `sysctl vm.max_map_count` 检验。
+更新 `/etc/sysctl.conf` 文件内的 `vm.max_map_count` 值可永久设置该值。可在重启后运行 `sysctl vm.max_map_count` 检验该值。
 
 RPM 和 Debian 包会自动配置该值。不需要进行额外配置。

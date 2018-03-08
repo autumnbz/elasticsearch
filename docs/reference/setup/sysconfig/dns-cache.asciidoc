@@ -1,9 +1,8 @@
 [[networkaddress-cache-ttl]]
 === DNS 缓存设置
 
-Elasticsearch 与安全管理器一起运行。JVM 默认与安全管理器永久缓存正面主机名解析。
-如果你的 Elasticsearch 节点依赖的 DNS 解析变化随时（例如，node-to-node 发现）。
+Elasticsearch 与安全管理器一起运行。JVM 默认与安全管理器永久缓存正向主机名解析。
+如果你的 Elasticsearch 节点依赖的 DNS 解析随时变化（例如，node-to-node 发现）。
 那么你可能会想修改默认 JVM 行为。这可以通过向 http://docs.oracle.com/javase/8/docs/technotes/guides/security/PolicyFiles.html[Java 安全策略] 添加 http://docs.oracle.com/javase/8/docs/technotes/guides/net/properties.html[`networkaddress.cache.ttl=<timeout>`] 修改。
-任何未能解析的主机都将被记录。还请注意使用 Java 安全管理器时 JVM 默认缓存负
-主机名解析十秒钟。这可以通过向
+任何未能解析的主机都将被记录。还请注意使用 Java 安全管理器时 JVM 默认缓存负向主机名解析十秒钟。这可以通过向
 http://docs.oracle.com/javase/8/docs/technotes/guides/security/PolicyFiles.html[Java 安全策略] 添加 http://docs.oracle.com/javase/8/docs/technotes/guides/net/properties.html[`networkaddress.cache.negative.ttl=<timeout>`] 修改。
