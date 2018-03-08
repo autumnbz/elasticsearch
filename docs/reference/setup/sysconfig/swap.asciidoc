@@ -1,69 +1,51 @@
 [[setup-configuration-memory]]
-=== Disable swapping
+=== 禁用 swapping
 
-Most operating systems try to use as much memory as possible for file system
-caches and eagerly swap out unused application memory. This can result in parts
-of the JVM heap or even its executable pages being swapped out to disk.
+大多数操作系统尝试让文件系统缓存尽可能多的内存，并急切地换出未使用的应用内存。
+这可能会导致部分 JVM 堆或其可执行页面被交换到磁盘。
 
-Swapping is very bad for performance, for node stability, and should be avoided
-at all costs. It can cause garbage collections to last for **minutes** instead
-of milliseconds and can cause nodes to respond slowly or even to disconnect
-from the cluster. In a resilient distributed system, it's more effective to let
-the operating system kill the node.
+Swapping 对性能非常不利，为了节点稳定应该不惜一切代价避免 Swapping。 这可能导致持续 **分钟** 而不是毫秒的垃圾回收，
+并可能导致节点响应缓慢甚至集群连接断开。在弹性分布式系统中，这很容易让操作系统杀死节点。
 
-There are three approaches to disabling swapping. The preferred option is to
-completely disable swap. If this is not an option, whether or not to prefer
-minimizing swappiness versus memory locking is dependent on your environment.
+有三种方法禁用 swapping。 首选是完全禁用交换。如果这不是一种选择，选择最小化 swappiness 还是内存锁定取决于你的环境。
 
 [[disable-swap-files]]
-==== Disable all swap files
+==== 禁用所有文件交换
 
-Usually Elasticsearch is the only service running on a box, and its memory usage
-is controlled by the JVM options. There should be no need to have swap enabled.
+通常 Elasticsearch 是运行的唯一服务，它的内存使用情况由 JVM 选项控制。应该不需要启用交换。
 
-On Linux systems, you can disable swap temporarily by running:
+在 Linux 系统，你可以运行以下命令临时禁用交换：
 
 [source,sh]
 --------------
 sudo swapoff -a
 --------------
 
-To disable it permanently, you will need to edit the `/etc/fstab` file and
-comment out any lines that contain the word `swap`.
+如果需要永久禁用，你需要编辑 `/etc/fstab` 文件并注释任何包含 `swap` 的行。
 
-On Windows, the equivalent can be achieved by disabling the paging file entirely
-via `System Properties → Advanced → Performance → Advanced → Virtual memory`.
+在 Windows，可通过 `System Properties → Advanced → Performance → Advanced → Virtual memory` 禁用页文件来实现相同功能。
 
 [[swappiness]]
-==== Configure `swappiness`
+==== 配置 `swappiness`
 
-Another option available on Linux systems is to ensure that the sysctl value
-`vm.swappiness` is set to `1`. This reduces the kernel's tendency to swap and
-should not lead to swapping under normal circumstances, while still allowing the
-whole system to swap in emergency conditions.
+Linux 系统上另一个可选项是确保 sysctl `vm.swappiness` 值设为 `1` 。这减少了内核的交换趋势，并在正常情况下不会导致交换，
+但是仍然允许整个系统在紧急情况下进行 swapping。
 
 [[bootstrap-memory_lock]]
-==== Enable `bootstrap.memory_lock`
+==== 启用 `bootstrap.memory_lock`
 
-Another option is to use
-http://opengroup.org/onlinepubs/007908799/xsh/mlockall.html[mlockall] on
-Linux/Unix systems, or
-https://msdn.microsoft.com/en-us/library/windows/desktop/aa366895%28v=vs.85%29.aspx[VirtualLock]
-on Windows, to try to lock the process address space into RAM, preventing any
-Elasticsearch memory from being swapped out. This can be done, by adding this
-line to the `config/elasticsearch.yml` file:
+另一个选择是在 Linux/Unix 系统使用 http://opengroup.org/onlinepubs/007908799/xsh/mlockall.html[mlockall]
+或在 Windows 使用 https://msdn.microsoft.com/en-us/library/windows/desktop/aa366895%28v=vs.85%29.aspx[VirtualLock]
+尝试将进程地址空间锁定到 RAM 中和防止任何 Elasticsearch 内存被换出。 这可以通过在 `config/elasticsearch.yml` 文件添加以下行完成：
 
 [source,yaml]
 --------------
 bootstrap.memory_lock: true
 --------------
 
-WARNING: `mlockall` might cause the JVM or shell session to exit if it tries to
-allocate more memory than is available!
+WARNING: `mlockall` 如果试图分配比可用内存更多的内存可能会导致 JVM 或 shell 会话退出。
 
-After starting Elasticsearch, you can see whether this setting was applied
-successfully by checking the value of `mlockall` in the output from this
-request:
+启动 Elasticsearch 后，你可通过检查以下请求输出中的 `mlockall` 值验证这个设置是否应用成功：
 
 [source,js]
 --------------
@@ -71,33 +53,25 @@ GET _nodes?filter_path=**.mlockall
 --------------
 // CONSOLE
 
-If you see that `mlockall` is `false`, then it means that the `mlockall`
-request has failed.  You will also see a line with more information in the logs
-with the words `Unable to lock JVM Memory`.
+如果你发现 `mlockall` 是 `false` ，那这意味着 `mlockall` 请求失败。你同样可在日志看到 `Unable to lock JVM Memory` 的更多信息。
 
-The most probable reason, on Linux/Unix systems, is that the user running
-Elasticsearch doesn't have permission to lock memory.  This can be granted as
-follows:
+Linux/Unix 系统最可能的原因是运行 Elasticsearch 的账号没有锁定内存的权限。可用以下方式授权：
 
-`.zip` and `.tar.gz`::
+`.zip` 和 `.tar.gz`::
 
-  Set <<ulimit,`ulimit -l unlimited`>> as root before starting Elasticsearch,
-  or set `memlock` to `unlimited` in
-  <<limits.conf,`/etc/security/limits.conf`>>.
+  启动 Elasticsearch 前以 root 设置 <<ulimit,`ulimit -l unlimited`>> ，或
+  在 <<limits.conf,`/etc/security/limits.conf`>> 文件设置 `memlock` 为 `unlimited` 。
 
-RPM and Debian::
+RPM 和 Debian::
 
-  Set `MAX_LOCKED_MEMORY` to `unlimited` in the
-  <<sysconfig,system configuration file>> (or see below for systems using
-  `systemd`).
+  在 <<sysconfig,系统配置文件>> （使用 `systemd` 的系统参考下文）设置 `MAX_LOCKED_MEMORY` 为 `unlimited` 。
 
-Systems using `systemd`::
+使用 `systemd` 系统::
 
-  Set `LimitMEMLOCK` to `infinity` in the <<systemd,systemd configuration>>.
+  在 <<systemd,systemd 配置>> 设置 `LimitMEMLOCK` 为 `infinity` 。
 
-Another possible reason why `mlockall` can fail is that the temporary directory
-(usually `/tmp`) is mounted with the `noexec` option. This can be solved by
-specifying a new temp directory using the `ES_JAVA_OPTS` environment variable:
+另一个 `mlockall` 失败的原因可能是临时目录（一般是 `/tmp` ）使用 `noexec` 选项加载。
+这可使用 `ES_JAVA_OPTS` 环境变量指定一个新的目录解决。
 
 [source,sh]
 --------------
@@ -105,4 +79,4 @@ export ES_JAVA_OPTS="$ES_JAVA_OPTS -Djava.io.tmpdir=/path/to/temp/dir"
 ./bin/elasticsearch
 --------------
 
-or setting this JVM flag in the jvm.options configuration file.
+或在 jvm.options 配置文件内设置这个 JVM 标志。

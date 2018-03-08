@@ -1,33 +1,27 @@
 [[system-config]]
-== Important System Configuration
+== 重要系统配置
 
-Ideally, Elasticsearch should run alone on a server and use all of the
-resources available to it.  In order to do so, you need to configure your
-operating system to allow the user running Elasticsearch to access more
-resources than allowed by default.
+理想情况下，Elasticsearch 应该在服务器上独立运行并使用所有的可用资源。
+为了做到这一点，你需要配置你的操作系统，使得运行 Elasticsearch 的用户获得超过默认分配的更多资源。
 
-The following settings *must* be considered before going to production:
+在投入生产环境之前，*必须* 考虑以下设置：
 
-* <<setup-configuration-memory,Disable swapping>>
-* <<file-descriptors,Increase file descriptors>>
-* <<vm-max-map-count,Ensure sufficient virtual memory>>
-* <<max-number-of-threads,Ensure sufficient threads>>
-* <<networkaddress-cache-ttl,JVM DNS cache settings>>
+* <<setup-configuration-memory,禁用 swapping>>
+* <<file-descriptors,增加文件描述符>>
+* <<vm-max-map-count,确保足够的虚拟内存>>
+* <<max-number-of-threads,确保足够的线程>>
+* <<networkaddress-cache-ttl,JVM DNS 缓存设置>>
 
 [[dev-vs-prod]]
 [float]
-=== Development mode vs production mode
+=== 开发模式 vs 生产模式
 
-By default, Elasticsearch assumes that you are working in development mode.
-If any of the above settings are not configured correctly, a warning will be
-written to the log file, but you will be able to start and run your
-Elasticsearch node.
+Elasticsearch 默认假设你工作在开发模式。如果以上任一设置配置错误，日志就会记录一条警告，
+但是你还是可以启动并运行 Elasticsearch 节点。
 
-As soon as you configure a network setting like `network.host`, Elasticsearch
-assumes that you are moving to production and will upgrade the above warnings
-to exceptions.  These exceptions will prevent your Elasticsearch node from
-starting.  This is an important safety measure to ensure that you will not
-lose data because of a malconfigured server.
+一旦你配置了类似 `network.host` 的网络设置，Elasticsearch 会假设你正迁移到生产环境，并将上文提及的
+警告升级为异常。这些异常会阻止 Elasticsearch 节点启动。
+这是确保你不会因配置错误而丢失数据的一种重要安全措施。
 
 include::sysconfig/configuring.asciidoc[]
 

@@ -1,15 +1,9 @@
 [[max-number-of-threads]]
-=== Number of threads
+=== 线程数
 
-Elasticsearch uses a number of thread pools for different types of operations.
-It is important that it is able to create new threads whenever needed. Make
-sure that the number of threads that the Elasticsearch user can create is at
-least 4096.
+Elasticsearch 针对不同类型的操作使用不同线程池。能够在需要时创建新线程十分重要。请确保 Elasticsearch 用户可创建的线程数至少是 4096。
 
-This can be done by setting <<ulimit,`ulimit -u 4096`>> as root before
-starting Elasticsearch, or by setting `nproc` to `4096` in
-<<limits.conf,`/etc/security/limits.conf`>>.
+这可通过在启动 Elasticsearch 前以 root 设置 <<ulimit,`ulimit -u 4096`>> 实现，
+或者在 <<limits.conf,`/etc/security/limits.conf`>> 文件里设置 `memlock` 为 `unlimited` 。
 
-The package distributions when run as services under `systemd` will configure
-the number of threads for the Elasticsearch process automatically. No
-additional configuration is required.
+使用 `systemd` 运行服务的包版本将自动为 Elasticsearch 进程配置线程数。不需要进行额外配置。
