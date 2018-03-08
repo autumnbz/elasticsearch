@@ -79,19 +79,19 @@ Elasticsearch 用以下命令启动：
 ./bin/elasticsearch
 --------------------------------------------
 
-默认情况下 Elasticsearch 是前台运行的，将其日志打印到标准输出（`stdout`），并且可以通过 `Ctrl-C`停止。
+默认情况下 Elasticsearch 是前台运行的，将其日志打印到标准输出（ `stdout` ），并且可以通过 `Ctrl-C` 停止。
 
 NOTE: 与 Elasticsearch 打包在一起的所有脚本需要支持数组 Bash 版本并假设 Bash 在 `/bin/bash` 可用。
 因此，Bash 应该可以在该路径上直接或链接使用。
 
 include::check-running.asciidoc[]
 
-可以在命令行使用 `-q` 或 `--quiet` 来禁用日志打印到 `stdout`。
+可以在命令行使用 `-q` 或 `--quiet` 来禁用日志打印到 `stdout` 。
 
 [[setup-installation-daemon]]
 ==== 守护进程运行
 
-要将 Elasticsearch 作为守护程序运行，请在命令行中指定 `-d`，并使用 `-p` 选项将进程 ID 记录到文件中：
+要将 Elasticsearch 作为守护程序运行，请在命令行中指定 `-d` ，并使用 `-p` 选项将进程 ID 记录到文件中：
 
 [source,sh]
 --------------------------------------------

@@ -306,7 +306,7 @@ start /wait msiexec.exe /i elasticsearch-{version}.msi /qn INSTALLDIR="C:\Custom
 [[msi-installer-elasticsearch-exe]]
 image::images/msi_installer/elasticsearch_exe.png[]
 
-默认情况，Elasticsearch 是前台运行的，将日志打印到 `STDOUT` ，`<cluster name>.log` 文件内的 `LOGSDIRECTORY` 除外，并且可以通过 `Ctrl-C`停止。
+默认情况，Elasticsearch 是前台运行的，将日志打印到 `STDOUT` ， `<cluster name>.log` 文件内的 `LOGSDIRECTORY` 除外，并且可以通过 `Ctrl-C` 停止。
 
 [[msi-installer-command-line-configuration]]
 ==== 命令行配置 Elasticsearch
@@ -322,7 +322,7 @@ Elasticsearch默认从 `$ES_HOME/config/elasticsearch.yml` 加载配置。配置
 
 NOTE: 包含空格的值必须用引号括起来。例如 `-Epath.logs="C:\My Logs\logs"` 。
 
-TIP: 通常情况，任何集群级的设置（例如 `cluster.name`）应该在 `elasticsearch.yml` 添加，而类似 `node.name` 节点级的设置可以用命令行指定。
+TIP: 通常情况，任何集群级的设置（例如 `cluster.name` ）应该在 `elasticsearch.yml` 添加，而类似 `node.name` 节点级的设置可以用命令行指定。
 
 include::check-running.asciidoc[]
 

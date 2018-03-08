@@ -49,7 +49,7 @@ Elasticsearch 用以下命令启动：
 --------------------------------------------
 
 默认情况下 Elasticsearch 是前台运行的，将其日志打印到
-标准输出（`stdout`），并且可以通过 `Ctrl-C`停止。
+标准输出（ `stdout` ），并且可以通过 `Ctrl-C` 停止。
 
 [[windows-configuring]]
 ==== 命令行配置 Elasticsearch
@@ -63,9 +63,9 @@ Elasticsearch 默认从 `$ES_HOME/config/elasticsearch.yml` 加载配置。配�
 .\bin\elasticsearch.bat -Ecluster.name=my_cluster -Enode.name=node_1
 --------------------------------------------
 
-NOTE: 包含空格的值必须用引号括起来。例如 `-Epath.logs="C:\My Logs\logs"`。
+NOTE: 包含空格的值必须用引号括起来。例如 `-Epath.logs="C:\My Logs\logs"` 。
 
-TIP: 通常情况，任何集群级的设置（例如 `cluster.name`）应该在 `elasticsearch.yml` 添加，而类似 `node.name` 节点级的设置可以用命令行指定。
+TIP: 通常情况，任何集群级的设置（例如 `cluster.name` ）应该在 `elasticsearch.yml` 添加，而类似 `node.name` 节点级的设置可以用命令行指定。
 
 include::check-running.asciidoc[]
 
@@ -121,7 +121,7 @@ Elasticsearch 服务可在安装之前配置（使用 https://technet.microsoft.
 [horizontal]
 `SERVICE_ID`::
 
-  服务唯一标识，同一机器上安装多实例十分有用，默认是 `elasticsearch-service-x64`。
+  服务唯一标识，同一机器上安装多实例十分有用，默认是 `elasticsearch-service-x64` 。
 
 `SERVICE_USERNAME`::
 
@@ -133,7 +133,7 @@ Elasticsearch 服务可在安装之前配置（使用 https://technet.microsoft.
 
 `SERVICE_DISPLAY_NAME`::
 
-  服务名，默认是 `Elasticsearch <version> %SERVICE_ID%`。
+  服务名，默认是 `Elasticsearch <version> %SERVICE_ID%` 。
 
 `SERVICE_DESCRIPTION`::
 
@@ -145,13 +145,13 @@ Elasticsearch 服务可在安装之前配置（使用 https://technet.microsoft.
 
 `SERVICE_LOG_DIR`::
 
-    服务日志目录，默认是 `%ES_HOME%\logs`。注意，这并不控制 ELasticsearch 日志；Elasticsearch 日志路径是通过
+    服务日志目录，默认是 `%ES_HOME%\logs` 。注意，这并不控制 ELasticsearch 日志；Elasticsearch 日志路径是通过
     `elasticsearch.yml` 的 `path.logs` 或者命令行配置的。
 
 
 `ES_PATH_CONF`::
 
-    配置文件目录（需要包括 `elasticsearch.yml`，`jvm.options`， 和 `log4j2.properties` 文件），默认 `%ES_HOME%\config`。
+    配置文件目录（需要包括 `elasticsearch.yml` ，`jvm.options` ， 和 `log4j2.properties` 文件），默认 `%ES_HOME%\config`。
 
 `ES_JAVA_OPTS`::
 
@@ -163,7 +163,7 @@ Elasticsearch 服务可在安装之前配置（使用 https://technet.microsoft.
 
 `ES_STOP_TIMEOUT` ::
 
-  procrun 等待服务超时退出的秒数。默认是 `0`。
+  procrun 等待服务超时退出的秒数。默认是 `0` 。
 
 NOTE: 重要的是，`elasticsearch-service.bat` 依赖 http://commons.apache.org/proper/commons-daemon/[Apache Commons Daemon] 项目安装服务。在安装服务之前设置的环境变量将
 被复制并在整个服务生命周期使用。这意味着安装后对它们做的改变不会更新，除非重启服务。
