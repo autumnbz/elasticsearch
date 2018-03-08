@@ -1,19 +1,11 @@
 [[heap-dump-path]]
-=== JVM heap dump path
+=== JVM 堆 dump 路径
 
-The <<rpm,RPM>> and <<deb,Debian>> package distributions default to configuring
-the JVM to dump the heap on out of memory exceptions to
-`/var/lib/elasticsearch`. If this path is not suitable for storing heap dumps,
-you should modify the entry `-XX:HeapDumpPath=/var/lib/elasticsearch` in
-<<jvm-options,`jvm.options`>> to an alternate path.  If you specify a filename
-instead of a directory, the JVM will repeatedly use the same file; this is one
-mechanism for preventing heap dumps from accumulating in the heap dump path.
-Alternatively, you can configure a scheduled task via your OS to remove heap
-dumps that are older than a configured age.
+<<rpm,RPM>> 和 <<deb,Debian>> 包版本默认在内存溢出时将 JVM dump 到 `/var/lib/elasticsearch` 。
+如果这个路径不适合存储堆 dump，你可以修改 <<jvm-options,`jvm.options`>> 里面的 `-XX:HeapDumpPath=/var/lib/elasticsearch` 。
+如果你指定一个文件名而不是目录，JVM 将重复使用这个相同文件；这是一个防止堆 dump 在 dump 路径中累积的机制。
+或者，您可以通过操作系统配置一个调度任务来删除早于配置时间的堆 dump 文件。
 
-Note that the archive distributions do not configure the heap dump path by
-default. Instead, the JVM will default to dumping to the working directory for
-the Elasticsearch process. If you wish to configure a heap dump path, you should
-modify the entry `#-XX:HeapDumpPath=/heap/dump/path` in
-<<jvm-options,`jvm.options`>> to remove the comment marker `#` and to specify an
-actual path.
+注意归档版本默认不配置堆 dump 路径。相反，JVM 将默认 dump 到 Elasticsearch 进程工作目录。
+如果你想配置一个 dump 路径，你可以通过移除 <<jvm-options,`jvm.options`>> 里 `-XX:HeapDumpPath=/heap/dump/path` 项前面的 `#` 注释标记，
+并指定一个实际路径来修改该路径。

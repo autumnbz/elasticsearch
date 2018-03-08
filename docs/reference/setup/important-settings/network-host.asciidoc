@@ -1,29 +1,22 @@
 [[network.host]]
 === `network.host`
 
-By default, Elasticsearch binds to loopback addresses only -- e.g. `127.0.0.1`
-and `[::1]`. This is sufficient to run a single development node on a server.
+Elasticsearch 默认只绑定环回地址 -- 例如 `127.0.0.1` 和 `[::1]` 。
+这足以在服务器上运行单个开发节点。
 
-TIP: In fact, more than one node can be started from the same `$ES_HOME`
-location on a single node.  This can be useful for testing Elasticsearch's
-ability to form clusters, but it is not a configuration recommended for
-production.
+TIP: 实际上，在同一 `$ES_HOME` 路径下可以启动多个节点。这对测试 Elasticsearch 组成集群能力
+十分有用，但这并不是生产环境的推荐配置。
 
-In order to communicate and to form a cluster with nodes on other servers, your
-node will need to bind to a non-loopback address. While there are many
-<<modules-network,network settings>>, usually all you need to configure is
-`network.host`:
+为了让不同服务器上的节点通信并组成集群，你的节点需要绑定一个非环回地址。虽然有很多 <<modules-network,网络设置>> ，
+但通常你只需要配置 `network.host` 。
 
 [source,yaml]
 --------------------------------------------------
 network.host: 192.168.1.10
 --------------------------------------------------
 
-The `network.host` setting also understands some special values such as
-`_local_`, `_site_`, `_global_` and modifiers like `:ip4` and `:ip6`, details of
-which can be found in <<network-interface-values>>.
+`network.host` 设置同样支持一些特殊值，例如 `_local_` 、`_site_` 、 `_global_` 和类似 `:ip4` 与 `:ip6` 修饰符，
+具体细节可从 <<network-interface-values>> 找到。
 
-IMPORTANT: As soon you provide a custom setting for `network.host`,
-Elasticsearch assumes that you are moving from development mode to production
-mode, and upgrades a number of system startup checks from warnings to
-exceptions. See <<dev-vs-prod>> for more information.
+IMPORTANT: 一旦你提供一个自定义 `network.host` 设置，Elasticsearch 会假设你正从开发模式转为生产模式，
+并将一些系统启动检查从警告升级到异常。更多信息请查看 <<dev-vs-prod>> 。

@@ -1,20 +1,17 @@
 [[node.name]]
 === `node.name`
 
-By default, Elasticsearch will use the first seven characters of the randomly
-generated UUID as the node id.Note that the node id is persisted and does
-not change when a node restarts and therefore the default node name will also
-not change.
+默认情况下，Elasticsearch 将使用一个随机生成的 7 字符 UUID 作为节点 id。注意这个节点 id 是固定的，
+在重启时节点时 id 和默认节点名都不会改变。
 
-It is worth configuring a more meaningful name which will also have the
-advantage of persisting after restarting the node:
+有必要配置一个更有意义的名称，它在重启节点后具有持续优势：
 
 [source,yaml]
 --------------------------------------------------
 node.name: prod-data-2
 --------------------------------------------------
 
-The `node.name` can also be set to the server's HOSTNAME as follows:
+`node.name` 同样可用以下方式设置为服务器的 HOSTNAME：
 
 [source,yaml]
 --------------------------------------------------

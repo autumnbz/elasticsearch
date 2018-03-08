@@ -1,13 +1,10 @@
 [[path-settings]]
-=== `path.data` and `path.logs`
+=== `path.data` 和 `path.logs`
 
-If you are using the `.zip` or `.tar.gz` archives, the `data` and `logs`
-directories are sub-folders of `$ES_HOME`.  If these important folders are left
-in their default locations, there is a high risk of them being deleted while
-upgrading Elasticsearch to a new version.
+如果你使用的是 `.zip` 或 `.tar.gz` 归档版本，`data` 和 `logs` 目录是 `$ES_HOME` 子文件夹。
+如果这些重要的文件夹保留在它们的默认路径，那么在升级 Elasticsearch 到新版本时被删除的风险很高。
 
-In production use, you will almost certainly want to change the locations of the
-data and log folder:
+在生产中，你几乎肯定想要改变 data 和 log 文件夹的位置:
 
 [source,yaml]
 --------------------------------------------------
@@ -16,11 +13,10 @@ path:
   data: /var/data/elasticsearch
 --------------------------------------------------
 
-The RPM and Debian distributions already use custom paths for `data` and `logs`.
+RPM 和 Debian 版本已经为 `data` 和 `logs` 使用了自定义路径。
 
-The `path.data` settings can be set to multiple paths, in which case all paths
-will be used to store data (although the files belonging to a single shard will
-all be stored on the same data path):
+`path.data` 可以设置为多路径，在这种情况下，所有路径
+将用于存储数据（尽管属于单个分片的文件将被存储在相同数据路径上）：
 
 [source,yaml]
 --------------------------------------------------

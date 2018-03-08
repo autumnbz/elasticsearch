@@ -1,19 +1,18 @@
 [[important-settings]]
-== Important Elasticsearch configuration
+== Elasticsearch 重要配置
 
-While Elasticsearch requires very little configuration, there are a number of
-settings which need to be considered before going into production.
+虽然 Elasticsearch 只需要很少的配置，但在投入生产之前还是有一些需要考虑的设置。
 
-The following settings *must* be considered before going to production:
+在投入生产环境之前，*必须* 考虑以下设置：
 
-* <<path-settings,Path settings>>
-* <<cluster.name,Cluster name>>
-* <<node.name,Node name>>
-* <<network.host,Network host>>
-* <<discovery-settings,Discovery settings>>
-* <<heap-size,Heap size>>
-* <<heap-dump-path,Heap dump path>>
-* <<gc-logging,GC logging>>
+* <<path-settings,路径设置>>
+* <<cluster.name,集群名>>
+* <<node.name,节点名>>
+* <<network.host,网络主机>>
+* <<discovery-settings,发现设置>>
+* <<heap-size,堆大小>>
+* <<heap-dump-path,堆 dump 路径>>
+* <<gc-logging,GC 日志>>
 
 include::important-settings/path-settings.asciidoc[]
 

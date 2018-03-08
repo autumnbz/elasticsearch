@@ -1,7 +1,5 @@
 [[gc-logging]]
 === GC logging
 
-By default, Elasticsearch enables GC logs. These are configured in
-<<jvm-options,`jvm.options`>> and default to the same default location as the
-Elasticsearch logs. The default configuration rotates the logs every 64 MB and
-can consume up to 2 GB of disk space.
+默认情况下，Elasticsearch 启用 GC 日志。这些日志由 <<jvm-options,`jvm.options`>> 配置，且默认与 Elasticsearch 默认日志位置相同。
+默认每隔 64 MB 结转一次日志，最高消耗 2 GB 磁盘空间。

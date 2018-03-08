@@ -1,22 +1,16 @@
 [[discovery-settings]]
-=== Discovery settings
+=== 发现设置
 
-Elasticsearch uses a custom discovery implementation called "Zen Discovery" for
-node-to-node clustering and master election. There are two important discovery
-settings that should be configured before going to production.
+Elasticsearch 使用称为 "Zen Discovery" 的自定义发现实现 node-to-node 集群和主选举。 在投入生产之前应该配置两个重要的发现设置。
 
 [float]
 [[unicast.hosts]]
 ==== `discovery.zen.ping.unicast.hosts`
 
-Out of the box, without any network configuration, Elasticsearch will bind to
-the available loopback addresses and will scan ports 9300 to 9305 to try to
-connect to other nodes running on the same server. This provides an auto-
-clustering experience without having to do any configuration.
+开箱即用，没有任何网络配置，Elasticsearch 将绑定到可用的环回地址，并扫描 9300 至 9305 端口以尝试
+连接到同一服务器上的其他运行节点。 这提供了一个 auto-clustering 体验，而无需进行任何配置。
 
-When the moment comes to form a cluster with nodes on other servers, you have to
-provide a seed list of other nodes in the cluster that are likely to be live and
-contactable. This can be specified as follows:
+当需要与其他服务器上的节点组成集群时，你必须提供存活且可达集群中其他节点的种子列表。 可用以下方式指定：
 
 [source,yaml]
 --------------------------------------------------
@@ -25,32 +19,25 @@ discovery.zen.ping.unicast.hosts:
    - 192.168.1.11 <1>
    - seeds.mydomain.com <2>
 --------------------------------------------------
-<1> The port will default to `transport.profiles.default.port` and fallback to
-    `transport.tcp.port` if not specified.
-<2> A hostname that resolves to multiple IP addresses will try all resolved
-    addresses.
+<1> 默认端口是 `transport.profiles.default.port` ，如果没有指定则回退为
+    `transport.tcp.port` 。
+<2> 尝试解析主机名的全部 IP 地址。
 
 [float]
 [[minimum_master_nodes]]
 ==== `discovery.zen.minimum_master_nodes`
 
-To prevent data loss, it is vital to configure the
-`discovery.zen.minimum_master_nodes` setting so that each master-eligible node
-knows the _minimum number of master-eligible nodes_ that must be visible in
-order to form a cluster.
+为了防止数据丢失，配置 `discovery.zen.minimum_master_nodes` 设置至关重要，以便每个候选主节点
+知道组成集群所需的 _最小候选主节点数_ 。
 
-Without this setting, a cluster that suffers a network failure is at risk of
-having the cluster split into two independent clusters -- a split brain -- which
-will lead to data loss. A more detailed explanation is provided in
-<<split-brain>>.
+如果没有设置，遭受网络故障的集群有将这个集群分裂成两个独立的集群的风险 -- 脑裂 -- 会导致数据丢失。
+更详细的解释由 <<split-brain>> 提供。
 
-To avoid a split brain, this setting should be set to a _quorum_ of
-master-eligible nodes:
+为了避免脑裂，这个设置应该设置为候选主节点的 _quorum_：
 
     (master_eligible_nodes / 2) + 1
 
-In other words, if there are three master-eligible nodes, then minimum master
-nodes should be set to `(3 / 2) + 1` or `2`:
+换句话说，如果有三个候选主节点，最小主节点数应该设为 `(3 / 2) + 1` 或 `2` ：
 
 [source,yaml]
 --------------------------------------------------
