@@ -1,7 +1,7 @@
 [[cluster.name]]
 === `cluster.name`
 
-一个节点只能在与集群所有其他节点共享 `cluster.name` 后才能加入集群。 默认集群名称是 `elasticsearch`，但你应该
+一个节点只能在与集群所有其他节点共享 `cluster.name` 后才能加入集群。 默认集群名称是 `elasticsearch` ，但你应该
 将其更改为描述集群用途的合适名称。
 
 [source,yaml]
