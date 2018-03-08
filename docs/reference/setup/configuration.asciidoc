@@ -31,7 +31,7 @@ ES_PATH_CONF=/path/to/my/config ./bin/elasticsearch
 
 对于包版本，config 默认目录位置为 `/etc/elasticsearch` 。 可以通过 `ES_PATH_CONF` 环境变量更改 config 目录位置，但请注意，仅仅在 shell 中设置不够的。 相反，这个变量来源于
 `/etc/default/elasticsearch` （Debian 包）和
-`/etc/sysconfig/elasticsearch`（RPM 包）。
+`/etc/sysconfig/elasticsearch` （RPM 包）。
 你需要编辑位于这些文件的 `ES_PATH_CONF=/etc/elasticsearch` 项来更改 config 目录位置。
 
 
