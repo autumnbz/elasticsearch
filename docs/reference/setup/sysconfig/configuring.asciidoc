@@ -1,26 +1,21 @@
 [[setting-system-settings]]
-=== Configuring system settings
+=== 配置系统设置
 
-Where to configure systems settings depends on which package you have used to
-install Elasticsearch, and which operating system you are using.
+在何处配置系统设置取决于你之前安装 Elasticsearch 的包类型，以及你正在使用的操作系统类型。
 
-When using the `.zip` or `.tar.gz` packages, system settings can be configured:
+当使用 `.zip` 或 `.tar.gz` 包时，系统设置配置如下：
 
-* temporarily with <<ulimit,`ulimit`>>, or
-* permanently in <<limits.conf,`/etc/security/limits.conf`>>.
+* 使用 <<ulimit,`ulimit`>> 临时生效， 或者
+* <<limits.conf,`/etc/security/limits.conf`>> 永久生效。
 
-When using the RPM or Debian packages, most system settings are set in the
-<<sysconfig,system configuration file>>. However, systems which use systemd
-require that system limits are specified in a
-<<systemd,systemd configuration file>>.
+当使用 RPM 或 Debian 包时，大多数系统设置都在 <<sysconfig,system 配置文件>> 。
+但是使用 systemd 的系统要求在 <<systemd,systemd 配置文件>> 中指定系统限制。
 
 [[ulimit]]
 ==== `ulimit`
 
-On Linux systems, `ulimit` can be used to change resource limits on a
-temporary basis. Limits usually need to be set as `root` before switching to
-the user that will run Elasticsearch.  For example, to set the number of
-open file handles (`ulimit -n`) to 65,536, you can do the following:
+在 Linux 系统上，`ulimit` 可用于临时改变资源。在切换为运行 Elasticsearch 的账号前，通常需要 `root` 权限。
+例如，设置打开文件句柄（ `ulimit -n` ）数为 65,536，你可以这样做：
 
 [source,sh]
 --------------------------------
@@ -28,36 +23,32 @@ sudo su  <1>
 ulimit -n 65536 <2>
 su elasticsearch <3>
 --------------------------------
-<1> Become `root`.
-<2> Change the max number of open files.
-<3> Become the `elasticsearch` user in order to start Elasticsearch.
+<1> 切换 `root`.
+<2> 改变最大打开文件数。
+<3> 切换 `elasticsearch` 账号用于启动 Elasticsearch。
 
-The new limit is only applied during the current session.
+新的 limit 仅适用于当前会话。
 
-You can consult all currently applied limits with `ulimit -a`.
+您可以使用 `ulimit -a` 查询所有当前应用的 limits。
 
 [[limits.conf]]
 ==== `/etc/security/limits.conf`
 
-On Linux systems, persistent limits can be set for a particular user by
-editing the `/etc/security/limits.conf` file. To set the maximum number of
-open files for the `elasticsearch` user to 65,536, add the following line to
-the `limits.conf` file:
+在 Linux 系统上，可以通过编辑 `/etc/security/limits.conf` 文件来为指定用户设置固定 limits。
+为了将 `elasticsearch` 账号最大打开文件数设为 65,536，可在 `limits.conf` 文件中添加以下行：
+
 
 [source,sh]
 --------------------------------
 elasticsearch  -  nofile  65536
 --------------------------------
 
-This change will only take effect the next time the `elasticsearch` user opens
-a new session.
+此更改仅在 `elasticsearch` 账号开启新 session 时生效。
 
 [NOTE]
-.Ubuntu and `limits.conf`
+.Ubuntu 和 `limits.conf`
 ===============================
-Ubuntu ignores the `limits.conf` file for processes started by `init.d`.  To
-enable the `limits.conf` file, edit `/etc/pam.d/su` and uncomment the
-following line:
+Ubuntu 忽略由 `init.d` 启动进程的 `limits.conf` 文件。 为了启用 `limits.conf` 文件，请编辑 `/etc/pam.d/su` 并取消以下行注释：
 
 [source,sh]
 --------------------------------
@@ -66,34 +57,25 @@ following line:
 ===============================
 
 [[sysconfig]]
-==== Sysconfig file
+==== Sysconfig 文件
 
-When using the RPM or Debian packages, system settings and environment
-variables can be specified in the system configuration file, which is located
-in:
+使用 RPM 或 Debian 包时，系统设置和环境变量可由位于以下路径的系统配置文件指定：
 
 [horizontal]
 RPM::     `/etc/sysconfig/elasticsearch`
 Debian::  `/etc/default/elasticsearch`
 
-However, for systems which uses `systemd`, system limits need to be specified
-via <<systemd,systemd>>.
+但是，对于使用 `systemd` 的系统，需要通过 <<systemd,systemd>> 指定系统 limits。
 
 [[systemd]]
-==== Systemd configuration
+==== Systemd 配置
 
-When using the RPM or Debian packages on systems that use
-https://en.wikipedia.org/wiki/Systemd[systemd], system limits must be
-specified via systemd.
+当 RPM 或 Debian 包使用 https://en.wikipedia.org/wiki/Systemd[systemd] 时，系统 limits 必须由 systemd 指定。
 
-The systemd service file (`/usr/lib/systemd/system/elasticsearch.service`)
-contains the limits that are applied by default.
+systemd 服务文件（ `/usr/lib/systemd/system/elasticsearch.service` ）包含默认应用的 limits。
 
-To override them, add a file called
-`/etc/systemd/system/elasticsearch.service.d/override.conf` (alternatively,
-you may run `sudo systemctl edit elasticsearch` which opens the file 
-automatically inside your default editor). Set any changes in this file,
-such as:
+要覆盖它们，请添加一个名为 `/etc/systemd/system/elasticsearch.service.d/override.conf` 的文件（或者，
+你可以在你的默认编辑器中运行 `sudo systemctl edit elasticsearch` 来打开文件）。在文件中设置任何更改，例如：
 
 [source,sh]
 ---------------------------------
@@ -101,7 +83,7 @@ such as:
 LimitMEMLOCK=infinity
 ---------------------------------
 
-Once finished, run the following command to reload units:
+一旦完成，运行如下命令重载：
 
 [source,sh]
 ---------------------------------

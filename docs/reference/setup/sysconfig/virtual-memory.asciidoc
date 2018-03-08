@@ -1,20 +1,15 @@
 [[vm-max-map-count]]
-=== Virtual memory
+=== 虚拟内存
 
-Elasticsearch uses a <<default_fs,`mmapfs`>> directory by
-default to store its indices.  The default operating system limits on mmap
-counts is likely to be too low, which may result in out of memory exceptions.
+Elasticsearch 默认使用 <<default_fs,`mmapfs`>> 目录存储索引。默认操作系统 mmap 数限制可能很低，这可能会导致内存溢出异常。
 
-On Linux, you can increase the limits by running the following command as
-`root`:
+Linux 上可以用 `root` 运行以下命令提升该限制：
 
 [source,sh]
 -------------------------------------
 sysctl -w vm.max_map_count=262144
 -------------------------------------
 
-To set this value permanently, update the `vm.max_map_count` setting in
-`/etc/sysctl.conf`.  To verify after rebooting, run `sysctl vm.max_map_count`.
+更新 `/etc/sysctl.conf` 文件内的 `vm.max_map_count` 值可永久设置该值。重启后运行 `sysctl vm.max_map_count` 检验。
 
-The RPM and Debian packages will configure this setting automatically.  No
-further configuration is required.
+RPM 和 Debian 包会自动配置该值。不需要进行额外配置。

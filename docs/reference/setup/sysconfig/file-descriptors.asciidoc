@@ -1,29 +1,20 @@
 [[file-descriptors]]
-=== File Descriptors
+=== 文件描述符
 
 [NOTE]
-This is only relevant for Linux and macOS and can be safely ignored if running
-Elasticsearch on Windows. On Windows that JVM uses an
-https://msdn.microsoft.com/en-us/library/windows/desktop/aa363858(v=vs.85).aspx[API]
-limited only by available resources.
+这只适用于 Linux 和 MacOS ，如果在 Windows 上 运行 Elasticsearch 则可以安全地忽略。
+在 Windows 上 JVM 使用一个仅受可用资源限制的 https://msdn.microsoft.com/en-us/library/windows/desktop/aa363858(v=vs.85).aspx[API] 。
 
-Elasticsearch uses a lot of file descriptors or file handles.  Running out of
-file descriptors can be disastrous and will most probably lead to data loss.
-Make sure to increase the limit on the number of open files descriptors for
-the user running Elasticsearch to 65,536 or higher.
+Elasticsearch 使用大量文件描述符或文件句柄。 用尽文件描述符是灾难性的，并且很可能导致数据丢失。
+确保为 Elasticsearch 运行用户增加打开文件描述符数量为 65,536 或更高。
 
-For the `.zip` and `.tar.gz` packages, set <<ulimit,`ulimit -n 65536`>> as
-root before starting Elasticsearch,   or set `nofile` to `65536` in
-<<limits.conf,`/etc/security/limits.conf`>>.
+对于 `.zip` 和 `.tar.gz` 包，在运行 Elasticsearch 前以 root 设置 <<ulimit,`ulimit -n 65536`>> ，或者设置<<limits.conf,`/etc/security/limits.conf`>> 里的 `nofile` 为 `65536` 。
 
-On macOS, you must also pass the JVM option `-XX:-MaxFDLimit`
-to Elasticsearch in order for it to make use of the higher file descriptor limit.
+在 macOS，你必须向 Elasticsearch JVM 传递  `-XX:-MaxFDLimit` 选项以便使用更多的文件描述符。
 
-RPM and Debian packages already default the maximum number of file
-descriptors to 65536 and do not require further configuration.
+RPM和 Debian 包默认最大文件描述符为 65536，因此不需要进一步配置。
 
-You can check the `max_file_descriptors` configured for each node
-using the <<cluster-nodes-stats>> API, with:
+您可以使用 <<cluster-nodes-stats>> API 检查每个节点配置的 `max_file_descriptors` ：
 
 [source,js]
 --------------------------------------------------
