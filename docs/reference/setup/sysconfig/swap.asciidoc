@@ -1,7 +1,7 @@
 [[setup-configuration-memory]]
 === 禁用 swapping
 
-大多数操作系统尝试让文件系统缓存尽可能多的内存，并急切地换出未使用的应用内存。
+大多数操作系统尝试让文件系统缓存用尽可能多的内存，并急切地换出未使用的应用内存。
 这可能会导致部分 JVM 堆或其可执行页面被交换到磁盘。
 
 Swapping 对性能非常不利，为了节点稳定应该不惜一切代价避免 Swapping。 这可能导致持续 **分钟** 而不是毫秒的垃圾回收，
@@ -12,7 +12,7 @@ Swapping 对性能非常不利，为了节点稳定应该不惜一切代价避�
 [[disable-swap-files]]
 ==== 禁用所有文件交换
 
-通常 Elasticsearch 是运行的唯一服务，它的内存使用情况由 JVM 选项控制。应该不需要启用交换。
+通常 Elasticsearch 是机器上运行的唯一服务，它的内存使用情况由 JVM 选项控制。应该不需要启用交换。
 
 在 Linux 系统，你可以运行以下命令临时禁用交换：
 
@@ -36,7 +36,7 @@ Linux 系统上另一个可选项是确保 sysctl `vm.swappiness` 值设为 `1` 
 
 另一个选择是在 Linux/Unix 系统使用 http://opengroup.org/onlinepubs/007908799/xsh/mlockall.html[mlockall]
 或在 Windows 使用 https://msdn.microsoft.com/en-us/library/windows/desktop/aa366895%28v=vs.85%29.aspx[VirtualLock]
-尝试将进程地址空间锁定到 RAM 中和防止任何 Elasticsearch 内存被换出。 这可以通过在 `config/elasticsearch.yml` 文件添加以下行完成：
+尝试将进程地址空间锁定到 RAM 中，防止任何 Elasticsearch 内存被换出。 这可以通过在 `config/elasticsearch.yml` 文件添加以下行完成：
 
 [source,yaml]
 --------------
@@ -55,12 +55,11 @@ GET _nodes?filter_path=**.mlockall
 
 如果你发现 `mlockall` 是 `false` ，那这意味着 `mlockall` 请求失败。你同样可在日志看到 `Unable to lock JVM Memory` 的更多信息。
 
-Linux/Unix 系统最可能的原因是运行 Elasticsearch 的账号没有锁定内存的权限。可用以下方式授权：
+Linux/Unix 系统最可能的原因是运行 Elasticsearch 的用户没有锁定内存的权限。可用以下方式授权：
 
 `.zip` 和 `.tar.gz`::
 
-  启动 Elasticsearch 前以 root 设置 <<ulimit,`ulimit -l unlimited`>> ，或
-  在 <<limits.conf,`/etc/security/limits.conf`>> 文件设置 `memlock` 为 `unlimited` 。
+  以 root启动 Elasticsearch 并设置 <<ulimit,`ulimit -l unlimited`>> ，或在 <<limits.conf,`/etc/security/limits.conf`>> 文件设置 `memlock` 为 `unlimited` 。
 
 RPM 和 Debian::
 
@@ -71,7 +70,7 @@ RPM 和 Debian::
   在 <<systemd,systemd 配置>> 设置 `LimitMEMLOCK` 为 `infinity` 。
 
 另一个 `mlockall` 失败的原因可能是临时目录（一般是 `/tmp` ）使用 `noexec` 选项加载。
-这可使用 `ES_JAVA_OPTS` 环境变量指定一个新的目录解决。
+这可通过给 `ES_JAVA_OPTS` 环境变量指定一个新的目录解决。
 
 [source,sh]
 --------------
