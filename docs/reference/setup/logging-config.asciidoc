@@ -49,7 +49,7 @@ appender.rolling.strategy.action.condition.nested_condition.exceeds = 2GB <13>
 
 NOTE: Log4j 的解析配置会被无关的空白符混淆；如果你复制粘贴此页面上的任何 Log4j 设置，或者输入任何通用 Log4j，请确认修剪开头和结尾空格。
 
-注意，你可以将 `appender.rolling.filePattern` 中的 `.gz` 替换为 `.zip`，这样可以
+注意，你可以将 `appender.rolling.filePattern` 中的 `.gz` 替换为 `.zip` ，这样可以
 使用 zip 格式压缩滚动日志。 如果你删除 `.gz` ，那么日志将不会被压缩，因为它们是滚动的。
 
 如果你想保留一段时间的日志文件，你可以使用一个带有删除操作的滚动策略。

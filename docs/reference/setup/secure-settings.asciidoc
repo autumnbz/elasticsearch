@@ -13,7 +13,7 @@ NOTE: 对 keystore 的所有修改只有在重启 Elasticsearch 后才会生效�
 [[creating-keystore]]
 === 创建 keystore
 
-使用 `create` 命令创建 `elasticsearch.keystore`：
+使用 `create` 命令创建 `elasticsearch.keystore` ：
 
 [source,sh]
 ----------------------------------------------------------------
