@@ -40,7 +40,7 @@ Elasticsearch 通过指定设置 <<jvm-options,jvm.options>> 内的 `Xms` （最
 <1> 设置最小堆为 2g。
 <2> 设置最大堆为 2g。
 
-通过环境变量设置堆大小同样可行。这可以通过注释 <<jvm-options,`jvm.options`>> 文件中的 `Xms` 和 `Xmx`，并在 `ES_JAVA_OPTS` 中设置这些值：
+通过环境变量设置堆大小同样可行。这可以通过注释 <<jvm-options,`jvm.options`>> 文件中的 `Xms` 和 `Xmx` ，并在 `ES_JAVA_OPTS` 中设置这些值：
 
 [source,sh]
 ------------------
