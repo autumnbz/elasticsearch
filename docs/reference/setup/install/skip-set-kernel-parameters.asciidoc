@@ -1,2 +1,1 @@
-NOTE: 在 systemd-based 的版本上，安装脚本将尝试设置内核参数（例如，
-`vm.max_map_count`）； 你可以通过屏蔽 systemd-sysctl.service 单元来跳过此操作。
+NOTE: 在 systemd-based 的版本上，安装脚本将尝试设置内核参数（例如，`vm.max_map_count` ）； 你可以通过屏蔽 systemd-sysctl.service 单元来跳过此操作。

@@ -5,21 +5,21 @@
 
 `MAX_OPEN_FILES`::
 
-    最大打开文件数，默认是 `65536`。
+    最大打开文件数，默认是 `65536` 。
 
 `MAX_LOCKED_MEMORY`::
 
-    最大锁定内存大小。如果使用 elasticsearch.yml 使用 `bootstrap.memory_lock` 则设置为 `unlimited`。
+    最大锁定内存大小。如果使用 elasticsearch.yml 使用 `bootstrap.memory_lock` 则设置为 `unlimited` 。
 
 `MAX_MAP_COUNT`::
 
     进程拥有的最大内存映射区数量。 如果你使用 `mmapfs` 作为索引存储类型，请确保将其设置为较高值。
     更多细节请查看 https://github.com/torvalds/linux/blob/master/Documentation/sysctl/vm.txt[linux kernel documentation] 关于 `max_map_count` 介绍。
-    在启动 Elasticsearch 通过 `sysctl`设置，默认为 `262144`。
+    在启动 Elasticsearch 通过 `sysctl`设置，默认为 `262144` 。
 
 `ES_PATH_CONF`::
 
-    配置文件目录（需要包括 `elasticsearch.yml`，`jvm.options`， 和 `log4j2.properties` 文件），默认 `/etc/elasticsearch`。
+    配置文件目录（需要包括 `elasticsearch.yml` ，`jvm.options` ， 和 `log4j2.properties` 文件），默认 `/etc/elasticsearch` 。
 
 `ES_JAVA_OPTS`::
 

@@ -105,7 +105,7 @@ shasum -a 512 -c elasticsearch-{version}.rpm.sha512 <1>
 sudo rpm --install elasticsearch-{version}.rpm
 --------------------------------------------
 <1> 比较下载的 RPM 的 SHA 和 发布校验和，应该输出
-        `elasticsearch-{version}.zip: OK`。
+        `elasticsearch-{version}.zip: OK` 。
 
 endif::[]
 
