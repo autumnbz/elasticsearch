@@ -1,7 +1,6 @@
-==== Running Elasticsearch with `systemd`
+==== 以 `systemd` 运行 Elasticsearch
 
-To configure Elasticsearch to start automatically when the system boots up,
-run the following commands:
+系统启动可通过以下命令手动启动 Elasticsearch：
 
 [source,sh]
 --------------------------------------------------
@@ -9,7 +8,7 @@ sudo /bin/systemctl daemon-reload
 sudo /bin/systemctl enable elasticsearch.service
 --------------------------------------------------
 
-Elasticsearch can be started and stopped as follows:
+可用以下方式停止 Elasticsearch：
 
 [source,sh]
 --------------------------------------------
@@ -17,37 +16,33 @@ sudo systemctl start elasticsearch.service
 sudo systemctl stop elasticsearch.service
 --------------------------------------------
 
-These commands provide no feedback as to whether Elasticsearch was started
-successfully or not. Instead, this information will be written in the log
-files located in `/var/log/elasticsearch/`.
+这些命令没有提供 Elasticsearch 是否启动成功的反馈信息。相反，这些信息将写入
+位于 `/var/log/elasticsearch/` 日志文件。
 
-By default the Elasticsearch service doesn't log information in the `systemd`
-journal. To enable `journalctl` logging, the `--quiet` option must be removed
- from the `ExecStart` command line in the `elasticsearch.service` file.
+默认情况下，Elasticsearch 服务不会在 `systemd` 中记录日志信息。 要启用 `journalctl` 日志，必须删除来自 `elasticsearch.service` 文件中
+的 `ExecStart` 命令行 `--quiet` 选项。
 
-When `systemd` logging is enabled, the logging information are available using
-the `journalctl` commands:
+当 `systemd` 启用时，可用 `journalctl` 命令查看日志信息。
 
-To tail the journal:
+tail journal:
 
 [source,sh]
 --------------------------------------------
 sudo journalctl -f
 --------------------------------------------
 
-To list journal entries for the elasticsearch service:
+查看 Elasticsearch 服务 journal entries：
 
 [source,sh]
 --------------------------------------------
 sudo journalctl --unit elasticsearch
 --------------------------------------------
 
-To list journal entries for the elasticsearch service starting from a given time:
+查看 Elasticsearch 从指定时间到当前的 journal entries：
 
 [source,sh]
 --------------------------------------------
 sudo journalctl --unit elasticsearch --since  "2016-10-30 18:17:16"
 --------------------------------------------
 
-Check `man journalctl` or https://www.freedesktop.org/software/systemd/man/journalctl.html for
-more command line options.
+更多命令请查看 `man journalctl` 或者 https://www.freedesktop.org/software/systemd/man/journalctl.html

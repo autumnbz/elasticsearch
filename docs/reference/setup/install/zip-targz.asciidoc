@@ -1,31 +1,30 @@
 [[zip-targz]]
-=== Install Elasticsearch with `.zip` or `.tar.gz`
+=== 使用 `.zip` 或 `.tar.gz` 安装 Elasticsearch
 
-Elasticsearch is provided as a `.zip` and as a `.tar.gz` package.  These
-packages can be used to install Elasticsearch on any system and are the
-easiest package format to use when trying out Elasticsearch.
+Elasticsearch 提供了 `.zip` 和 `.tar.gz` 安装包。
+这些包适合在任何操作系统上安装，同时也是大多数系统入门 Elasticsearch 的最简单选择。
 
-The latest stable version of Elasticsearch can be found on the
-link:/downloads/elasticsearch[Download Elasticsearch] page.
-Other versions can be found on the
-link:/downloads/past-releases[Past Releases page].
+最新的稳定版本可以在
+link:/downloads/elasticsearch[Download Elasticsearch] 找到。
+其他版本可以在
+link:/downloads/past-releases[Past Releases page] 找到。
 
-NOTE: Elasticsearch requires Java 8 or later. Use the
+NOTE: Elasticsearch 最低要求 Java 8。使用
 http://www.oracle.com/technetwork/java/javase/downloads/index.html[official Oracle distribution]
-or an open-source distribution such as http://openjdk.java.net[OpenJDK].
+或者开源版本 http://openjdk.java.net[OpenJDK]。
 
 [[install-zip]]
-==== Download and install the `.zip` package
+==== 下载和安装 `.zip` 包
 
 ifeval::["{release-state}"=="unreleased"]
 
-Version {version} of Elasticsearch has not yet been released.
+Elasticsearch Version {version} 暂未发布。
 
 endif::[]
 
 ifeval::["{release-state}"!="unreleased"]
 
-The `.zip` archive for Elasticsearch v{version} can be downloaded and installed as follows:
+Elasticsearch v{version}  的 `.zip` 包可用以下方式获取安装：
 
 
 ["source","sh",subs="attributes"]
@@ -36,25 +35,25 @@ shasum -a 512 -c elasticsearch-{version}.zip.sha512 <1>
 unzip elasticsearch-{version}.zip
 cd elasticsearch-{version}/ <2>
 --------------------------------------------
-<1> Compares the SHA of the downloaded `.zip` archive and the published checksum, which should output
-    `elasticsearch-{version}.zip: OK`.
-<2> This directory is known as `$ES_HOME`.
+<1> 比较下载的 `.zip` 包的 SHA 和 发布校验和，应该输出
+    `elasticsearch-{version}.zip: OK`。
+<2> 这个目录便是 `$ES_HOME`。
 
 endif::[]
 
 
 [[install-targz]]
-==== Download and install the `.tar.gz` package
+==== 下载安装 `.tar.gz`
 
 ifeval::["{release-state}"=="unreleased"]
 
-Version {version} of Elasticsearch has not yet been released.
+Elasticsearch Version {version} 暂未发布。
 
 endif::[]
 
 ifeval::["{release-state}"!="unreleased"]
 
-The `.tar.gz` archive for Elasticsearch v{version} can be downloaded and installed as follows:
+Elasticsearch v{version}  的 `.tar.gz` 包可用以下方式获取安装：
 
 ["source","sh",subs="attributes"]
 --------------------------------------------
@@ -64,133 +63,114 @@ shasum -a 512 -c elasticsearch-{version}.tar.gz.sha512 <1>
 tar -xzf elasticsearch-{version}.tar.gz
 cd elasticsearch-{version}/ <2>
 --------------------------------------------
-<1> Compares the SHA of the downloaded `.tar.gz` archive and the published checksum, which should output
-    `elasticsearch-{version}.tar.gz: OK`.
-<2> This directory is known as `$ES_HOME`.
+<1> 比较下载的 `.tar.gz` 包的 SHA 和 发布校验和，应该输出
+    `elasticsearch-{version}.tar.gz: OK`。
+<2> 这个目录便是 `$ES_HOME`。
 
 endif::[]
 
 [[zip-targz-running]]
-==== Running Elasticsearch from the command line
+==== 使用命令行运行 Elasticsearch
 
-Elasticsearch can be started from the command line as follows:
+Elasticsearch 用以下命令启动：
 
 [source,sh]
 --------------------------------------------
 ./bin/elasticsearch
 --------------------------------------------
 
-By default, Elasticsearch runs in the foreground, prints its logs to the
-standard output (`stdout`), and can be stopped by pressing `Ctrl-C`.
+默认情况下 Elasticsearch 是前台运行的，将其日志打印到标准输出（`stdout`），并且可以通过 `Ctrl-C`停止。
 
-NOTE: All scripts packaged with Elasticsearch require a version of Bash
-that supports arrays and assume that Bash is available at `/bin/bash`.
-As such, Bash should be available at this path either directly or via a
-symbolic link.
+NOTE: 与 Elasticsearch 打包在一起的所有脚本需要支持数组 Bash 版本并假设 Bash 在 `/bin/bash` 可用。
+因此，Bash 应该可以在该路径上直接或链接使用。
 
 include::check-running.asciidoc[]
 
-Log printing to `stdout` can be disabled using the `-q` or `--quiet`
-option on the command line.
+可以在命令行使用 `-q` 或 `--quiet` 来禁用日志打印到 `stdout`。
 
 [[setup-installation-daemon]]
-==== Running as a daemon
+==== 守护进程运行
 
-To run Elasticsearch as a daemon, specify `-d` on the command line, and record
-the process ID in a file using the `-p` option:
+要将 Elasticsearch 作为守护程序运行，请在命令行中指定 `-d`，并使用 `-p` 选项将进程 ID 记录到文件中：
 
 [source,sh]
 --------------------------------------------
 ./bin/elasticsearch -d -p pid
 --------------------------------------------
 
-Log messages can be found in the `$ES_HOME/logs/` directory.
+日志信息可在 `$ES_HOME/logs/` 目录查看。
 
-To shut down Elasticsearch, kill the process ID recorded in the `pid` file:
+要关闭 Elasticsearch，请 kill 记录在 pid 文件中的进程 ID：
 
 [source,sh]
 --------------------------------------------
 kill `cat pid`
 --------------------------------------------
 
-NOTE: The startup scripts provided in the <<rpm,RPM>> and <<deb,Debian>>
-packages take care of starting and stopping the Elasticsearch process for you.
+NOTE: <<rpm,RPM>> 和 <<deb,Debian>> 包中提供的启动脚本负责为你启动和停止 Elasticsearch。
 
 [[zip-targz-configuring]]
-==== Configuring Elasticsearch on the command line
+==== 命令行配置 Elasticsearch
 
-Elasticsearch loads its configuration from the `$ES_HOME/config/elasticsearch.yml`
-file by default.  The format of this config file is explained in
-<<settings>>.
+Elasticsearch 默认从 `$ES_HOME/config/elasticsearch.yml` 加载配置。配置的具体解释见 <<settings>>。
 
-Any settings that can be specified in the config file can also be specified on
-the command line, using the `-E` syntax as follows:
+任何可在配置文件中指定的设置都可在命令行指定，使用 `-E` 语法如下：
 
 [source,sh]
 --------------------------------------------
 ./bin/elasticsearch -d -Ecluster.name=my_cluster -Enode.name=node_1
 --------------------------------------------
 
-TIP: Typically, any cluster-wide settings (like `cluster.name`) should be
-added to the `elasticsearch.yml` config file, while any node-specific settings
-such as `node.name` could be specified on the command line.
+TIP: 通常情况，任何集群级的设置（例如 `cluster.name`）应该在 `elasticsearch.yml` 添加，而类似 `node.name` 节点级的设置可以用命令行指定。
 
 [[zip-targz-layout]]
-==== Directory layout of `.zip` and `.tar.gz` archives
+==== `.zip` 和 `.tar.gz` 目录结构
 
-The `.zip` and `.tar.gz` packages are entirely self-contained. All files and
-directories are, by default, contained within `$ES_HOME` -- the directory
-created when unpacking the archive.
+`.zip` 和 `.tar.gz` 包是一体的。所有文件和目录默认情况下在 `$ES_HOME` -- 解压时建立。
 
-This is very convenient because you don't have to create any directories to
-start using Elasticsearch, and uninstalling Elasticsearch is as easy as
-removing the `$ES_HOME` directory.  However, it is advisable to change the
-default locations of the config directory, the data directory, and the logs
-directory so that you do not delete important data later on.
-
+因为不需要建立任何目录来启动 Elasticsearch 所以十分方便，卸载 Elasticsearch 也只需要移除 `$ES_HOME` 目录。
+然而，还是建议改变默认的 config、data 和 logs 目录位置以便在未来你不用删除重要数据。
 
 [cols="<h,<,<m,<m",options="header",]
 |=======================================================================
 | Type | Description | Default Location | Setting
 | home
-  | Elasticsearch home directory or `$ES_HOME`
- d| Directory created by unpacking the archive
+  | Elasticsearch 根目录或 `$ES_HOME`
+ d| 解压时创建
   |
 
 | bin
-  | Binary scripts including `elasticsearch` to start a node
-    and `elasticsearch-plugin` to install plugins
+  | 二进制脚本，包括启动节点的 `elasticsearch` 和安装插件的
+     `elasticsearch-plugin`
   | $ES_HOME/bin
  d|
 
 | conf
-  | Configuration files including `elasticsearch.yml`
+  | 包含 `elasticsearch.yml` 的配置文件
   | $ES_HOME/config
   | <<config-files-location,ES_PATH_CONF>>
 
 | data
-  | The location of the data files of each index / shard allocated
-    on the node. Can hold multiple locations.
+  | 每个节点分配的 index / shard 数据文件。支持多路径。
   | $ES_HOME/data
   | path.data
 
 | logs
-  | Log files location.
+  | Log 文件路径。
   | $ES_HOME/logs
   | path.logs
 
 | plugins
-  | Plugin files location. Each plugin will be contained in a subdirectory.
+  | Plugin 文件路径。每个插件都包含在一个子目录中。
   | $ES_HOME/plugins
   |
 
 | repo
-  | Shared file system repository locations. Can hold multiple locations. A file system repository can be placed in to any subdirectory of any directory specified here.
- d| Not configured
+  | 共享文件系统库路径。支持多路径。一个文件系统库可以在此处指定的任何目录的任何子目录中。
   | path.repo
 
 | script
-  | Location of script files.
+  | script 文件路径。
   | $ES_HOME/scripts
   | path.scripts
 

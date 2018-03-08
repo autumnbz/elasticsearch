@@ -1,12 +1,6 @@
-Elasticsearch defaults to using `/etc/elasticsearch` for runtime configuration.
-The ownership of this directory and all files in this directory are set to
-`root:elasticsearch` on package installation and the directory has the `setgid`
-flag set so that any files and subdirectories created under `/etc/elasticsearch`
-are created with this ownership as well (e.g., if a keystore is created using
-the <<secure-settings,keystore tool>>). It is expected that this be maintained so
-that the Elasticsearch process can read the files under this directory via the
-group permissions.
+Elasticsearch 默认使用 `/etc/elasticsearch` 进行运行时配置。
+该目录和目录中的所有文件的权限都为 `root:elasticsearch` 并且目录有 `setgid` 标志设置，以便在 `/etc/elasticsearch` 下创建任何文件和子目录
+也可以使用此所有权创建（例如，如果使用创建密钥库
+<<secure-settings,keystore tool>>）。Elasticsearch进程可通过组权限读取这个目录下的文件。
 
-Elasticsearch loads its configuration from the
-`/etc/elasticsearch/elasticsearch.yml` file by default.  The format of this
-config file is explained in <<settings>>.
+Elasticsearch 默认配置从 `/etc/elasticsearch/elasticsearch.yml` 加载 。配置文件的解释详见 <<settings>>.

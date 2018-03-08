@@ -1,8 +1,7 @@
-We sign all of our packages with the Elasticsearch Signing Key (PGP key
-https://pgp.mit.edu/pks/lookup?op=vindex&search=0xD27D666CD88E42B4[D88E42B4],
-available from https://pgp.mit.edu) with fingerprint:
+我们使用 Elasticsearch 签名密钥对所有软件包进行指纹签名（PGP 密钥
+https://pgp.mit.edu/pks/lookup?op=vindex&search=0xD27D666CD88E42B4[D88E42B4]
+可从https://pgp.mit.edu获得）：
 
     4609 5ACC 8548 582C 1A26 99A9 D27D 666C D88E 42B4
 
-Download and install the public signing key:
-
+下载和安装公共签名密钥：

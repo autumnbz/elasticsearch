@@ -1,2 +1,2 @@
-NOTE: On systemd-based distributions, the installation scripts will attempt to set kernel parameters (e.g.,
-`vm.max_map_count`); you can skip this by masking the systemd-sysctl.service unit.
+NOTE: 在 systemd-based 的版本上，安装脚本将尝试设置内核参数（例如，
+`vm.max_map_count`）； 你可以通过屏蔽 systemd-sysctl.service 单元来跳过此操作。

@@ -1,7 +1,6 @@
-==== Checking that Elasticsearch is running
+==== 验证 Elasticsearch 是否启动
 
-You can test that your Elasticsearch node is running by sending an HTTP
-request to port `9200` on `localhost`:
+你可向 `localhost` 的 `9200` 端口发送 HTTP 请求：
 
 [source,js]
 --------------------------------------------
@@ -9,7 +8,7 @@ GET /
 --------------------------------------------
 // CONSOLE
 
-which should give you a response something like this:
+正常响应如下：
 
 ["source","js",subs="attributes,callouts"]
 --------------------------------------------

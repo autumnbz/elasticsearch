@@ -1,39 +1,35 @@
 [[zip-windows]]
-=== Install Elasticsearch with `.zip` on Windows
+=== 使用 `.zip` 在 Windows 下安装 Elasticsearch
 
-Elasticsearch can be installed on Windows using the `.zip` package.  This
-comes with a `elasticsearch-service.bat` command which will setup Elasticsearch to run as a
-service.
+Elasticsearch 在 Windows 可用 `.zip` 包安装，并使用 `elasticsearch-service.bat` 命令启动 Elasticsearch 服务。
 
-TIP: Elasticsearch has historically been installed on Windows using the `.zip` archive.
-An <<windows, MSI installer package>> is available that provides the easiest getting started
-experience for Windows. You can continue using the `.zip` approach if you prefer.
+TIP: 可使用 `.zip` 在 Windows 上安装 Elasticsearch。
+<<windows, MSI installer package>> 提供了最简单的入门体验。如果你愿意，你可以继续使用 `.zip` 方法。
 
-The latest stable version of Elasticsearch can be found on the
-link:/downloads/elasticsearch[Download Elasticsearch] page.
-Other versions can be found on the
-link:/downloads/past-releases[Past Releases page].
+最新的稳定版本可以在
+link:/downloads/elasticsearch[Download Elasticsearch] 找到。
+其他版本可以在
+link:/downloads/past-releases[Past Releases page] 找到。
 
-NOTE: Elasticsearch requires Java 8 or later. Use the
+NOTE: Elasticsearch 最低要求 Java 8。使用
 http://www.oracle.com/technetwork/java/javase/downloads/index.html[official Oracle distribution]
-or an open-source distribution such as http://openjdk.java.net[OpenJDK].
+或者开源版本 http://openjdk.java.net[OpenJDK]。
 
 [[install-windows]]
-==== Download and install the `.zip` package
+==== 下载和安装 `.zip` 包
 
 ifeval::["{release-state}"=="unreleased"]
 
-Version {version} of Elasticsearch has not yet been released.
+Elasticsearch Version {version} 暂未发布。
 
 endif::[]
 
 ifeval::["{release-state}"!="unreleased"]
 
-Download the `.zip` archive for Elasticsearch v{version} from: https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{version}.zip
+Elasticsearch v{version}  的 `.zip` 包可从此获取：https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{version}.zip
 
-Unzip it with your favourite unzip tool.  This will create a folder called
-+elasticsearch-{version}+, which we will refer to as `%ES_HOME%`. In a terminal
-window, `cd` to the `%ES_HOME%` directory, for instance:
+解压文件后会创建一个 +elasticsearch-{version}+ 的文件，我们将其称为 `%ES_HOME%`。在 window 终端，
+`cd` 进入 `%ES_HOME%` 目录，示例如下：
 
 ["source","sh",subs="attributes"]
 ----------------------------
@@ -43,49 +39,41 @@ cd c:\elasticsearch-{version}
 endif::[]
 
 [[windows-running]]
-==== Running Elasticsearch from the command line
+==== 命令行运行 Elasticsearch
 
-Elasticsearch can be started from the command line as follows:
+Elasticsearch 用以下命令启动：
 
 [source,sh]
 --------------------------------------------
 .\bin\elasticsearch.bat
 --------------------------------------------
 
-By default, Elasticsearch runs in the foreground, prints its logs to `STDOUT`,
-and can be stopped by pressing `Ctrl-C`.
+默认情况下 Elasticsearch 是前台运行的，将其日志打印到
+标准输出（`stdout`），并且可以通过 `Ctrl-C`停止。
 
 [[windows-configuring]]
-==== Configuring Elasticsearch on the command line
+==== 命令行配置 Elasticsearch
 
-Elasticsearch loads its configuration from the `%ES_HOME%\config\elasticsearch.yml`
-file by default.  The format of this config file is explained in
-<<settings>>.
+Elasticsearch 默认从 `$ES_HOME/config/elasticsearch.yml` 加载配置。配置的具体解释见 <<settings>>。
 
-Any settings that can be specified in the config file can also be specified on
-the command line, using the `-E` syntax as follows:
+任何可在配置文件中指定的设置都可在命令行指定，使用 `-E` 语法如下：
 
 [source,sh]
 --------------------------------------------
 .\bin\elasticsearch.bat -Ecluster.name=my_cluster -Enode.name=node_1
 --------------------------------------------
 
-NOTE: Values that contain spaces must be surrounded with quotes.  For instance `-Epath.logs="C:\My Logs\logs"`.
+NOTE: 包含空格的值必须用引号括起来。例如 `-Epath.logs="C:\My Logs\logs"`。
 
-TIP: Typically, any cluster-wide settings (like `cluster.name`) should be
-added to the `elasticsearch.yml` config file, while any node-specific settings
-such as `node.name` could be specified on the command line.
+TIP: 通常情况，任何集群级的设置（例如 `cluster.name`）应该在 `elasticsearch.yml` 添加，而类似 `node.name` 节点级的设置可以用命令行指定。
 
 include::check-running.asciidoc[]
 
 [[windows-service]]
-==== Installing Elasticsearch as a Service on Windows
+==== 安装 Elasticsearch 作为 Windows 服务
 
-Elasticsearch can be installed as a service to run in the background or start
-automatically at boot time without any user interaction. This can be achieved
-through the `elasticsearch-service.bat` script in the `bin\` folder which allows one to
-install, remove, manage or configure the service and potentially start and
-stop the service, all from the command-line.
+Elasticsearch 可作为后台服务运行而无需与用户交互。这可通过 `bin\` 文件夹中的 `elasticsearch-service.bat` 脚本实现，`bin\` 里的脚本支持安装、删除、管理和配置服务，并可启动和
+停止服务。
 
 ["source","sh",subs="attributes,callouts"]
 --------------------------------------------------
@@ -94,24 +82,22 @@ c:\elasticsearch-{version}{backslash}bin>elasticsearch-service.bat
 Usage: elasticsearch-service.bat install|remove|start|stop|manager [SERVICE_ID]
 --------------------------------------------------
 
-The script requires one parameter (the command to execute) followed by an
-optional one indicating the service id (useful when installing multiple
-Elasticsearch services).
+该脚本需跟一个可选参数（执行命令）和服务 ID（安装多个 Elasticsearch 服务时很有用）。
 
-The commands available are:
+支持如下命令：
 
 [horizontal]
-`install`:: Install Elasticsearch as a service
+`install`:: 安装 Elasticsearch 服务
 
-`remove`:: Remove the installed Elasticsearch service (and stop the service if started)
+`remove`:: 移除 Elasticsearch 服务 （如果服务启动便停止）
 
-`start`:: Start the Elasticsearch service (if installed)
+`start`:: 启动 Elasticsearch 服务 （如果已启动）
 
-`stop`:: Stop the Elasticsearch service (if started)
+`stop`:: 停止 Elasticsearch 服务 （如果已启动）
 
-`manager`:: Start a GUI for managing the installed service
+`manager`:: 启动 GUI 管理已安装的服务
 
-The name of the service and the value of `JAVA_HOME` will be made available during install:
+服务名称和 `JAVA_HOME` 的值作用于安装过程：
 
 ["source","sh",subs="attributes"]
 --------------------------------------------------
@@ -121,145 +107,130 @@ Using JAVA_HOME (64-bit):  "c:\jvm\jdk1.8"
 The service 'elasticsearch-service-x64' has been installed.
 --------------------------------------------------
 
-NOTE: While a JRE can be used for the Elasticsearch service, due to its use of a client VM (as opposed to a server JVM which offers better performance for long-running applications) its usage is discouraged and a warning will be issued.
+NOTE: 虽然 JRE 可用于 Elasticsearch 服务，但由于使用客户端 VM（与长时间运行的应用程序提供更好性能的服务器 JVM 相反），因此不鼓励使用它，并会发出警告。
 
-NOTE: The system environment variable `JAVA_HOME` should be set to the path to
-the JDK installation that you want the service to use. If you upgrade the JDK,
-you are not required to the reinstall the service but you must set the value of
-the system environment variable `JAVA_HOME` to the path to the new JDK
-installation. However, upgrading across JVM types (e.g. JRE versus SE) is not
-supported, and does require the service to be reinstalled.
+NOTE: 系统环境变量 `JAVA_HOME` 应该被设置成服务使用的 JDK 安装路径。 如果你升级JDK，你不需要重新安装服务，但你必须设置系统环境变量 `JAVA_HOME` 为新 JDK 安装路径。
+但是，并不支持跨 JVM 类型（例如 JRE 和 SE ）升级，因此需要重新安装该服务。
 
 [[windows-service-settings]]
 [float]
-=== Customizing service settings
+=== 定制服务设置
 
-The Elasticsearch service can be configured prior to installation by setting the following environment variables (either using the https://technet.microsoft.com/en-us/library/cc754250(v=ws.10).aspx[set command] from the command line, or through the `System Properties->Environment Variables` GUI).
+Elasticsearch 服务可在安装之前配置（使用 https://technet.microsoft.com/en-us/library/cc754250(v=ws.10).aspx[设置命令]，或者通过 `System Properties->Environment Variables` GUI方式）。
 
 [horizontal]
 `SERVICE_ID`::
 
-  A unique identifier for the service. Useful if installing multiple instances
-  on the same machine. Defaults to `elasticsearch-service-x64`.
+  服务唯一标识，同一机器上安装多实例十分有用，默认是 `elasticsearch-service-x64`。
 
 `SERVICE_USERNAME`::
 
-  The user to run as, defaults to the local system account.
+  运行服务的用户，默认为当前系统账户。
 
 `SERVICE_PASSWORD`::
 
-  The password for the user specified in `%SERVICE_USERNAME%`.
+  用户在 `%SERVICE_USERNAME%` 指定的密码。
 
 `SERVICE_DISPLAY_NAME`::
 
-  The name of the service.  Defaults to `Elasticsearch <version> %SERVICE_ID%`.
+  服务名，默认是 `Elasticsearch <version> %SERVICE_ID%`。
 
 `SERVICE_DESCRIPTION`::
 
-  The description of the service.  Defaults to `Elasticsearch <version> Windows Service - https://elastic.co`.
+  服务描述。默认是 `Elasticsearch <version> Windows Service - https://elastic.co`
 
 `JAVA_HOME`::
 
-  The installation directory of the desired JVM to run the service under.
+  运行服务所依赖的 JVM 安装目录。
 
 `SERVICE_LOG_DIR`::
 
-    Service log directory, defaults to `%ES_HOME%\logs`. Note that this does
-    not control the path for the Elasticsearch logs; the path for these is set
-    via the setting `path.logs` in the `elasticsearch.yml` configuration file,
-    or on the command line.
+    服务日志目录，默认是 `%ES_HOME%\logs`。注意，这并不控制 ELasticsearch 日志；Elasticsearch 日志路径是通过
+    `elasticsearch.yml` 的 `path.logs` 或者命令行配置的。
+
 
 `ES_PATH_CONF`::
 
-    Configuration file directory (which needs to include `elasticsearch.yml`,
-    `jvm.options`, and `log4j2.properties` files), defaults to
-    `%ES_HOME%\config`.
+    配置文件目录（需要包括 `elasticsearch.yml`，`jvm.options`， 和 `log4j2.properties` 文件），默认 `%ES_HOME%\config`。
 
 `ES_JAVA_OPTS`::
 
-    Any additional JVM system properties you may want to apply.
+    任何需要使用的 JVM 系统参数。
 
 `ES_START_TYPE`::
 
-    Startup mode for the service.  Can be either `auto` or `manual` (default).
+    服务启动模式。`auto` 或 `manual` （默认）。
 
 `ES_STOP_TIMEOUT` ::
 
-  The timeout in seconds that procrun waits for service to exit gracefully.  Defaults to `0`.
+  procrun 等待服务超时退出的秒数。默认是 `0`。
 
-NOTE: At its core, `elasticsearch-service.bat` relies on http://commons.apache.org/proper/commons-daemon/[Apache Commons Daemon] project
-to install the service. Environment variables set prior to the service installation are copied and will be used during the service lifecycle. This means any changes made to them after the installation will not be picked up unless the service is reinstalled.
+NOTE: 重要的是，`elasticsearch-service.bat` 依赖 http://commons.apache.org/proper/commons-daemon/[Apache Commons Daemon] 项目安装服务。在安装服务之前设置的环境变量将
+被复制并在整个服务生命周期使用。这意味着安装后对它们做的改变不会更新，除非重启服务。
 
-NOTE: On Windows, the <<heap-size,heap size>> can be configured as for
-any other Elasticsearch installation when running Elasticsearch from the
-command line, or when installing Elasticsearch as a service for the
-first time. To adjust the heap size for an already installed service,
-use the service manager: `bin\elasticsearch-service.bat manager`.
+NOTE: 对于任何 Elasticsearch 安装来说，当从命令行运行 Elasticsearch 或安装 Elasticsearch 作为服务时，<<heap-size,堆大小>> 可以配置。
+在已安装的服务上调整堆大小，可使用服务管理：`bin\elasticsearch-service.bat manager`。
 
-Using the Manager GUI::
+使用 GUI 管理器::
 
-It is also possible to configure the service after it's been installed using the manager GUI (`elasticsearch-service-mgr.exe`), which offers insight into the installed service, including its status, startup type, JVM, start and stop settings amongst other things.  Simply invoking `elasticsearch-service.bat manager` from the command-line will open up the manager window:
+还可以使用 GUI（ `elasticsearch-service-mgr.exe` ）管理器安装服务，该界面提供详细安装服务过程，包括其状态、启动类型、JVM、启动和停止设置等等。 只需从
+命令行调用 `elasticsearch-service.bat manager` 便可打开管理器窗口：
 
 image::images/service-manager-win.png["Windows Service Manager GUI",align="center"]
 
-Most changes (like JVM settings) made through the manager GUI will require a restart of the service in order to take affect.
+大多数通过 GUI 管理器改变（例如 JVM 设置）的配置需要重启服务才能生效。
 
 [[windows-layout]]
-==== Directory layout of `.zip` archive
+==== `.zip` 目录结构
 
-The `.zip` package is entirely self-contained. All files and directories are,
-by default, contained within `%ES_HOME%` -- the directory created when
-unpacking the archive.
+`.zip` 包是一体的。所有文件和目录默认情况下在 `$ES_HOME` -- 解压时建立。
 
-This is very convenient because you don't have to create any directories to
-start using Elasticsearch, and uninstalling Elasticsearch is as easy as
-removing the `%ES_HOME%` directory.  However, it is advisable to change the
-default locations of the config directory, the data directory, and the logs
-directory so that you do not delete important data later on.
+因为不需要建立任何目录来启动 Elasticsearch 所以十分方便，卸载 Elasticsearch 也只需要移除 `$ES_HOME` 目录。
+然而，还是建议改变默认的 config、data 和 logs 目录位置以便在未来你不用删除重要数据。
 
 
 [cols="<h,<,<m,<m",options="header",]
 |=======================================================================
 | Type | Description | Default Location | Setting
 | home
-  | Elasticsearch home directory or `%ES_HOME%`
- d| Directory created by unpacking the archive
+  | Elasticsearch 根目录或 `$ES_HOME`
+ d| 解压时创建
   |
 
 | bin
-  | Binary scripts including `elasticsearch` to start a node
-    and `elasticsearch-plugin` to install plugins
+  | 二进制脚本，包括启动节点的 `elasticsearch` 和安装插件的
+     `elasticsearch-plugin`
   | %ES_HOME%\bin
  d|
 
 | conf
-  | Configuration files including `elasticsearch.yml`
+  | 包含 `elasticsearch.yml` 的配置文件
   | %ES_HOME%\config
   | <<config-files-location,ES_PATH_CONF>>
 
 | data
-  | The location of the data files of each index / shard allocated
+  | 每个节点分配的 index / shard 数据文件。支持多路径。
     on the node. Can hold multiple locations.
   | %ES_HOME%\data
   | path.data
 
 | logs
-  | Log files location.
+  | Log 文件路径。
   | %ES_HOME%\logs
   | path.logs
 
 | plugins
-  | Plugin files location. Each plugin will be contained in a subdirectory.
+  | Plugin 文件路径。每个插件都包含在一个子目录中。
   | %ES_HOME%\plugins
   |
 
 | repo
-  | Shared file system repository locations. Can hold multiple locations. A file system repository can be placed in to any subdirectory of any directory specified here.
- d| Not configured
+  | 共享文件系统库路径。支持多路径。一个文件系统库可以在此处指定的任何目录的任何子目录中。
+ d| 未配置
   | path.repo
 
 | script
-  | Location of script files.
+  | script 文件路径。
   | %ES_HOME%\scripts
   | path.scripts
 
