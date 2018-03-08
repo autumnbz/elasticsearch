@@ -1,55 +1,44 @@
 [[settings]]
-== Configuring Elasticsearch
+== 配置 Elasticsearch
 
-Elasticsearch ships with good defaults and requires very little configuration.
-Most settings can be changed on a running cluster using the
-<<cluster-update-settings>> API.
+Elasticsearch 具有良好的默认配置，同时只需少量配置。
+大多数设置可在集群运行时使用
+<<cluster-update-settings>> API 更改。
 
-The configuration files should contain settings which are node-specific (such
-as `node.name` and paths), or settings which a node requires in order to be
-able to join a cluster, such as `cluster.name` and `network.host`.
+配置文件应该包含节点特定（例如 `node.name` 和路径）设置，或者节点加入集群而需要的设置，例如 `cluster.name` 和 `network.host` 。
 
 [[config-files-location]]
 [float]
-=== Config files location
+=== 配置文件路径
 
-Elasticsearch has three configuration files:
+Elasticsearch 有三个配置文件：
 
-* `elasticsearch.yml` for configuring Elasticsearch
-* `jvm.options` for configuring Elasticsearch JVM settings
-* `log4j2.properties` for configuring Elasticsearch logging
+* `elasticsearch.yml` 用于配置 Elasticsearch
+* `jvm.options` 用于配置 Elasticsearch JVM 设置
+* `log4j2.properties` 用于配置 Elasticsearch 日志
 
-These files are located in the config directory, whose default location depends
-on whether or not the installation is from an archive distribution (`tar.gz` or
-`zip`) or a package distribution (Debian or RPM packages).
+这些文件存在于 config 目录，默认路径取决于安装来源是归档版本（`tar.gz` 或者
+`zip` ）还是包版本（Debian 或 RPM 包）。
 
-For the archive distributions, the config directory location defaults to
-`$ES_HOME/config`. The location of the config directory can be changed via the
-`ES_PATH_CONF` environment variable as follows:
+对于归档版本，config 目录位于 `$ES_HOME/config` 。config 目录路径可以通过 `ES_PATH_CONF` 环境变量改变：
 
 [source,sh]
 -------------------------------
 ES_PATH_CONF=/path/to/my/config ./bin/elasticsearch
 -------------------------------
 
-Alternatively, you can `export` the `ES_PATH_CONF` environment variable via the
-command line or via your shell profile.
+你可以通过命令行或 shell 配置 `export` `ES_PATH_CONF` 环境变量。
 
-For the package distributions, the config directory location defaults to
-`/etc/elasticsearch`. The location of the config directory can also be changed
-via the `ES_PATH_CONF` environment variable, but note that setting this in your
-shell is not sufficient. Instead, this variabled is sourced from
-`/etc/default/elasticsearch` (for the Debian package) and
-`/etc/sysconfig/elasticsearch` (for the RPM package). You will need to edit the
-`ES_PATH_CONF=/etc/elasticsearch` entry in one of these files accordingly to
-change the config directory location.
+对于包版本，config 默认目录位置为 `/etc/elasticsearch` 。 可以通过 `ES_PATH_CONF` 环境变量更改 config 目录位置，但请注意，仅仅在 shell 中设置不够的。 相反，这个变量来源于
+`/etc/default/elasticsearch` （Debian 包）和
+`/etc/sysconfig/elasticsearch`（RPM 包）。
+你需要编辑位于这些文件的 `ES_PATH_CONF=/etc/elasticsearch` 项来更改 config 目录位置。
 
 
 [float]
-=== Config file format
+=== 配置文件格式
 
-The configuration format is http://www.yaml.org/[YAML]. Here is an
-example of changing the path of the data and logs directories:
+配置格式是 http://www.yaml.org/[YAML] 。 以下是一个更改数据和日志目录路径的示例：
 
 [source,yaml]
 --------------------------------------------------
@@ -58,7 +47,7 @@ path:
     logs: /var/log/elasticsearch
 --------------------------------------------------
 
-Settings can also be flattened as follows:
+可用如下方式展开设置：
 
 [source,yaml]
 --------------------------------------------------
@@ -67,11 +56,9 @@ path.logs: /var/log/elasticsearch
 --------------------------------------------------
 
 [float]
-=== Environment variable substitution
+=== 替换环境变量
 
-Environment variables referenced with the `${...}` notation within the
-configuration file will be replaced with the value of the environment
-variable, for instance:
+配置文件内用 `${...}` 符号引用的环境变量将被替换为环境变量值，例如：
 
 [source,yaml]
 --------------------------------------------------
@@ -80,13 +67,10 @@ network.host: ${ES_NETWORK_HOST}
 --------------------------------------------------
 
 [float]
-=== Prompting for settings
+=== 提示设置
 
-For settings that you do not wish to store in the configuration file, you can
-use the value `${prompt.text}` or `${prompt.secret}` and start Elasticsearch
-in the foreground. `${prompt.secret}` has echoing disabled so that the value
-entered will not be shown in your terminal; `${prompt.text}` will allow you to
-see the value as you type it in. For example:
+如果不希望将设置存储在配置文件中，你可以使用 `${prompt.text}` 或 `${prompt.secret}` 值并在前台启动 Elasticsearch。
+`${prompt.secret}` 禁用回显所以输入的值不会显示在终端；`${prompt.text}` 允许你在输入时查看该值。例如：
 
 [source,yaml]
 --------------------------------------------------
@@ -94,14 +78,11 @@ node:
   name: ${prompt.text}
 --------------------------------------------------
 
-When starting Elasticsearch, you will be prompted to enter the actual value
-like so:
+启动 Elasticsearch 时，系统会提示你像这样输入实际值：
 
 [source,sh]
 --------------------------------------------------
 Enter value for [node.name]:
 --------------------------------------------------
 
-NOTE: Elasticsearch will not start if `${prompt.text}` or `${prompt.secret}`
-is used in the settings and the process is run as a service or in the background.
-
+NOTE: 如果在设置中使用了 `${prompt.text}` 或 `${prompt.secret}` ，同时该进程作为后台服务运行，则无法启动 Elasticsearch。
