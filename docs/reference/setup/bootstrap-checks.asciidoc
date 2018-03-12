@@ -2,7 +2,7 @@
 == Bootstrap 校验
 
 总的来说，我们有很多因为没有配置 <<important-settings,重要设置>> 而遇到未知错误的经验。
-在之前的 Elasticsearch 版本中，一些错误配置会被记录为警告。可以理解的是，用户有时会遗漏这些日志信息。
+在之前的 Elasticsearch 版本中，一些错误配置会被日志记录为警告。可以理解的是，用户有时会遗漏这些日志信息。
 为确保让这些设置获得应有的重视，Elasticsearch 在启动时会进行 bootstrap 校验。
 
 这些 bootstrap 校验会检查各种 Elasticsearch 和系统
@@ -51,16 +51,16 @@ Elasticsearch 默认绑定 `localhost` 用于 <<modules-http,HTTP>> 和 <<module
 文件描述符是用于跟踪打开 "files" 的 Unix 结构。在 Unix 中， https://en.wikipedia.org/wiki/Everything_is_a_file[一切皆为文件] 。
 例如，"files" 可能是物理文件，虚拟文件（例如 `/proc/loadavg` ），或者网络 sockets。Elasticsearch 需要大量文件描述符。（例如，每个
 分片由多个段和其他文件组成的，加上与其他节点的连接等。）这个 bootstrap 校验在 OS X 和 Linux 是强制执行的。
-为了通过 descriptor 校验，你应该配置 <<file-descriptors,文件描述符>> 。
+为了通过文件描述符校验，你应该配置 <<file-descriptors,文件描述符>> 。
 
 === 内存锁定校验
 
-当 JVM 执行 major 垃圾回收时，它会触及每一页堆。
+当 JVM 执行 major 垃圾回收时，它会触及堆的每一页。
 如果这些页面中的任何一个被换出到磁盘上，他们必须得换回到内存中。
 这会导致大量磁盘抖动，因此 Elasticsearch 更愿意使用服务请求。
 这有几种配置方式来禁用 swapping。一种方法是通过 `mlockall` （Unix）或虚拟锁定（Windows）使得 JVM `mlockall`将堆锁定在内存中。
 这可以通过设置 <<bootstrap-memory_lock,`bootstrap.memory_lock`>> 完成。
-然而，有通过 ELasticsearch 校验但是不能锁定堆的情况出现（例如 `elasticsearch` 用户没有 `memlock unlimited` ）。
+然而，有通过 Elasticsearch 校验但是不能锁定堆的情况出现（例如 `elasticsearch` 用户没有 `memlock unlimited` ）。
 内存锁定校验检查 `bootstrap.memory_lock` *是否* 启用，如果启动则 JVM 可以成功锁定堆。
 为了通过内存锁定校验，你可以配置 <<bootstrap-memory_lock,`bootstrap.memory_lock`>> 。
 
@@ -76,7 +76,7 @@ Elasticsearch 中不同任务有不同的 <<modules-threadpool,thread pool execu
 [[max-size-virtual-memory-check]]
 === 最大虚拟内存校验
 
-Elasticsearch 和 Lucene 使用 `mmap` 很好地将索引块映射 ELasticsearch 地址空间。
+Elasticsearch 和 Lucene 使用 `mmap` 很好地将索引块映射 Elasticsearch 地址空间。
 这保证了在内存中快速访问一些不在 JVM 堆的索引数据。为了保证有效，Elasticsearch 应该拥有无限地址空间。
 最大虚拟内存校验要求 Elasticsearch 进程必须有无限地址空间，同时该校验在 Linux 强制执行。为了通过
 最大虚拟内存校验，你必须配置 Elasticsearch 进程拥有无限地址空间。
@@ -84,7 +84,7 @@ Elasticsearch 和 Lucene 使用 `mmap` 很好地将索引块映射 ELasticsearch
 
 === 最大文件数校验
 
-段文件是单分片的组成部分，同时事务组成的事务代会变得很大（超过几 G）。
+段文件是单分片的组成部分，同时事务组成的事务代会变得很大（超过几 GB）。
 系统 Elasticsearch 进程创建文件的最大数是受限的，这可能导致写失败。
 因此，现在最稳妥的做法就是不限制最大文件的大小，而这也是最大文件大小 bootstrap 校验所强制要求的。
 为了通过最大文件校验，你必须配置系统允许 Elasticsearch 进程可无限写文件。
@@ -100,26 +100,26 @@ Elasticsearch 同时需要创建大量 memory-mapped  区域。最大 map 数校
 
 === client JVM 校验
 
-OpenJDK 派生的 JVM 提供了两种不同的 JVM：client JVM 和 server JVM。这些 JVM 使用不同的编译器
+OpenJDK 派生的 JVM 提供了两种不同的 JVM:client JVM 和 server JVM。这些 JVM 使用不同的编译器
 将 Java 字节码生成可执行的机器码。client JVM 用于优化启动时间和内存占用，server JVM 用于性能最大化。
-两者之间之间的性能差异可能很大。client JVM 校验保证 Elasticsearch 不运行在 client JVM。为了通过 client JVM 校验，
+两者之间的性能差异可能很大。client JVM 校验保证 Elasticsearch 不运行在 client JVM。为了通过 client JVM 校验，
 你必须使用 server VM 启动 Elasticsearch。
-这两个虚拟机可能会很大。 客户端JVM检查确保
-Elasticsearch不在客户端JVM中运行。 通过客户端
-JVM检查，您必须使用服务器VM启动Elasticsearch。 在现代
-系统和操作系统，server VM 是默认的。另外，Elasticsearch 默认配置为强制 server VM。
+这两个虚拟机可能会很大。 客户端 JVM 校验确保
+Elasticsearch 不在客户端JVM中运行。 通过客户端 JVM 校验，
+你必须使用服务器 VM 启动 Elasticsearch。 在现代
+系统和操作系统，server VM 是默认的。另外，Elasticsearch 默认强制配置为 server VM。
 
 === 串行收集器校验
 
 OpenJDK 派生的 JVM 针对不同的负载有不同的垃圾收集器。串行收集器特别适合单逻辑 CPU 机器或极小堆，
-这两者都不适合运行 Elasticsearch。 Elasticsearch 使用串行收集器可能会对性能造成破坏性影响。
+但这两者都不适合运行 Elasticsearch。 Elasticsearch 使用串行收集器可能会对性能造成破坏性影响。
 串行收集器校验确保 Elasticsearch 未配置与串行收集器一起运行。 为了通过串行收集器校验，
-你不能用串行收集器启动 Elasticsearch（不管它你正在使用的 JVM 默认值，还是你通过 `-XX:+UseSerialGC` 明确指定）。
+你不能用串行收集器启动 Elasticsearch（不管它是你正在使用的 JVM 默认值，还是你通过 `-XX:+UseSerialGC` 明确指定）。
 请注意，Elasticsearch 默认配置使用 CMS 收集器。
 
 === 系统调用过滤器校验
 Elasticsearch 在操作系统上安装各种风格的系统调用过滤器（例如 Linux 上的 seccomp）。
-安装这些系统调用过滤器作为用于防范机制防止执行系统调用对 Elasticsearch 执行任意代码攻击。 系统调用过滤器校验确保
+安装这些系统调用过滤器作为防范机制防止执行系统调用对 Elasticsearch 执行任意代码攻击。 系统调用过滤器校验确保
 一旦系统调用过滤器被启用，那么它们就安装成功。为了通过系统调用过滤校验你必须修复任何阻止系统调用过滤器安装的系统配置错误（检查日志），
 或者设置 `bootstrap.system_call_filter` 为 `false` 来禁用系统调用过滤器，风险自负。
 
@@ -127,9 +127,9 @@ Elasticsearch 在操作系统上安装各种风格的系统调用过滤器（例
 
 JVM 选项 `OnError` 和 `OnOutOfMemoryError` 允许 JVM 遇到致命错误（`OnError` ）或 `OutOfMemoryError` （`OnOutOfMemoryError` ）时执行任意命令。
 然而，Elasticsearch 默认启用系统调用过滤器（seccomp），同时这些过滤器阻止 forking。因此，使用 `OnError` 或 `OutOfMemoryError` 与系统调用过滤器不兼容。
-Elasticsearch 启动时启用任一 `OnError` 或 `OutOfMemoryError` 校验在系统调用过滤器启动时会失败。
+Elasticsearch 在系统调用过滤器启动时使用 `OnError` 或 `OutOfMemoryError` 任一校验会启动失败。
 为了通过校验不要启动 `OnError` 或 `OutOfMemoryError` ；替代方案是升级 Java 8u92 并使用 `ExitOnOutOfMemoryError` JVM 标志。
-虽然这没有 `OnError` 或 `OutOfMemoryError` 全部功能，seccomp 启用时将不支持随意 forking。
+然而这没有 `OnError` 或 `OutOfMemoryError` 全部功能，seccomp 启用时将不支持随意 forking。
 
 === 早期访问校验
 
@@ -138,10 +138,10 @@ OpenJDK 项目提供即将发布的早期版本快照。这些版本不适合生
 
 === G1GC 校验
 
-早期 JDK 8 HotSpot JVM 版本具有可能会在启用 G1GC 收集器时导致索引损坏的问题。
-受影响的版本是早于 JDK 8u40 的 HotSpot 版本。G1GC校验会检测早期的 HotSpot JVM 版本。
+早期 JDK 8 HotSpot JVM 版本具有在启用 G1GC 收集器时可能会导致索引损坏的问题。
+受影响的版本是早于 JDK 8u40 的 HotSpot 版本。G1GC 校验会检测早期的 HotSpot JVM 版本。
 
 [[all-permission-check]]
 === 全部权限校验
 
-全部权限校验确保 bootstrap 期间使用的安全策略不会为 Elasticsearch 授权为 `java.security.AllPermission`。以全部权限运行等同于禁用安全管理器。
+全部权限校验确保 bootstrap 期间使用的安全策略不会为 Elasticsearch 授权 `java.security.AllPermission`。以全部权限运行等同于禁用安全管理器。
