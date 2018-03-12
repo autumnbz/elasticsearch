@@ -373,7 +373,7 @@ yellow open   customer 95SQ4TSUT7mWBT7VNHH67A   5   1          0            0   
 
 [source,js]
 --------------------------------------------------
-PUT /customer/doc/1?pretty
+PUT /customer/_doc/1?pretty
 {
   "name": "John Doe"
 }
@@ -386,7 +386,7 @@ PUT /customer/doc/1?pretty
 --------------------------------------------------
 {
   "_index" : "customer",
-  "_type" : "doc",
+  "_type" : "_doc",
   "_id" : "1",
   "_version" : 1,
   "result" : "created",
@@ -409,7 +409,7 @@ PUT /customer/doc/1?pretty
 
 [source,js]
 --------------------------------------------------
-GET /customer/doc/1?pretty
+GET /customer/_doc/1?pretty
 --------------------------------------------------
 // CONSOLE
 // TEST[continued]
@@ -420,7 +420,7 @@ GET /customer/doc/1?pretty
 --------------------------------------------------
 {
   "_index" : "customer",
-  "_type" : "doc",
+  "_type" : "_doc",
   "_id" : "1",
   "_version" : 1,
   "found" : true,
@@ -458,11 +458,11 @@ health status index uuid pri rep docs.count docs.deleted store.size pri.store.si
 [source,js]
 --------------------------------------------------
 PUT /customer
-PUT /customer/doc/1
+PUT /customer/_doc/1
 {
   "name": "John Doe"
 }
-GET /customer/doc/1
+GET /customer/_doc/1
 DELETE /customer
 --------------------------------------------------
 // CONSOLE
@@ -488,7 +488,7 @@ Elasticsearch 支持近实时的数据操作和搜索功能。默认情况下，
 
 [source,js]
 --------------------------------------------------
-PUT /customer/doc/1?pretty
+PUT /customer/_doc/1?pretty
 {
   "name": "John Doe"
 }
@@ -500,7 +500,7 @@ PUT /customer/doc/1?pretty
 
 [source,js]
 --------------------------------------------------
-PUT /customer/doc/1?pretty
+PUT /customer/_doc/1?pretty
 {
   "name": "Jane Doe"
 }
@@ -512,7 +512,7 @@ PUT /customer/doc/1?pretty
 
 [source,js]
 --------------------------------------------------
-PUT /customer/doc/2?pretty
+PUT /customer/_doc/2?pretty
 {
   "name": "Jane Doe"
 }
@@ -528,7 +528,7 @@ PUT /customer/doc/2?pretty
 
 [source,js]
 --------------------------------------------------
-POST /customer/doc?pretty
+POST /customer/_doc?pretty
 {
   "name": "Jane Doe"
 }
@@ -546,7 +546,7 @@ POST /customer/doc?pretty
 
 [source,js]
 --------------------------------------------------
-POST /customer/doc/1/_update?pretty
+POST /customer/_doc/1/_update?pretty
 {
   "doc": { "name": "Jane Doe" }
 }
@@ -558,7 +558,7 @@ POST /customer/doc/1/_update?pretty
 
 [source,js]
 --------------------------------------------------
-POST /customer/doc/1/_update?pretty
+POST /customer/_doc/1/_update?pretty
 {
   "doc": { "name": "Jane Doe", "age": 20 }
 }
@@ -570,7 +570,7 @@ POST /customer/doc/1/_update?pretty
 
 [source,js]
 --------------------------------------------------
-POST /customer/doc/1/_update?pretty
+POST /customer/_doc/1/_update?pretty
 {
   "script" : "ctx._source.age += 5"
 }
@@ -588,7 +588,7 @@ Elasticsearch 提供了在查询时更新多条文档的能力（类似 `SQL UPD
 
 [source,js]
 --------------------------------------------------
-DELETE /customer/doc/2?pretty
+DELETE /customer/_doc/2?pretty
 --------------------------------------------------
 // CONSOLE
 // TEST[continued]
@@ -604,7 +604,7 @@ DELETE /customer/doc/2?pretty
 
 [source,js]
 --------------------------------------------------
-POST /customer/doc/_bulk?pretty
+POST /customer/_doc/_bulk?pretty
 {"index":{"_id":"1"}}
 {"name": "John Doe" }
 {"index":{"_id":"2"}}
@@ -616,7 +616,7 @@ POST /customer/doc/_bulk?pretty
 
 [source,sh]
 --------------------------------------------------
-POST /customer/doc/_bulk?pretty
+POST /customer/_doc/_bulk?pretty
 {"update":{"_id":"1"}}
 {"doc": { "name": "John Doe becomes Jane Doe" } }
 {"delete":{"_id":"2"}}
@@ -689,7 +689,7 @@ yellow open   bank  l7sSYV2cQXmu6_4rJWVIww   5   1       1000            0    12
 // TESTRESPONSE[s/128.6kb/\\d+(\\.\\d+)?[mk]?b/]
 // TESTRESPONSE[s/l7sSYV2cQXmu6_4rJWVIww/.+/ _cat]
 
-这意味着我们已经成功的将 1000 条文档批量索引到 bank 索引中（类型为 account ）。
+这意味着我们已经成功的将 1000 条文档批量索引到 bank 索引中（类型为 `_doc` ）。
 
 === 搜索 API
 
@@ -725,14 +725,14 @@ GET /bank/_search?q=*&sort=account_number:asc&pretty
     "max_score" : null,
     "hits" : [ {
       "_index" : "bank",
-      "_type" : "account",
+      "_type" : "_doc",
       "_id" : "0",
       "sort": [0],
       "_score" : null,
       "_source" : {"account_number":0,"balance":16623,"firstname":"Bradshaw","lastname":"Mckenzie","age":29,"gender":"F","address":"244 Columbus Place","employer":"Euron","email":"bradshawmckenzie@euron.com","city":"Hobucken","state":"CO"}
     }, {
       "_index" : "bank",
-      "_type" : "account",
+      "_type" : "_doc",
       "_id" : "1",
       "sort": [1],
       "_score" : null,
@@ -793,14 +793,14 @@ to clutter the docs with it:
     "max_score": null,
     "hits" : [ {
       "_index" : "bank",
-      "_type" : "account",
+      "_type" : "_doc",
       "_id" : "0",
       "sort": [0],
       "_score": null,
       "_source" : {"account_number":0,"balance":16623,"firstname":"Bradshaw","lastname":"Mckenzie","age":29,"gender":"F","address":"244 Columbus Place","employer":"Euron","email":"bradshawmckenzie@euron.com","city":"Hobucken","state":"CO"}
     }, {
       "_index" : "bank",
-      "_type" : "account",
+      "_type" : "_doc",
       "_id" : "1",
       "sort": [1],
       "_score": null,
