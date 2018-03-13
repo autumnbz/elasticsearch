@@ -1,235 +1,147 @@
 [[bootstrap-checks]]
-== Bootstrap Checks
+== Bootstrap 校验
 
-Collectively, we have a lot of experience with users suffering
-unexpected issues because they have not configured
-<<important-settings,important settings>>. In previous versions of
-Elasticsearch, misconfiguration of some of these settings were logged
-as warnings. Understandably, users sometimes miss these log messages.
-To ensure that these settings receive the attention that they deserve,
-Elasticsearch has bootstrap checks upon startup.
+总的来说，我们有很多因为没有配置 <<important-settings,重要设置>> 而遇到未知错误的经验。
+在之前的 Elasticsearch 版本中，一些错误配置会被日志记录为警告。可以理解的是，用户有时会遗漏这些日志信息。
+为确保让这些设置获得应有的重视，Elasticsearch 在启动时会进行 bootstrap 校验。
 
-These bootstrap checks inspect a variety of Elasticsearch and system
-settings and compare them to values that are safe for the operation of
-Elasticsearch. If Elasticsearch is in development mode, any bootstrap
-checks that fail appear as warnings in the Elasticsearch log. If
-Elasticsearch is in production mode, any bootstrap checks that fail will
-cause Elasticsearch to refuse to start.
+这些 bootstrap 校验会检查各种 Elasticsearch 和系统
+设置，并将它们与安全的 Elasticsearch 操作值进行比较。
+如果 Elasticsearch 处于开发模式，任何 bootstrap 校验失败在日志中都会显示为警告。
+如果 Elasticsearch 处于生产模式，任何 bootstrap 校验失败都会导致 Elasticsearch 拒绝启动。
 
-There are some bootstrap checks that are always enforced to prevent
-Elasticsearch from running with incompatible settings. These checks are
-documented individually.
+
+有一些始终强制执行的 bootstrap 校验以防止 Elasticsearch 以不兼容的设置运行。 这些校验会单独记录。
 
 [float]
-=== Development vs. production mode
+=== 开发模式 vs. 生产模式
 
-By default, Elasticsearch binds to `localhost` for <<modules-http,HTTP>> and
-<<modules-transport,transport (internal)>> communication. This is fine for
-downloading and playing with Elasticsearch as well as everyday development, but it's
-useless for production systems. To join a cluster, an Elasticsearch node must be
-reachable via transport communication. To join a cluster over an external
-network interface, a node must bind transport to an external interface and not
-be using <<single-node-discovery,single-node discovery>>. Thus, we consider an
-Elasticsearch node to be in development mode if it can not form a cluster with
-another machine over an external network interface, and is otherwise in
-production mode if it can join a cluster over an external interface.
+Elasticsearch 默认绑定 `localhost` 用于 <<modules-http,HTTP>> 和 <<modules-transport,transport (内部)>> 通信。
+下载 Elasticsearch 用于日常开发使用十分合适，但它对生产系统不起作用。为了加入集群，一个 Elasticsearch 节点必须是 transport 可达的。
+为了通过外部网络接口加入集群，节点必须将 transport 绑定到外部接口而不是使用 <<single-node-discovery,single-node 发现>> 。
+因此，如果一个 Elasticsearch 节点无法通过外部网络接口组成集群，它可能处于开发模式，否则就是生产模式。
 
-Note that HTTP and transport can be configured independently via
-<<modules-http,`http.host`>> and <<modules-transport,`transport.host`>>; this
-can be useful for configuring a single node to be reachable via HTTP for testing
-purposes without triggering production mode.
+注意 HTTP 和 transport 分布由 <<modules-http,`http.host`>> 和 <<modules-transport,`transport.host`>> 独立配置;
+这可用于通过 HTTP 配置 single-node 进行测试而无需触发生产模式。
 
 [[single-node-discovery]]
 [float]
-=== Single-node discovery
-We recognize that some users need to bind transport to an external interface for
-testing their usage of the transport client. For this situation, we provide the
-discovery type `single-node` (configure it by setting `discovery.type` to
-`single-node`); in this situation, a node will elect itself master and will not
-join a cluster with any other node.
+=== single-node 发现
+我们发现有些用户需要绑定 transport 到外部接口测试 transport 客户端的使用。对于这种情况，我们提供了 `single-node` 发现
+类型（通过设置 `discovery.type` 来配置 `single-node` ）; 在这种情况下，一个节点将选择自己为主节点，而不会加入任何其他节点的集群。
 
 
 [float]
-=== Forcing the bootstrap checks
-If you are running a single node in production, it is possible to evade the
-bootstrap checks (either by not binding transport to an external interface, or
-by binding transport to an external interface and setting the discovery type to
-`single-node`). For this situation, you can force execution of the bootstrap
-checks by setting the system property `es.enforce.bootstrap.checks` to `true`
-(set this in <<jvm-options>>, or by adding `-Des.enforce.bootstrap.checks=true`
-to the environment variable `ES_JAVA_OPTS`). We strongly encourage you to do
-this if you are in this specific situation. This system property can be used to
-force execution of the bootstrap checks independent of the node configuration.
+=== 强制 bootstrap 校验
+如果你在生产环境运行单节点，那可以避免 bootstrap 校验（要么不绑定 transport 到外部接口，要么
+将 transport 绑定到外部接口时将发现类型设置为 `single-node` ）。在这种情况下，你可以通过设置
+系统属性 `es.enforce.bootstrap.checks` 为 `true` （在 <<jvm-options>> 设置，或在环境变量 `ES_JAVA_OPTS` 添加 `-Des.enforce.bootstrap.checks=true` ）
+来强制执行 bootstrap 校验。在这种特殊场景下我们强烈建议你这样做。这个系统属性可以用来
+强制执行独立于节点配置的 bootstrap 校验。
 
-=== Heap size check
+=== 堆大小校验
 
-If a JVM is started with unequal initial and max heap size, it can be
-prone to pauses as the JVM heap is resized during system usage. To avoid
-these resize pauses, it's best to start the JVM with the initial heap
-size equal to the maximum heap size. Additionally, if
-<<bootstrap-memory_lock,`bootstrap.memory_lock`>> is enabled, the JVM
-will lock the initial size of the heap on startup. If the initial heap
-size is not equal to the maximum heap size, after a resize it will not
-be the case that all of the JVM heap is locked in memory. To pass the
-heap size check, you must configure the <<heap-size,heap size>>.
+如果 JVM 启动时与初始最大堆大小不一致，那么在系统使用期间可能会因调整大小出现 JVM 暂停。
+最好是在启动 JVM 时让初始堆与最大堆大小相等来避免调整带来的暂停。 另外，如果启用 <<bootstrap-memory_lock,`bootstrap.memory_lock`>> ，
+那么 JVM 将在启动时锁定堆的初始大小。如果最初堆不等于最大堆大小，调整大小后内存中就不会锁定所有 JVM 堆。
+为了通过堆大小检查，你应该配置 <<heap-size,堆大小>> 。
 
-=== File descriptor check
+=== 文件描述符校验
 
-File descriptors are a Unix construct for tracking open "files". In Unix
-though, https://en.wikipedia.org/wiki/Everything_is_a_file[everything is
-a file]. For example, "files" could be a physical file, a virtual file
-(e.g., `/proc/loadavg`), or network sockets. Elasticsearch requires
-lots of file descriptors (e.g., every shard is composed of multiple
-segments and other files, plus connections to other nodes, etc.). This
-bootstrap check is enforced on OS X and Linux. To pass the file
-descriptor check, you might have to configure <<file-descriptors,file
-descriptors>>.
+文件描述符是用于跟踪打开 "files" 的 Unix 结构。在 Unix 中， https://en.wikipedia.org/wiki/Everything_is_a_file[一切皆为文件] 。
+例如，"files" 可能是物理文件，虚拟文件（例如 `/proc/loadavg` ），或者网络 sockets。Elasticsearch 需要大量文件描述符。（例如，每个
+分片由多个段和其他文件组成的，加上与其他节点的连接等。）这个 bootstrap 校验在 OS X 和 Linux 是强制执行的。
+为了通过文件描述符校验，你应该配置 <<file-descriptors,文件描述符>> 。
 
-=== Memory lock check
+=== 内存锁定校验
 
-When the JVM does a major garbage collection it touches every page of
-the heap. If any of those pages are swapped out to disk they will have
-to be swapped back in to memory. That causes lots of disk thrashing that
-Elasticsearch would much rather use to service requests. There are
-several ways to configure a system to disallow swapping. One way is by
-requesting the JVM to lock the heap in memory through `mlockall` (Unix)
-or virtual lock (Windows). This is done via the Elasticsearch setting
-<<bootstrap-memory_lock,`bootstrap.memory_lock`>>. However, there are
-cases where this setting can be passed to Elasticsearch but
-Elasticsearch is not able to lock the heap (e.g., if the `elasticsearch`
-user does not have `memlock unlimited`). The memory lock check verifies
-that *if* the `bootstrap.memory_lock` setting is enabled, that the JVM
-was successfully able to lock the heap. To pass the memory lock check,
-you might have to configure <<bootstrap-memory_lock,`bootstrap.memory_lock`>>.
+当 JVM 执行 major 垃圾回收时，它会触及堆的每一页。
+如果这些页面中的任何一个被换出到磁盘上，他们必须得换回到内存中。
+这会导致大量磁盘抖动，因此 Elasticsearch 更愿意使用服务请求。
+这有几种配置方式来禁用 swapping。一种方法是通过 `mlockall` （Unix）或虚拟锁定（Windows）使得 JVM `mlockall`将堆锁定在内存中。
+这可以通过设置 <<bootstrap-memory_lock,`bootstrap.memory_lock`>> 完成。
+然而，有通过 Elasticsearch 校验但是不能锁定堆的情况出现（例如 `elasticsearch` 用户没有 `memlock unlimited` ）。
+内存锁定校验检查 `bootstrap.memory_lock` *是否* 启用，如果启动则 JVM 可以成功锁定堆。
+为了通过内存锁定校验，你可以配置 <<bootstrap-memory_lock,`bootstrap.memory_lock`>> 。
 
 [[max-number-threads-check]]
-=== Maximum number of threads check
+=== 最大线程数校验
 
-Elasticsearch executes requests by breaking the request down into stages
-and handing those stages off to different thread pool executors. There
-are different <<modules-threadpool,thread pool executors>> for a variety
-of tasks within Elasticsearch. Thus, Elasticsearch needs the ability to
-create a lot of threads. The maximum number of threads check ensures
-that the Elasticsearch process has the rights to create enough threads
-under normal use. This check is enforced only on Linux. If you are on
-Linux, to pass the maximum number of threads check, you must configure
-your system to allow the Elasticsearch process the ability to create at
-least 2048 threads. This can be done via `/etc/security/limits.conf`
-using the `nproc` setting (note that you might have to increase the
-limits for the `root` user too).
+Elasticsearch 将请求分解为多个步骤执行并将这些步骤交给不同的线程池执行。
+Elasticsearch 中不同任务有不同的 <<modules-threadpool,thread pool executors>> 。
+因此，Elasticsearch 需要创建大量线程。最大线程数校验确保 Elasticsearch 进程在正常情况下有权创建足够的线程。
+这个校验在 Linux 强制执行。如果在 Linux上，为了通过最大线程数检验，你必须配置 Elasticsearch 进程使其至少能够创建 2048 个线程。
+这可通过设置 `/etc/security/limits.conf` 的 `nproc` （注意你可能需要 `root` 权限来增加该限制）。
 
 [[max-size-virtual-memory-check]]
-=== Maximum size virtual memory check
+=== 最大虚拟内存校验
 
-Elasticsearch and Lucene use `mmap` to great effect to map portions of
-an index into the Elasticsearch address space. This keeps certain index
-data off the JVM heap but in memory for blazing fast access. For this to
-be effective, the Elasticsearch should have unlimited address space. The
-maximum size virtual memory check enforces that the Elasticsearch
-process has unlimited address space and is enforced only on Linux. To
-pass the maximum size virtual memory check, you must configure your
-system to allow the Elasticsearch process the ability to have unlimited
-address space. This can be done via `/etc/security/limits.conf` using
-the `as` setting to `unlimited` (note that you might have to increase
-the limits for the `root` user too).
+Elasticsearch 和 Lucene 使用 `mmap` 很好地将索引块映射 Elasticsearch 地址空间。
+这保证了在内存中快速访问一些不在 JVM 堆的索引数据。为了保证有效，Elasticsearch 应该拥有无限地址空间。
+最大虚拟内存校验要求 Elasticsearch 进程必须有无限地址空间，同时该校验在 Linux 强制执行。为了通过
+最大虚拟内存校验，你必须配置 Elasticsearch 进程拥有无限地址空间。
+这可通过设置 `/etc/security/limits.conf` 中的 `as` 为 `unlimited` 实现（注意你可能需要 `root` 权限来增加该限制）。
 
-=== Max file size check
+=== 最大文件数校验
 
-The segment files that are the components of individual shards and the translog
-generations that are components of the translog can get large (exceeding
-multiple gigabytes). On systems where the max size of files that can be created
-by the Elasticsearch process is limited, this can lead to failed
-writes. Therefore, the safest option here is that the max file size is unlimited
-and that is what the max file size bootstrap check enforces. To pass the max
-file check, you must configure your system to allow the Elasticsearch process
-the ability to write files of unlimited size. This can be done via
-`/etc/security/limits.conf` using the `fsize` setting to `unlimited` (note that
-you might have to increase the limits for the `root` user too).
+段文件是单分片的组成部分，同时事务组成的事务代会变得很大（超过几 GB）。
+系统 Elasticsearch 进程创建文件的最大数是受限的，这可能导致写失败。
+因此，现在最稳妥的做法就是不限制最大文件的大小，而这也是最大文件大小 bootstrap 校验所强制要求的。
+为了通过最大文件校验，你必须配置系统允许 Elasticsearch 进程可无限写文件。
+这可通过设置 `/etc/security/limits.conf` 中的 `fsize` 为 `unlimited` 实现（注意你可能需要 `root` 权限来增加该限制）。
 
-=== Maximum map count check
 
-Continuing from the previous <<max-size-virtual-memory-check,point>>, to
-use `mmap` effectively, Elasticsearch also requires the ability to
-create many memory-mapped areas. The maximum map count check checks that
-the kernel allows a process to have at least 262,144 memory-mapped areas
-and is enforced on Linux only. To pass the maximum map count check, you
-must configure `vm.max_map_count` via `sysctl` to be at least `262144`.
+=== 最大 map 数校验
 
-=== Client JVM check
+接着之前提到的 <<max-size-virtual-memory-check,point>> ，为了有效地使用 `mmap` ，
+Elasticsearch 同时需要创建大量 memory-mapped  区域。最大 map 数校验要求内核让进程
+至少有 262,144 内存-映射 区域，这只在 Linux 强制执行。为了通过最大 map 数校验，
+这必须通过 `sysctl` 配置 `vm.max_map_count` 至少为 `262144`。
 
-There are two different JVMs provided by OpenJDK-derived JVMs: the
-client JVM and the server JVM. These JVMs use different compilers for
-producing executable machine code from Java bytecode. The client JVM is
-tuned for startup time and memory footprint while the server JVM is
-tuned for maximizing performance. The difference in performance between
-the two VMs can be substantial. The client JVM check ensures that
-Elasticsearch is not running inside the client JVM. To pass the client
-JVM check, you must start Elasticsearch with the server VM. On modern
-systems and operating systems, the server VM is the
-default. Additionally, Elasticsearch is configured by default to force
-the server VM.
+=== client JVM 校验
 
-=== Use serial collector check
+OpenJDK 派生的 JVM 提供了两种不同的 JVM:client JVM 和 server JVM。这些 JVM 使用不同的编译器
+将 Java 字节码生成可执行的机器码。client JVM 用于优化启动时间和内存占用，server JVM 用于性能最大化。
+两者之间的性能差异可能很大。client JVM 校验保证 Elasticsearch 不运行在 client JVM。为了通过 client JVM 校验，
+你必须使用 server VM 启动 Elasticsearch。
+这两个虚拟机可能会很大。 客户端 JVM 校验确保
+Elasticsearch 不在客户端JVM中运行。 通过客户端 JVM 校验，
+你必须使用服务器 VM 启动 Elasticsearch。 在现代
+系统和操作系统，server VM 是默认的。另外，Elasticsearch 默认强制配置为 server VM。
 
-There are various garbage collectors for the OpenJDK-derived JVMs
-targeting different workloads. The serial collector in particular is
-best suited for single logical CPU machines or extremely small heaps,
-neither of which are suitable for running Elasticsearch. Using the
-serial collector with Elasticsearch can be devastating for performance.
-The serial collector check ensures that Elasticsearch is not configured
-to run with the serial collector. To pass the serial collector check,
-you must not start Elasticsearch with the serial collector (whether it's
-from the defaults for the JVM that you're using, or you've explicitly
-specified it with `-XX:+UseSerialGC`). Note that the default JVM
-configuration that ships with Elasticsearch configures Elasticsearch to
-use the CMS collector.
+=== 串行收集器校验
 
-=== System call filter check
-Elasticsearch installs system call filters of various flavors depending
-on the operating system (e.g., seccomp on Linux). These system call
-filters are installed to prevent the ability to execute system calls
-related to forking as a defense mechanism against arbitrary code
-execution attacks on Elasticsearch The system call filter check ensures
-that if system call filters are enabled, then they were successfully
-installed. To pass the system call filter check you must either fix any
-configuration errors on your system that prevented system call filters
-from installing (check your logs), or *at your own risk* disable system
-call filters by setting `bootstrap.system_call_filter` to `false`.
+OpenJDK 派生的 JVM 针对不同的负载有不同的垃圾收集器。串行收集器特别适合单逻辑 CPU 机器或极小堆，
+但这两者都不适合运行 Elasticsearch。 Elasticsearch 使用串行收集器可能会对性能造成破坏性影响。
+串行收集器校验确保 Elasticsearch 未配置与串行收集器一起运行。 为了通过串行收集器校验，
+你不能用串行收集器启动 Elasticsearch（不管它是你正在使用的 JVM 默认值，还是你通过 `-XX:+UseSerialGC` 明确指定）。
+请注意，Elasticsearch 默认配置使用 CMS 收集器。
 
-=== OnError and OnOutOfMemoryError checks
+=== 系统调用过滤器校验
+Elasticsearch 在操作系统上安装各种风格的系统调用过滤器（例如 Linux 上的 seccomp）。
+安装这些系统调用过滤器作为防范机制防止执行系统调用对 Elasticsearch 执行任意代码攻击。 系统调用过滤器校验确保
+一旦系统调用过滤器被启用，那么它们就安装成功。为了通过系统调用过滤校验你必须修复任何阻止系统调用过滤器安装的系统配置错误（检查日志），
+或者设置 `bootstrap.system_call_filter` 为 `false` 来禁用系统调用过滤器，风险自负。
 
-The JVM options `OnError` and `OnOutOfMemoryError` enable executing
-arbitrary commands if the JVM encounters a fatal error (`OnError`) or an
-`OutOfMemoryError` (`OnOutOfMemoryError`). However, by default,
-Elasticsearch system call filters (seccomp) are enabled and these
-filters prevent forking. Thus, using `OnError` or `OnOutOfMemoryError`
-and system call filters are incompatible. The `OnError` and
-`OnOutOfMemoryError` checks prevent Elasticsearch from starting if
-either of these JVM options are used and system call filters are
-enabled. This check is always enforced. To pass this check do not enable
-`OnError` nor `OnOutOfMemoryError`; instead, upgrade to Java 8u92 and
-use the JVM flag `ExitOnOutOfMemoryError`. While this does not have the
-full capabilities of `OnError` nor `OnOutOfMemoryError`, arbitrary
-forking will not be supported with seccomp enabled.
+=== OnError 和 OnOutOfMemoryError 校验
 
-=== Early-access check
+JVM 选项 `OnError` 和 `OnOutOfMemoryError` 允许 JVM 遇到致命错误（`OnError` ）或 `OutOfMemoryError` （`OnOutOfMemoryError` ）时执行任意命令。
+然而，Elasticsearch 默认启用系统调用过滤器（seccomp），同时这些过滤器阻止 forking。因此，使用 `OnError` 或 `OutOfMemoryError` 与系统调用过滤器不兼容。
+Elasticsearch 在系统调用过滤器启动时使用 `OnError` 或 `OutOfMemoryError` 任一校验会启动失败。
+为了通过校验不要启动 `OnError` 或 `OutOfMemoryError` ；替代方案是升级 Java 8u92 并使用 `ExitOnOutOfMemoryError` JVM 标志。
+然而这没有 `OnError` 或 `OutOfMemoryError` 全部功能，seccomp 启用时将不支持随意 forking。
 
-The OpenJDK project provides early-access snapshots of upcoming releases. These
-releases are not suitable for production. The early-access check detects these
-early-access snapshots. To pass this check, you must start Elasticsearch on a
-release build of the JVM.
+=== 早期访问校验
 
-=== G1GC check
+OpenJDK 项目提供即将发布的早期版本快照。这些版本不适合生产环境。
+早期访问校验检测到这些早期访问快照。要通过此校验，你必须在已发布的 JVM 构建版本上启动 Elasticsearch。
 
-Early versions of the HotSpot JVM that shipped with JDK 8 are known to
-have issues that can lead to index corruption when the G1GC collector is
-enabled.  The versions impacted are those earlier than the version of
-HotSpot that shipped with JDK 8u40. The G1GC check detects these early
-versions of the HotSpot JVM.
+=== G1GC 校验
+
+早期 JDK 8 HotSpot JVM 版本具有在启用 G1GC 收集器时可能会导致索引损坏的问题。
+受影响的版本是早于 JDK 8u40 的 HotSpot 版本。G1GC 校验会检测早期的 HotSpot JVM 版本。
 
 [[all-permission-check]]
-=== All permission check
+=== 全部权限校验
 
-The all permission check ensures that the security policy used during bootstrap
-does not grant the `java.security.AllPermission` to Elasticsearch. Running with
-the all permission granted is equivalent to disabling the security manager.
+全部权限校验确保 bootstrap 期间使用的安全策略不会为 Elasticsearch 授权 `java.security.AllPermission`。以全部权限运行等同于禁用安全管理器。
