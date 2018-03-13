@@ -58,7 +58,7 @@ Elasticsearch 默认绑定 `localhost` 用于 <<modules-http,HTTP>> 和 <<module
 当 JVM 执行 major 垃圾回收时，它会触及堆的每一页。
 如果这些页面中的任何一个被换出到磁盘上，他们必须得换回到内存中。
 这会导致大量磁盘抖动，因此 Elasticsearch 更愿意使用服务请求。
-这有几种配置方式来禁用 swapping。一种方法是通过 `mlockall` （Unix）或虚拟锁定（Windows）使得 JVM `mlockall`将堆锁定在内存中。
+这有几种配置方式来禁用 swapping。一种方法是通过 `mlockall` （Unix）或虚拟锁定（Windows）使得 JVM `mlockall` 将堆锁定在内存中。
 这可以通过设置 <<bootstrap-memory_lock,`bootstrap.memory_lock`>> 完成。
 然而，有通过 Elasticsearch 校验但是不能锁定堆的情况出现（例如 `elasticsearch` 用户没有 `memlock unlimited` ）。
 内存锁定校验检查 `bootstrap.memory_lock` *是否* 启用，如果启动则 JVM 可以成功锁定堆。
@@ -96,7 +96,7 @@ Elasticsearch 和 Lucene 使用 `mmap` 很好地将索引块映射 Elasticsearch
 接着之前提到的 <<max-size-virtual-memory-check,point>> ，为了有效地使用 `mmap` ，
 Elasticsearch 同时需要创建大量 memory-mapped  区域。最大 map 数校验要求内核让进程
 至少有 262,144 内存-映射 区域，这只在 Linux 强制执行。为了通过最大 map 数校验，
-这必须通过 `sysctl` 配置 `vm.max_map_count` 至少为 `262144`。
+这必须通过 `sysctl` 配置 `vm.max_map_count` 至少为 `262144` 。
 
 === client JVM 校验
 
@@ -142,6 +142,6 @@ OpenJDK 项目提供即将发布的早期版本快照。这些版本不适合生
 受影响的版本是早于 JDK 8u40 的 HotSpot 版本。G1GC 校验会检测早期的 HotSpot JVM 版本。
 
 [[all-permission-check]]
-=== 全部权限校验
+=== ALL 权限校验
 
-全部权限校验确保 bootstrap 期间使用的安全策略不会为 Elasticsearch 授权 `java.security.AllPermission`。以全部权限运行等同于禁用安全管理器。
+ALL 权限校验确保 bootstrap 期间使用的安全策略不会为 Elasticsearch 授权 `java.security.AllPermission` 。以 ALL 权限运行等同于禁用安全管理器。
