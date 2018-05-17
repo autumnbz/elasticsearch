@@ -1,32 +1,25 @@
 [[breaking-changes-6.2]]
-== Breaking changes in 6.2
+== 6.2 重大改变
 
 [[breaking_62_packaging]]
 [float]
 === All permission bootstrap 校验
 
-Elasticsearch installs a security manager during bootstrap to mitigate the scope
-of exploits in the JDK, in third-party dependencies, and in Elasticsearch itself
-as well as to sandbox untrusted plugins. A custom security policy can be applied
-and one permission that can be added to this policy is
-`java.security.AllPermission`. However, this effectively disables the security
-manager. As such, granting this permission in production mode is now forbidden
-via the <<all-permission-check, all permission bootstrap check>>.
 Elasticsearch 在 bootstrap 过程中安装了一个安全管理器来降低 JDK 、第三方依赖项、 Elasticsearch 本身
-以及不受信任的插件漏洞的利用范围。可以将 `java.security.AllPermission` 权限添加至自定义安全策略。
-然而，这将禁用安全管理器。因此，在生产模式下对该权限授权可通过 <<all-permission-check, all permission bootstrap check>> 禁止。
+以及不受信任的插件利用漏洞的范围。可以将 `java.security.AllPermission` 权限应用至自定义安全策略。
+然而，这将禁用安全管理器。因此，在生产模式下可通过 <<all-permission-check, all permission bootstrap 校验>> 禁止对该权限授权。
 
 === 私有临时目录
 
-早期 Linux 上的 Elastictsearch 默认使用 `/tmp` 作为进程的默认临时目录。然而，`/tmp` 是公共的，
-所以我们可以选择更改打包方式以使用私有临时目录。如果你正从早期 Elasticsearch 版本升级并保留现有 <<jvm-options,`jvm.options`>> ，
-你应该添加 `-Djava.io.tmpdir=${ES_TMPDIR}` 这行。正如在非 Linux 系统上使用私有临时目录一样，在我们所有操作系统上执行此操作是安全的。
+在 Linux 上，早期 Elastictsearch 使用 `/tmp` 作为进程的默认临时目录。然而，`/tmp` 是公共的，
+所以我们可以选择更改打包方式以使用私有临时目录。如果你正从早期 Elasticsearch 版本升级并保留已有 <<jvm-options,`jvm.options`>> ，
+你应该添加 `-Djava.io.tmpdir=${ES_TMPDIR}` 这行。我们在在非 Linux 系统上仍用相同机制保留私有临时目录，因此在所有操作系统上执行此操作是安全的。
 
 === GC 日志
 
-从 Elasticsearch 6.2.0 开始，JVM <<gc-logging,GC logging>> 已启用。这种轻量级设施可以深入探究 GC 问题。 在 <<jvm-options,`jvm.options`>> 中设置，
-并在默认日志目录保留 2GB 日志（每 64 MB滚动）。如果你正从早期 Elasticsearch 版本升级并保留现有 <<jvm-options,`jvm.options`>> ，你应该添加以下 GC 日志设置
-使得具有价值的调试信息是可用的：
+从 Elasticsearch 6.2.0 开始，JVM <<gc-logging,GC 日志>> 已启用。这种轻量级设置可以深入探究 GC 问题。 这些设置通过 <<jvm-options,`jvm.options`>> 设置，
+并在默认日志目录默认保留 2GB 日志（每 64 MB滚动）。如果你正从早期 Elasticsearch 版本升级并保留已有 <<jvm-options,`jvm.options`>> ，你应该添加以下 GC 日志设置，
+使得具有价值的调试信息可用：
 
 [source,sh]
 --------------------------------------------------
@@ -40,5 +33,5 @@ Elasticsearch 在 bootstrap 过程中安装了一个安全管理器来降低 JDK
 -XX:GCLogFileSize=64m
 --------------------------------------------------
 
-<1> 如果你是通过 RPM 或者 Debian 包安装 Elasticsearch，泽使用 `/var/log/elasticsearch` 默认日志路径，
-或者你是通过 `tar.gz` 或者 `zip` 归档版本则使用 `logs/gc.log` 默认日志路径；否则，为你的日志文件设置绝对路径。
+<1> 如果你是通过 RPM 或者 Debian 包安装 Elasticsearch，请使用 `/var/log/elasticsearch` 默认日志路径，
+或者你是通过 `tar.gz` 或者 `zip` 归档版本请使用 `logs/gc.log` 默认日志路径；否则，请为你的日志文件设置绝对路径。

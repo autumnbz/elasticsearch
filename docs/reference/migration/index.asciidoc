@@ -1,23 +1,21 @@
 [[breaking-changes]]
-= Breaking changes
+= 重大改变
 
 [partintro]
 --
-This section discusses the changes that you need to be aware of when migrating
-your application from one version of Elasticsearch to another.
+本节讨论在将应用程序从一个 Elasticsearch 版本迁移到另一个版本时需要注意的改变。
 
-As a general rule:
+作为基本规则：
 
-* Migration between minor versions -- e.g. `6.x` to `6.y` -- can be
-  performed by <<rolling-upgrades,upgrading one node at a time>>.
+* 小版本之间的迁移 -- 例如 `6.x` 到 `6.y` -- 可以通过 <<rolling-upgrades,一次升级一个节点> 完成。
 
-* Migration between consecutive major versions -- e.g. `5.x` to `6.x` --
-  requires a <<restart-upgrade,full cluster restart>>.
+* 连续大版本之间的迁移 -- 例如 `5.x` 到 `6.x` --
+  需要 <<restart-upgrade,重启集群>> 。
 
-* Migration between non-consecutive major versions -- e.g. `2.x` to `6.x` --
-  is not supported.
+* 非连续大版本之间的爱你一 -- 例如 `2.x` 到 `6.x` --
+  不支持。
 
-See <<setup-upgrade>> for more info.
+详细信息请参考 <<setup-upgrade>> 。
 --
 include::migrate_6_0.asciidoc[]
 
