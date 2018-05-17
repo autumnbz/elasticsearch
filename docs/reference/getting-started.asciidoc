@@ -14,6 +14,11 @@ Elasticsearch 是一个高度可扩展的开源全文搜索和分析引擎。它
 * 你有分析/商业智能需求，并希望基于海量数据（比如数百万或数十亿的记录）进行快速调查、分析、可视化以及即席查询。在这种场景下，你可以使用 Elasticsearch 存储你的数据，然后使用 Kibana（Elasticsearch/Logstash/Kibana 工具栈的一部分）来构建自定义仪表盘以呈现对你很重要的可视化数据。此外，你可以使用 Elasticsearch 聚合功能来对数据执行复杂的商业智能查询。
 
 在本教程的剩余部分中将指导你开始使用、运行、深入了解 Elasticsearch，以及执行如索引、搜索、和修改数据等基本操作。在本教程的最后，你应该会很好地了解 Elasticsearch 是什么，以及它是如何工作的，并希望从中可以收获启发以便利用它来构建复杂的搜索应用程序，或者从你的数据中挖掘情报。
+
+[float]
+=== 鸣谢
+感谢所有参与本书的中文译者与审校人员，他们牺牲了大量宝贵的休息时间，他们对翻译内容仔细斟酌，一丝不苟， 对修改意见认真对待，各抒己见，不厌其烦的进行修改与再次审校，这些默默奉献的可爱的人分别是，排名不分先后：
+https://github.com/unlimitedsola[`沙子森`] ，https://github.com/eric-hezhensong[`何振松`] , https://github.com/biyuhao[`毕裕昊`] , https://github.com/littlesqx[`徐盛倩`] , https://github.com/autumnbz[`陈辉`] 。
 --
 
 == 基本概念
