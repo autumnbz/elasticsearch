@@ -1,12 +1,10 @@
 [[breaking_60_geo_changes]]
-=== Geo changes
+=== Geo 改变
 
-==== Deprecated `ShapeBuilders` helper class
+==== 弃用 `ShapeBuilders` 帮助类
 
-The `ShapeBuilders` class containing static methods to create shape specific builders
-(e.g., `ShapeBuilders.newPoint`) has been deprecated. One must now use the builder's
-constructor instead (e.g., `new MultiPointBuilder()).
+`ShapeBuilders` 类中创建特定形状建造器（例如，`ShapeBuilders.newPoint` ）的静态方法已被弃用。现在必须使用建造器的构造函数替换（例如，`new MultiPointBuilder()` ）。
 
-==== Deprecated `ShapeBuilder.parse` static method
+==== 弃用 `ShapeBuilder.parse` 静态方法
 
-The `ShapeBuilder.parse` method has been deprecated. Use `ShapeParser.parse` instead.
+`ShapeBuilder.parse` 方法已被弃用。请使用 `ShapeParser.parse` 替换。

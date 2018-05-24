@@ -1,64 +1,48 @@
 [[breaking_60_java_changes]]
-=== Java API changes
+=== Java API 改变
 
-==== `setSource` methods require XContentType
+==== `setSource` 方法需要 XContentType
 
-Previously the `setSource` methods and other methods that accepted byte/string representations of
-an object source did not require the XContentType to be specified. The auto-detection of the content
-type is no longer used, so these methods now require the XContentType as an additional argument when
-providing the source in bytes or as a string.
+早期版本接收表示对象源的 byte/string 的 `setSource` 和其他方法不需要指定 XContentType。
+内容类型自动检测已不再使用，因此这些方法在以字节或字符串形式提供 source 时需要指定 XContentType 作为附加参数。
 
-==== `DeleteByQueryRequest` requires an explicitly set query
+==== `DeleteByQueryRequest` 需要显示设置查询
 
-In previous versions of Elasticsearch, delete by query requests without an explicit query
-were accepted, match_all was used as the default query and all documents were deleted
-as a result. From version 6.0.0, a `DeleteByQueryRequest` requires an explicit query be set.
+早期 Elasticsearch 版本，delete by query 请求不需要显示设置 query，match_all 作为默认查询并且所有文档会被删除。
+从 6.0.0 版本起，`DeleteByQueryRequest` 需要显示设置 query。
 
-==== `InternalStats` and `Stats` getCountAsString() method removed
+==== 移除 `InternalStats` 和 `Stats` getCountAsString() 方法
 
-The `count` value in the stats aggregation represents a doc count that shouldn't require a formatted
-version. This method was deprecated in 5.4 in favour of just using
-`String.valueOf(getCount())` if needed
+stats 聚合中的 `count` 值表示不需要格式化版本的文档数。这个方法在 5.4 中被弃用，在需要时可用 `String.valueOf(getCount())` 支持。
 
-==== `ActionRequestBuilder#execute` returns `ActionFuture` rather than `ListenableActionFuture`
+==== `ActionRequestBuilder#execute` 返回 `ActionFuture` 而不是 `ListenableActionFuture`
 
-When sending a request through the request builders e.g. client.prepareSearch().execute(), it used to
-be possible to call `addListener` against the returned `ListenableActionFuture`. With this change an
-`ActionFuture` is returned instead, which is consistent with what the `Client` methods return, hence
-it is not possible to associate the future with listeners. The `execute` method that accept a listener
-as an argument can be used instead.
+当通过类似 client.prepareSearch().execute() 构建器发送请求时，过去它可以调用 `addListener` 返回 `ListenableActionFuture` 。
+现在替换为与 `Client` 方法返回一致的 `ActionFuture` ，于是与监听器关联起来是不可能的。可以用 `execute` 方法接收监听器作为参数替换。
 
-==== `Terms.Order` and `Histogram.Order` classes replace by `BucketOrder`
+==== `Terms.Order` 和 `Histogram.Order` 类由 `BucketOrder` 取代
 
-The `terms`, `histogram`, and `date_histogram` aggregation code has been refactored to use common
-code for ordering buckets. The `BucketOrder` class must be used instead of `Terms.Order` and
-`Histogram.Order`. The `static` methods in the `BucketOrder` class must be called instead of directly
-accessing internal order instances, e.g. `BucketOrder.count(boolean)` and `BucketOrder.aggregation(String, boolean)`.
-Use `BucketOrder.key(boolean)` to order the `terms` aggregation buckets by `_term`.
+`terms` 、`histogram` 和 `date_histogram` 聚合代码已经被重构为用于排序 buckets 的通用代码。`BucketOrder` 类用于替换 `Terms.Order` 和
+`Histogram.Order` 。必须使用 `BucketOrder` 类的 `static` 方法而不是直接访问内部 order 实例，
+例如 `BucketOrder.count(boolean)` 和 `BucketOrder.aggregation(String, boolean)` 。使用 `BucketOrder.key(boolean)` 提供 `_term` 的 `terms` 聚合。
 
-==== `getTookInMillis()` removed in `BulkResponse`, `SearchResponse` and `TermVectorsResponse`
+==== `BulkResponse` 、 `SearchResponse` 和 `TermVectorsResponse` 移除了 `getTookInMillis()`
 
-In `BulkResponse`, `SearchResponse` and `TermVectorsResponse` `getTookInMiilis()` method
-has been removed in favor of `getTook` method. `getTookInMiilis()` is easily replaced by
-`getTook().getMillis()`.
+为了支持 `getTook` 方法，已经移除了 `BulkResponse` 、 `SearchResponse` 和 `TermVectorsResponse` 中的 `getTookInMiilis()` 方法。
+`getTookInMiilis()` 很容易被 `getTook().getMillis()` 替换。
 
-==== `GetField` and `SearchHitField` replaced by `DocumentField`
+==== `GetField` 和 `SearchHitField` 由 `DocumentField` 取代
 
-As `GetField` and `SearchHitField` have the same members, they have been unified into
-`DocumentField`.
+因为 `GetField` 和 `SearchHitField` 具有相同的成员，所以它们已经统一成了 `DocumentField` 。
 
-==== Some Aggregation classes have moved packages
+==== 移动了一些聚合类的包
 
-The classes for the variants of the range aggregation (geo_distance, date and ip) were moved into the `org.elasticsearch.search.aggregations.bucket.range`
-package.
+range 聚合（geo_distance 、 date 和 ip）的相关类移动至 `org.elasticsearch.search.aggregations.bucket.range` 包。
 
-The `org.elasticsearch.search.aggregations.bucket.terms.support` package was removed and the classes were moved to
-`org.elasticsearch.search.aggregations.bucket.terms`.
+`org.elasticsearch.search.aggregations.bucket.terms.support` 包已被移除，包里面的类移动至 `org.elasticsearch.search.aggregations.bucket.terms`。
 
-The filter aggregation classes were moved to `org.elasticsearch.search.aggregations.bucket.filter`
+过滤器聚合类移动至 `org.elasticsearch.search.aggregations.bucket.filter` 。
 
-==== Constructor for `PercentileRanksAggregationBuilder` has changed
+==== `PercentileRanksAggregationBuilder` 构造器已改变
 
-It is now required to include the desired ranks as a non-null, non-empty array of doubles to the builder's constructor,
-rather than configuring them via a setter on the builder. The setter method `values()` has correspondingly
-been removed.
+现在需要将所要求的等级作为非 null 、非空 double 数据传至构建器构造函数中，而不是通过构建器的 setter 配置。setter `values()` 方法也相应的移除了。

@@ -1,13 +1,10 @@
 [[breaking_60_indices_changes]]
-=== Indices changes
+=== Indices 改变
 
-==== Index templates use `index_patterns` instead of `template`
+==== 索引模板使用 `index_patterns` 替换 `template`
 
-Previously templates expressed the indices that they should match using a glob
-style pattern in the `template` field. They should now use the `index_patterns`
-field instead. As the name implies you can define multiple glob style patterns
-in an array but for convenience defining a single pattern as a bare string is
-also supported. So both of these examples are valid:
+早期使用模板表示索引时需要在 `template` 字段中匹配 glob 类型模式。现在应该使用 `index_patterns` 字段替换。
+正如名称暗示的一样你可以在数组中定义多个 glob 类型模式，但是为了方便支持使用单字符串定义一个模式。所以以下两个实例都是有效的：
 
 [source,js]
 --------------------------------------------------
@@ -29,63 +26,47 @@ PUT _template/template_2
 // CONSOLE
 
 
-==== Shadow Replicas have been removed
+==== 移除影子副本
 
-Shadow replicas don't see enough usage, and have been removed. This includes the
-following settings:
+影子副本没有发现足够使用场景，并且已被删除。这包括以下设置：
 
 - `index.shared_filesystem`
 - `index.shadow_replicas`
 - `node.add_lock_id_to_custom_path`
 
-==== Open/Close index API allows wildcard expressions that match no indices by default
+==== 打开/关闭 索引 API 默认允许未匹配索引通配符表达式
 
-The default value of the `allow_no_indices` option for the Open/Close index API
-has been changed from `false` to `true` so it is aligned with the behaviour of the
-Delete index API. As a result, Open/Close index API don't return an error by
-default when a provided wildcard expression doesn't match any closed/open index.
+打开/关闭 索引 API 中的 `allow_no_indices` 选项默认值由 `false` 改为 `true` ，使其与删除索引 API 行为对齐。
+这样做的结果是 打开/关闭 索引 API 在通配符表达式未匹配到任何 关闭/打开 索引时默认返回 error。
 
-==== Delete a document
+==== 删除文档
 
-Delete a document from non-existing index has been modified to not create the index.
-However if an external versioning is used the index will be created and the document
-will be marked for deletion. 
+从不存在的索引中删除文档已被修改为不创建索引。但是，如果使用外部版本则会创建索引，同时文档
+将被标记为删除。
 
-==== Indices aliases api resolves indices expressions only against indices
+==== 索引别名 api 仅针对索引解析索引表达式
 
-The index parameter in the update-aliases, put-alias, and delete-alias APIs no
-longer accepts alias names. Instead, it accepts only index names (or wildcards
-which will expand to matching indices).
+update-aliases、put-alias 和 delete-alias APIs 中的索引参数不再接收别名名称。相反，它只接收索引名称（或衍生至匹配索引的通配符）。
 
-==== Delete index api resolves indices expressions only against indices
+==== 删除索引 api 仅针对索引解析索引表达式
 
-The index parameter in the delete index API no longer accepts alias names.
-Instead, it accepts only index names (or wildcards which will expand to
-matching indices).
+删除索引 API 中的索引参数不再支持别名名称。相反，它只接收索引名称（或衍生至匹配索引的通配符）。
 
-==== Support for `+` has been removed in index expressions
+==== 索引表达式不再支持 `+`
 
-Omitting the `+` has the same effect as specifying it, hence support for `+`
-has been removed in index expressions.
+省略 `+` 与指定它的效果相同，因此索引表达式不再支持 `+` 。
 
-==== Translog retention
+==== 保留事务日志
 
-Translog files are now kept for up to 12 hours (by default), with a maximum size of `512mb` (default), and
-are no longer deleted on `flush`. This is to increase the chance of doing an operation based recovery when
-bringing up replicas up to speed.
+事务日志文件最长保留 12 小时（默认），最大保留大小为 `512mb` （默认），并且 `flush` 时不再删除。
+这是为了执行恢复操作时提高复制速度。
 
-==== Limit to the difference between max_size and min_size in NGramTokenFilter and NGramTokenizer
+==== 限制 NGramTokenFilter 和 NGramTokenizer 中 max_size 和 min_size 之间的差异
 
-To safeguard against creating too many index terms, the difference between
-max_ngram and min_ngram in NGramTokenFilter and NGramTokenizer has been
-limited to 1. This default limit can be changed with the index setting
-index.max_ngram_diff. Note that if the limit is exceeded a deprecation
-warning is logged.
+为了防止创建太多的索引词项，NGramTokenFilter 和 NGramTokenizer 中的 max_ngram 和 min_ngram 之间的差异限制为 1。
+这个默认限制可以通过索引设置 index.max_ngram_diff 改变。注意如果超出限制将记录一个过期警告。
 
-==== Limit to the difference between max_size and min_size in ShingleTokenFilter
+==== 限制 ShingleTokenFilter 中 max_size 和 min_size 之间的差异
 
-To safeguard against creating too many tokens, the difference between
-max_shingle_size and min_shingle_size in ShingleTokenFilter has been
-limited to 3. This default limit can be changed with the index setting
-index.max_shingle_diff. Note that if the limit is exceeded a deprecation
-warning will be logged.
+为了防止创建太多的词元，ShingleTokenFilter 中 max_shingle_size 和 min_shingle_size 之间的差异限制为3。
+这个默认限制可以通过索引设置 index.max_shingle_diff 改变。注意如果超出限制将记录一个过期警告。

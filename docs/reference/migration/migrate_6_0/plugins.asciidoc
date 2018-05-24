@@ -1,94 +1,76 @@
 [[breaking_60_plugins_changes]]
-=== Plugins changes
+=== Plugins 改变
 
-==== Mapper attachments plugin
+==== Mapper 附件插件
 
-* The mapper attachments plugin has been deprecated in elasticsearch 5.0 and is now removed.
-You can use {plugins}/ingest-attachment.html[ingest attachment plugin] instead.
+* mapper 附件插件在 elasticsearch 5.0 中被弃用，现在已被移除。
+你可以使用 {plugins}/ingest-attachment.html[ingest attachment plugin] 替代。
 
-==== S3 Repository plugin
+==== S3 仓库插件
 
-* The bucket an s3 repository is configured with will no longer be created automatically.
-It must exist before the s3 repository is created.
+* The bucket an s3 仓库配置的桶将不会自动创建。它必须在 s3 仓库之前创建。
 
-* Support for specifying s3 credentials through environment variables and
-system properties has been removed. Use the `elasticsearch-keystore` tool
-to securely store the credentials.
+* 通过环境变量和系统属性指定 s3 证书已被移除。使用 `elasticsearch-keystore` 工具安全地存储证书。
 
-* Specifying region has been removed. This includes the settings `cloud.aws.region`,
-`cloud.aws.s3.region`, `repositories.s3.region`, and specifying
-region inside the repository settings. Instead, specify the full endpoint if a custom
-s3 location is needed, or rely on the default behavior which automatically locates
-the region of the configured bucket.
+* 特定域已被移除。包括 `cloud.aws.region` 、`cloud.aws.s3.region` 、`repositories.s3.region` 和仓库设置中指定的域。
+相反，如果需要自定义 s3 位置请指定完整端点，或依靠自动指定配置桶域的默认行为。
 
-* Specifying s3 signer type has been removed, including `cloud.aws.signer` and `cloud.aws.s3.signer`.
+* 指定 s3 签名类型已被移除，包括 `cloud.aws.signer` 和 `cloud.aws.s3.signer` 。
 
-* Global repositories settings have been removed. This includes `repositories.s3.bucket`,
-`repositories.s3.server_side_encryption`, `repositories.s3.buffer_size`,
-`repositories.s3.max_retries`, `repositories.s3.use_throttle_retries`,
-`repositories.s3.chunk_size`, `repositories.s3.compress`, `repositories.s3.storage_class`,
-`repositories.s3.canned_acl`, `repositories.s3.base_path`, and 
-`repositories.s3.path_style_access`. Instead, these settings should be set directly in the
- settings per repository.
- See {plugins}/repository-s3-repository.html[S3 Repository settings].
+* 全局仓库设置已移除。包括 `repositories.s3.bucket` 、
+`repositories.s3.server_side_encryption` 、 `repositories.s3.buffer_size` 、
+`repositories.s3.max_retries` 、 `repositories.s3.use_throttle_retries` 、
+`repositories.s3.chunk_size` 、 `repositories.s3.compress` 、 `repositories.s3.storage_class` 、
+`repositories.s3.canned_acl` 、 `repositories.s3.base_path` 和
+`repositories.s3.path_style_access` 。这些设置可在每个仓库中设置。
+ 请参考 {plugins}/repository-s3-repository.html[S3 Repository settings] 。
 
-* Shared client settings have been removed. This includes  `cloud.aws.access_key`,
- `cloud.aws.secret_key`, `cloud.aws.protocol`, `cloud.aws.proxy.host`,
- `cloud.aws.proxy.port`, `cloud.aws.proxy.username`, `cloud.aws.proxy.password`,
- `cloud.aws.signer`, `cloud.aws.read_timeout`, `cloud.aws.s3.access_key`,
- `cloud.aws.s3.secret_key`, `cloud.aws.s3.protocol`, `cloud.aws.s3.proxy.host`,
- `cloud.aws.s3.proxy.port`, `cloud.aws.s3.proxy.username`, `cloud.aws.s3.proxy.password`,
- `cloud.aws.s3.signer`, `cloud.aws.s3.read_timeout`, `repositories.s3.access_key`,
- `repositories.s3.secret_key`, `repositories.s3.endpoint` and `repositories.s3.protocol`.
-Instead, use the new named client settings under `s3.client.CLIENT_NAME.*`.
+* 共享客户端设置已移除。包括 `cloud.aws.access_key` 、
+ `cloud.aws.secret_key` 、 `cloud.aws.protocol` 、 `cloud.aws.proxy.host` 、
+ `cloud.aws.proxy.port` 、 `cloud.aws.proxy.username` 、 `cloud.aws.proxy.password` 、
+ `cloud.aws.signer` 、 `cloud.aws.read_timeout` 、 `cloud.aws.s3.access_key` 、
+ `cloud.aws.s3.secret_key` 、 `cloud.aws.s3.protocol` 、 `cloud.aws.s3.proxy.host` 、
+ `cloud.aws.s3.proxy.port` 、 `cloud.aws.s3.proxy.username` 、 `cloud.aws.s3.proxy.password` 、
+ `cloud.aws.s3.signer` 、 `cloud.aws.s3.read_timeout` 、 `repositories.s3.access_key` 、
+ `repositories.s3.secret_key` 、 `repositories.s3.endpoint` 好人 `repositories.s3.protocol` 。
+Instead, use the new named client settings under 。
+可在 `s3.client.CLIENT_NAME.*` 下使用新命名客户端设置。
 
-* The `path_style_access` setting has been removed. The repository will use the appropriate path style access based on the configured endpoint.
+* `path_style_access` 设置已移除。仓库将根据配置端点使用适当的路径样式访问。
 
-==== Azure Repository plugin
+==== Azure 仓库插件
 
-* The container an azure repository is configured with will no longer be created automatically.
-It must exist before the azure repository is created.
+* azure 仓库配置的容器不会自动创建。它必须在 azure 仓库之前创建。
 
-* Global repositories settings you are able to set in elasticsearch config file under `repositories.azure`
-name space have been removed. This includes `repositories.azure.account`, `repositories.azure.container`,
-`repositories.azure.base_path`, `repositories.azure.location_mode`, `repositories.azure.chunk_size` and
-`repositories.azure.compress`.
-You must set those settings per repository instead. Respectively `account`, `container`, `base_path`,
-`location_mode`, `chunk_size` and `compress`.
-See {plugins}/repository-azure-usage.html#repository-azure-repository-settings[Azure Repository settings].
+* `repositories.azure` 命名空间下用于设置 elasticsearch 配置文件的全局仓库设置已移除。
+包括 `repositories.azure.account` 、`repositories.azure.container` 、`repositories.azure.base_path` 、`repositories.azure.location_mode` 、
+`repositories.azure.chunk_size` 和 `repositories.azure.compress` 。
+你必须为每个仓库单独设置。分别是 `account` 、 `container` 、 `base_path` 、
+`location_mode` 、 `chunk_size` 和 `compress` 。
+请参考 {plugins}/repository-azure-usage.html#repository-azure-repository-settings[Azure Repository settings] 。
 
-==== GCS Repository plugin
+==== GCS 仓库插件
 
-* The `service_account` setting has been removed. A service account json credential file must now be
-specified in the <<secure-settings, elasticsearch keystore>>.
+* `service_account` 设置已移除。一个服务账号凭证文件必须由 <<secure-settings, elasticsearch keystore>> 指定。
 
-==== EC2 Discovery plugin
+==== EC2 发现插件
 
-* Specifying ec2 signer type has been removed, including `cloud.aws.signer` and `cloud.aws.ec2.signer`.
+* 指定 ec2 签名类型已移除，包括 `cloud.aws.signer` 和 `cloud.aws.ec2.signer` 。
 
-* The region setting has been removed. This includes the settings `cloud.aws.region`
-and `cloud.aws.ec2.region`. Instead, specify the full endpoint.
+* 域设置已移除。包括 `cloud.aws.region` 和 `cloud.aws.ec2.region` 。请指定完整端点替代。
 
-* All `cloud.aws.*` and `cloud.aws.ec2.*` settings have been removed. Use `discovery.ec2.*` settings instead.
+* 所有 `cloud.aws.*` 和 `cloud.aws.ec2.*` 设置已移除。请使用 `discovery.ec2.*` 设置替代。
 
-==== Ignoring hidden folders
+==== 忽略隐藏文件夹
 
-Previous versions of Elasticsearch would skip hidden files and directories when
-scanning the plugins folder. This leniency has been removed.
+早期 Elasticsearch 版本在扫描插件文件夹时会跳过隐藏文件和文件。这个条件已被移除。
 
-==== ICU Analysis plugin
+==== ICU 分析插件
 
-The icu4j library has been upgraded to 59.1,
-Indices created in the previous major version will need to be reindexed
-in order to return correct (and correctly ordered) results,
-and to take advantage of new characters.
+icu4j 库已经升级到 59.1，早期大版本创建的索引需要重新索引以返回正确（正确定制）结果，并利用新字符优势。
 
-==== Plugins should not construct `Environment` instances from `Settings`
+==== 插件不应该从 `Settings` 构建 `Environment` 实例
 
-Previously, plugins could construct an `Environment` instance from `Settings` to
-discover the path to plugin-specific config files. This will no longer work in
-all situations as the `Settings` object does not carry the necessary information
-for the config path to be set correctly. Instead, plugins that need to know the
-config path should have a single constructor that accepts a pair of `Settings`
-and `Path` instances, and construct an `Environment` using the corresponding
-constructor on `Environment`.
+早期，插件可以从 `Settings` 构建 `Environment` 实例以发现指定插件的配置文件路径。
+因为 `Settings` 对象不包含正确设置配置路径的必要信息，所以这将不再起作用。
+相反，插件要知道配置路径时应该有一个接受 `Settings` 和 `Path` 实例的构造器，并使用相应的 `Environment` 构造器构造 `Environment` 。

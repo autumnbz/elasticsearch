@@ -13,7 +13,7 @@ Elasticsearch 在 bootstrap 过程中安装了一个安全管理器来降低 JDK
 
 在 Linux 上，早期 Elastictsearch 使用 `/tmp` 作为进程的默认临时目录。然而，`/tmp` 是公共的，
 所以我们可以选择更改打包方式以使用私有临时目录。如果你正从早期 Elasticsearch 版本升级并保留已有 <<jvm-options,`jvm.options`>> ，
-你应该添加 `-Djava.io.tmpdir=${ES_TMPDIR}` 这行。我们在在非 Linux 系统上仍用相同机制保留私有临时目录，因此在所有操作系统上执行此操作是安全的。
+你应该添加 `-Djava.io.tmpdir=${ES_TMPDIR}` 这行。我们在非 Linux 系统上仍用相同机制保留私有临时目录，因此在所有操作系统上执行此操作是安全的。
 
 === GC 日志
 

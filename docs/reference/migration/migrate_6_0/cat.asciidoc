@@ -1,7 +1,6 @@
 [[breaking_60_cat_changes]]
-=== Cat API changes
+=== Cat API 改变
 
-==== Unbounded queue size in cat thread pool
+==== cat 线程池中的无界队列大小
 
-Previously if a queue size backing a thread pool was unbounded, the cat thread pool API would output an empty string in
-the queue_size column. This has been changed to now output -1 so that the output is always present and always numeric.
+早期如果一个线程池队列大小是无界的，cat 线程池 API 将在 queue_size 列输出一个空字符串。现在已经改为 -1 以便输出时始终存在并且是数字。

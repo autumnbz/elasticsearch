@@ -1,17 +1,12 @@
 [[breaking_60_stats_changes]]
-=== Stats and info changes
+=== 统计和信息改变
 
-==== Removal of `throttle_time` in the `store` stats
+==== `store` 统计中的 `throttle_time` 已移除
 
-Given that store throttling has been removed, the `store` stats do not report
-`throttle_time` anymore.
+因为存储限制已移除，`store` 不支持报告 `throttle_time` 。
 
-==== FS stats no longer reports if the disk spins
+==== FS 统计不再报告磁盘旋转
 
-Elasticsearch has defaulted to assuming that it is running on SSDs since
-the 2.x series of Elasticsearch. As such, Elasticsearch no longer needs to
-collect information from the operating system as to whether or not the
-underlying disks of each data path spin or not. While this functionality was no
-longer needed starting in the 2.x series of Elasticsearch, it was maintained in
-the filesystem section of the nodes stats APIs. This information has now been
-removed.
+Elasticsearch 从 2.x 系列起默认假定是在 SSDs 上运行。因此，Elasticsearch 不再需要
+从操作系统上收集每个数据路径的底层磁盘旋转与否。因为这个功能从 Elasticsearch 2.x 系列不再需要，它保存在节点统计 APIs 的文件系统部分中。
+这个信息现在已移除。

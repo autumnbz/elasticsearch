@@ -1,9 +1,9 @@
 [[breaking_60_aggregations_changes]]
 === 聚合改变
 
-==== 用于 terms 聚合的过时 include/exclude `模式` 元素已被移除
+==== terms 聚合中已弃用的 include/exclude `pattern` 元素已被移除
 
-`terms` 聚合中用于接收 `include` 和 `exclude` 的子 `模式` 对象已被移除。该模式可直接将 `include` 和 `exclude` 字段作为值。例如以下 `terms` 聚合：
+`terms` 聚合中用于接收 `include` 和 `exclude` 的子 `pattern` 对象已移除。该模式可直接将 `include` 和 `exclude` 字段作为值。例如以下 `terms` 聚合：
 
 [source,js]
 --------------------------------------------------
@@ -49,13 +49,11 @@ POST /twitter/_search?size=0
 
 ==== `date_range` 聚合中的 `to` 和 `from` 参数现在可通过 `format` 解释执行
 
-`date_range` 聚合中的 `to` 和 `from` 参数过去通常以 `epoch_millis` 执行，使例如 `epoch_seconds` 其他数字格式不能作为数字输入值。
+`date_range` 聚合中的 `to` 和 `from` 参数过去通常以 `epoch_millis` 执行，使得类似 `epoch_seconds` 其他数字格式不能作为数字输入值。
 现在我们通过目标字段的 `format` 来解释这些参数。
 如果 mapping 中的 `format` 与数字输入值不兼容，则必须在 `date_range` 聚合中指定兼容 `format` （例如 `epoch_millis` ， `epoch_second` ），否则将抛出错误。
 
+==== `terms` 聚合中的 `global_ordinals_hash` 和 `global_ordinals_low_cardinality` 已弃用
 
-==== `terms``global_ordinals_hash` and `global_ordinals_low_cardinality` are deprecated in the  aggregation
-
-The execution hints `global_ordinals_hash` and `global_ordinals_low_cardinality` are deprecated and should be replaced
-by `global_ordinals` which now internally choose whether it should remap global ordinals to dense ordinals or directly use the
-segment ordinals.
+`global_ordinals_hash` 和 `global_ordinals_low_cardinality` 的执行提示已弃用，并需经内部选择是将全局序数重新映射为密集序列还是直接使用
+分段序号的 `global_ordinals` 替换。

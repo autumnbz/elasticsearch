@@ -1,37 +1,26 @@
 [[breaking_60_mappings_changes]]
-=== Mapping changes
+=== Mapping 改变
 
-==== Coercion of boolean fields
+==== 强制布尔字段
 
-Previously, Elasticsearch recognized the strings `true`, `false`, `on`, `off`, `yes`, `no`, `0`, `1` as booleans. Elasticsearch 6.0
-recognizes only the strings `true` and `false` as booleans and will throw an error otherwise. For backwards compatibility purposes, during the 6.x
-series the previous coercion rules will continue to work on pre-6.0 indices. This means that you do not need to change affected existing
-mappings immediately. However, it is not possible to create new indices from existing index templates that violate the strict `boolean`
-coercion rules.
+早期 Elasticsearch 将 `true` 、 `false` 、`on` 、 `off` 、 `yes` 、 `no` 、 `0` 、 `1` 识别为布尔。
+Elasticsearch 6.0 中只将 `true` 和 `false` 识别为布尔，其他情况会抛出 error。
+为了向前兼容，6.x 系列中上面的强制规则仍将在 pre-6.0 索引上正常工作。这意味着你不需要改变已经生效的 mappings。
+然而，从现有索引模板创建违反 `boolean` 规则的新索引是不可能的。
 
-==== The `_all` meta field is now disabled by default
+==== `_all` 元字段默认禁用
 
-On new mappings, the `_all` meta field that contains a copy of the text from
-each field is now disabled by default. The `query_string` and
-`simple_query_string` queries that previously used `_all` to search will now
-check if `_all` is enabled/disabled and switch to executing the query across all
-fields if `_all` is disabled. `_all` can no longer be configured for indices
-created with Elasticsearch version 6.0 or later.
+在新的 mappings 上，包含每个字段文本拷贝的 `_all` 元字段默认禁用。早期使用 `_all` 查询的 `query_string` 和 `simple_query_string` 将校验 `_all` 是否禁用，
+如果禁用 `_all` 则会转为从所有字段执行查询。使用 Elasticsearch 6.0 或更高版本将无法在创建索引时配置 `_all` 。
 
-==== The `include_in_all` mapping parameter is now disallowed
+==== 不允许使用 `include_in_all` mapping 参数
 
-Since the ++_all++ field is now disabled by default and cannot be configured for
-indices created with Elasticsearch 6.0 or later, the `include_in_all` setting is
-now disallowed for these indices' mappings.
+因为 ++_all++ 字段默认禁止，并从 Elasticsearch 6.0 开始在创建索引时也不能配置，现在不允许在索引映射中设置 `include_in_all` 。
 
-==== Unrecognized `match_mapping_type` options not silently ignored
+==== 无法识别 `match_mapping_type` 选项不再被忽略
 
-Previously Elasticsearch would silently ignore any dynamic templates that
-included a `match_mapping_type` type that was unrecognized. An exception is now
-thrown on an unrecognized type.
+早期 Elasticsearch 将忽略任何包含无法识别的 `match_mapping_type` 类型的动态模板。现在会抛出无法识别类型异常。
 
-==== Validation of `locale` on date fields
+==== 验证日期字段 `locale`
 
-The `locale` option of `date` fields previously allowed almost any string values,
-and unrecognized values would simply be ignored. Unrecognized values are now
-rejected on indices created with Elasticsearch 6.0 or newer.
+之前 `date` 字段的 `locale` 选项允许任何字符值，同时无法识别的值将会被忽略。Elasticsearch 6.0 以后创建索引时无法识别的值将会被拒绝。

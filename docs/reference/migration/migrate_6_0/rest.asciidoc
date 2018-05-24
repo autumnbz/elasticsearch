@@ -1,87 +1,66 @@
 [[breaking_60_rest_changes]]
-=== REST changes
+=== REST 改变
 
-==== Unquoted JSON
+==== 无引号 JSON
 
-In previous versions of Elasticsearch, JSON documents were allowed to contain unquoted field names.
-This feature was removed in the 5.x series, but a backwards-compatibility layer was added via the
-system property `elasticsearch.json.allow_unquoted_field_names`. This backwards-compatibility layer
-has been removed in Elasticsearch 6.0.0.
+早期 Elasticsearch 版本，JSON 文档允许包含无引号字段名。这个特性在 5.x 系列中已移除，但通过系统属性 `elasticsearch.json.allow_unquoted_field_names` 添加了
+向后兼容层。这个向后兼容层已从 Elasticsearch 6.0 中移除。
 
-==== Duplicate Keys in JSON, CBOR, Yaml and Smile
+==== JSON、 CBOR、 Yaml 和 Smile 中的重复键
 
-In previous versions of Elasticsearch, documents were allowed to contain duplicate keys. Elasticsearch 6.0.0
- enforces that all keys are unique. This applies to all content types: JSON, CBOR, Yaml and Smile.
+早期 Elasticsearch 版本中，文档允许包含重复键。Elasticsearch 6.0.0 强制要求键必须唯一。这适用于所有内容类型：JSON、 CBOR、 Yaml 和 Smile
 
-==== Content-Type Auto-detection
+==== 自动检测 Content-Type
 
-In previous versions of Elasticsearch, having a proper Content-Type for the data in a request was not enforced.
-Elasticsearch 6.0.0 enforces that all requests with a body must have a supported Content-Type and this type will
-be used when parsing the data.
+早期 Elasticsearch 版本中，没有对请求数据的 Content-Type 作强制要求。Elasticsearch 6.0.0 强制要求所有请求体必须具有支持的 Content-Type，并且此类型将会在解析数据时使用。
 
-When using the `source` query string parameter, the `source_content_type` parameter must also be specified with
-the media type of the source.
+当使用 `source` 查询字符串参数时，`source_content_type` 参数必须指定 source 媒体类型。
 
-==== Boolean API parameters
+==== 布尔 API 参数
 
-All REST APIs parameters (both request parameters and JSON body) support providing boolean "false" as the
-value `false` and boolean "true" as the value `true`. All other values will raise an error.
+所有 REST APIs 参数（请求参数和 JSON 体）支持提供布尔 "false" 作为 `false` 值和布尔 "true" 作为 `true` 值。所有其他值将产生一个错误。
 
-==== Analyze API changes
+==== 分析 API 改变
 
-The deprecated request parameters and plain text in request body has been removed. Define parameters in request body.
+弃用的请求参数和请求体中的纯文本已移除。请在请求体中定义参数。
 
-==== Support custom normalizer in Analyze API
+==== 在 Analyze API 中支持自定义 normalizer
 
-Analyze API can analyze normalizer and custom normalizer.
-In previous versions of Elasticsearch, Analyze API is requiring a `tokenizer` or `analyzer` parameter.
-In Elasticsearch 6.0.0, Analyze API can analyze a text as a keyword field with custom normalizer
-or if `char_filter`/`filter` is set and `tokenizer`/`analyzer` is not set.
+Analyze API 可以分析 normalizer 和自定义 normalizer。
+早期 Elasticsearch 版本中，Analyze API 需要 `tokenizer` 或者 `analyzer` 参数。
+在 Elasticsearch 6.0.0 中，Analyze API 可以使用自定义 normalizer 或在设置了 `char_filter`/`filter` 且未设置 `tokenizer`/`analyzer` 时将 text 分析为 keyword 字段 。
 
-==== Indices exists API
+==== 索引存在 API
 
-The `ignore_unavailable` and `allow_no_indices` options are no longer accepted
-as they could cause undesired results when their values differed from their
-defaults.
+不再接收 `ignore_unavailable` 和 `allow_no_indices` 选项，因为它们的值与默认值不同时可能造成不可预期的结果。
 
-==== `timestamp` and `ttl` in index requests
+==== 索引请求中 `timestamp` 和 `ttl`
 
-`timestamp` and `ttl` are not accepted anymore as parameters of index/update
-requests.
+索引/更新 请求不再接收 `timestamp` 和 `ttl` 参数。
 
-==== Refresh requests with one or more shard failures return HTTP 500 response instead of 200
+==== Refresh 请求一个或多个分片失败将用 HTTP 500 响应替代 200
 
-Refresh requests that are broadcast to multiple shards that can have one or more
-shards fail during the request now return a 500 response instead of a 200
-response in the event there is at least one failure.
+Refresh 请求广播到多个分片时可能有一个或多个分片失败，现在在至少一个失败时将返回 500 响应而不是 200 响应。
 
-==== Delete by Query API requires an explicit query
+==== Delete by Query API 需要显式查询
 
-In previous versions of Elasticsearch, delete by query requests without an explicit query
-were accepted, match_all was used as the default query and all documents were deleted
-as a result. From version 6.0.0, delete by query requests require an explicit query.
+早期 Elasticsearch 中，可以接收不通过显式查询的 delete by query 请求，match_all 被用于默认查询并且所有文件将被删除。
+从 6.0.0 版本开始，delete by query 查询需要显示查询。
 
-==== DELETE document calls now implicitly create the type
+==== DELETE 文档调用现在隐式创建类型
 
-Running `DELETE index/type/id` now implicitly creates `type` with a default
-mapping if it did not exist yet.
+现在执行 `DELETE index/type/id` 时如果不存在 `type` 将隐式创建一个默认 mapping。
 
-==== Indices information APIs
+==== 索引信息 APIs
 
-Previously it was possible to execute `GET /_aliases,_mappings` or `GET
-/myindex/_settings,_alias` by separating mulitple types of requests with commas
-in order to retrieve multiple types of information about one or more indices.
-This comma-separation for retrieving multiple pieces of information has been
-removed.. `GET /_all` can be used to retrieve all aliases, settings, and
-mappings for all indices. In order to retrieve only the mappings for an index,
-`GET /myindex/_mappings` (or `_aliases`, or `_settings`).
+早期可以用逗号分割多个类型请求执行 `GET /_aliases,_mappings` 或 `GET/myindex/_settings,_alias` 以获取一个或多个索引的多个类型信息。
+这个用于获取多组信息的逗号分割已移除。`GET /_all` 可以用于获取所有索引别名、设置和 mappings。为了只获取索引的 mappings，
+使用 `GET /myindex/_mappings` （或 `_aliases` ， 或 `_settings` ）。
 
-==== Requests to existing endpoints with incorrect HTTP verb now return 405 responses
+==== 已知端点的错误 HTTP 请求动作现在将返回 405 响应
 
-Issuing a request to an endpoint that exists, but with an incorrect HTTP verb
-(such as a `POST` request to `/myindex/_settings`) now returns an HTTP 405
-response instead of a 404. An `Allow` header is added to the 405 responses
-containing the allowed verbs. For example:
+假设请求端点存在，但是一个错误 HTTP 动作（例如 POST 请求 `/myindex/_settings` ）现在返回 HTTP 405 响应而不是 404。
+包含允许动作的 `Allow` 头会添加到 405 响应中。例如：
 
 [source,text]
 -------------------------------------------
@@ -93,12 +72,12 @@ $ curl -v -XPOST 'localhost:9200/my_index/_settings'
 > Host: localhost:9200
 > User-Agent: curl/7.51.0
 > Accept: */*
-> 
+>
 < HTTP/1.1 405 Method Not Allowed
 < Allow: PUT,GET
 < content-type: application/json; charset=UTF-8
 < content-length: 134
-< 
+<
 {
   "error" : "Incorrect HTTP method for uri [/my_index/_settings] and method [POST], allowed: [PUT, GET]",
   "status" : 405
@@ -107,15 +86,11 @@ $ curl -v -XPOST 'localhost:9200/my_index/_settings'
 * Connection #0 to host localhost left intact
 --------------------------------------------
 
-==== Disallow using `_cache` and `_cache_key`
+==== 禁止使用 `_cache` 和 `_cache_key`
 
-The `_cache` and `_cache_key` options in queries have been deprecated since version 2.0.0 and
-have been ignored since then, issuing a deprecation warning. These options have now been completely
-removed, so using them now will throw an error.
+`_cache` 和 `_cache_key` 选项从 2.0.0 版本起已弃用且被忽略，并发出弃用警告。这些选项现在已全部移除，所以使用时会抛出错误。
 
-==== IndexClosedException to return 400 status code
+==== IndexClosedException 返回 400 状态码
 
-An `IndexClosedException` is returned whenever an api that doesn't support
-closed indices (e.g. search) is called passing closed indices as parameters
-and `ignore_unavailable` is set to `false`. The response status code returned
-in such case changed from `403` to `400`
+在已关闭的索引上调用不支持的 api （例如 search）且 `ignore_unavailable` 为 `false` 将返回 `IndexClosedException` 。
+在这种场景下响应状态码从 `403` 变更为 `400`

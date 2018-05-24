@@ -1,10 +1,10 @@
 [[breaking_60_percolator_changes]]
-=== Percolator changes
+=== Percolator 改变
 
-==== Deprecated percolator and mpercolate apis have been removed
+==== 弃用的 percolator 和 mpercolate apis 已移除
 
-Instead the `percolate` query should be used via either the search or msearch apis.
+可以通过 search 或 msearch apis 替换 `percolate` 查询。
 
-==== The percolator.map_unmapped_fields_as_string setting has been deprecated
+==== percolator.map_unmapped_fields_as_string 设置已弃用
 
-The `percolator.map_unmapped_fields_as_text` setting should be used instead.
+可以使用 `percolator.map_unmapped_fields_as_text` 替换。

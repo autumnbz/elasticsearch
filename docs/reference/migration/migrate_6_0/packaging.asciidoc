@@ -1,49 +1,29 @@
 [[breaking_60_packaging_changes]]
-=== Packaging changes
+=== Packaging 改变
 
-==== Configuring custom user and group for package is no longer allowed
+==== 不再允许配置自定义用户和组
 
-Previously someone could configure the `$ES_USER` and `$ES_GROUP` variables to
-change which user and group Elasticsearch was run as. This is no longer
-possible, the DEB and RPM packages now exclusively use the user and group
-`elasticsearch`. If a custom user or group is needed then a provisioning system
-should use the tarball distribution instead of the provided RPM and DEB
-packages.
+之前可以配置 `$ES_USER` 和 `$ES_GROUP` 变量改变运行 Elasticsearch 的用户和组。现在已经不可能，DEB 和 RPM 包现在只
+使用 `elasticsearch` 用户和组。如果需要自定义用户或者组，则配置系统需要使用 tarball 版而不是由 RPM 和 DEB 包提供。
 
-==== `path.conf` is no longer a configurable setting
+==== `path.conf` 不再是一个配置选项
 
-Previous versions of Elasticsearch enabled setting `path.conf` as a
-setting. This was rather convoluted as it meant that you could start
-Elasticsearch with a config file that specified via `path.conf` that
-Elasticsearch should use another config file. Instead, to configure a custom
-config directory, use the <<config-files-location,`ES_PATH_CONF` environment
-variable>>.
+早期 Elasticsearch 版本允许设置 `path.conf` 。这十分复杂，因为这意味着你可以通过 `path.conf` 指定另一配置文件启动 Elasticsearch。
+相反，可以自定义配置目录，请使用 <<config-files-location,`ES_PATH_CONF` 环境变量>> 。
 
-==== `CONF_DIR` is no longer supported
+==== 不再支持 `CONF_DIR`
 
-Previous versions of Elasticsearch enabled using the `CONF_DIR` environment
-variable to specify a custom configuration directory for some configuration
-files and some scripts (it was used inconsistently). Starting in Elasticsearch
-6.0.0, the usage of this environment variable has been superceded by
-`ES_PATH_CONF`, and this new environment variable is consistently used for all
-configuration files and scripts.
+早期 Elasticsearch 版本允许使用 `CONF_DIR` 环境变量指定具有配置文件和 scripts（使用不一致） 的自定义配置目录。
+从 Elasticsearch 6.0.0 起，这个环境变量的用法已经被 `ES_PATH_CONF` 取代，并且这个新环境变量一直用于所有配置文件和 scripts。
 
-==== Default path settings are removed
+==== 移除默认 path 设置
 
-Previous versions of Elasticsearch enabled setting `default.path.data` and
-`default.path.logs` to set the default data path and default logs path if they
-were not otherwise set in the configuration file. These settings have been
-removed and now data paths and log paths can be configured via settings
-only. Related, this means that the environment variables `DATA_DIR` and
-`LOG_DIR` no longer have any effect as these were used to set
-`default.path.data` and `default.path.logs` in the packaging scripts.
+早期 Elasticsearch 版本允许设置 `default.path.data` 和 `default.path.logs` 用于设置默认数据路径和默认日志路径，如果它们没有在配置文件中设置。
+这些设置已被移除，同时数据路径和日志路径只能通过设置配置。相应的，这意味着 `DATA_DIR` 和 `LOG_DIR` 环境变量不再生效，
+因为它们是在打包脚本中用来设置 `default.path.data` 和 `default.path.logs` 。
 
-Additionally, this means that if you were using the package distributions (i.e.,
-you have installed Elasticsearch from the RPM or the DEB distributions), you had
-not previously explicitly configured `path.data` or `path.logs`, and you carry
-over your `elasticsearch.yml` file from 5.x, then you will need to add settings
-for `path.data` and `path.logs`. To use the defaults that you were implicitly
-using previously, you should add these lines to your `elasticsearch.yml`:
+另外，这意味着如果你使用的是包版本（例如，你通过 RPM 或 DEB 包版本安装 Elasticsearch），你没有像之前一样配置 `path.data` 或 `path.logs`，
+同时你想使用 5.x `elasticsearch.yml` 文件，你需要添加 `path.data` 和 `path.logs` 。为了像之前一样使用默认配置，你需要在 `elasticsearch.yml` 中添加以下行：
 
 [source,yaml]
 --------------------------------------------------
@@ -51,28 +31,19 @@ path.data: /var/lib/elasticsearch
 path.logs: /var/log/elasticsearch
 --------------------------------------------------
 
-(If you already had explicit values for either of these settings, you should of
-course preserve those). If you do not do this, Elasticsearch will refuse to
-start.
+（如果你已经有了这些设置的显式值，你应当保留它们）。如果你不这样做，Elasticsearch 将拒绝启动。
 
-==== 32-bit is no longer maintained
+==== 不再维护 32-bit
 
-We previously attempted to ensure that Elasticsearch could be started on 32-bit
-JVM (although a bootstrap check prevented using a 32-bit JVM in production). We
-are no longer maintaining this attempt.
+我们之前试图确保 Elasticsearch 可以在 32-bit JVM（尽管 bootstrap 校验会阻止生产环境使用 32-bit JVM） 上启动。
+我们将不再尝试维护 32-bit。
 
-==== `ES_JVM_OPTIONS` is no longer supported
+==== 不再支持 `ES_JVM_OPTIONS`
 
-The environment variable `ES_JVM_OPTIONS` that enabled a custom location for the
-`jvm.options` file has been removed in favor of using the environment variable
-`ES_PATH_CONF`. This environment variable is already used in the packaging to
-support relocating the configuration files so this change merely aligns the
-other configuration files with the location of the `jvm.options` file.
+`ES_JVM_OPTIONS` 环境变量允许自定义 `jvm.options` 文件路径，现在为了支持使用 `ES_PATH_CONF` 已将其移除。
+这个环境变量被用于打包中支持重定位配置文件，所以这种改变仅仅是对齐其他配置文件与 `jvm.options` 文件的位置。
 
-==== `ES_INCLUDE` is no longer supported
+==== 不再支持 `ES_INCLUDE`
 
-The environment variable `ES_INCLUDE` could previously be used to establish the
-environment used to start Elasticsearch (and various supporting scripts). This
-legacy feature could be useful when there were several environment variables
-useful for configuring JVM options; this functionality had previously been
-replaced by <<jvm-options>>. Therefore, `ES_INCLUDE` has been removed.
+`ES_INCLUDE` 环境变量之前用于建立启动 Elasticsearch（各种支持脚本）环境。这个遗留功能在有几个配置 JVM 选项的环境变量时可能十分有用；
+该功能之前已被 <<jvm-options>> 取代。因此，`ES_INCLUDE` 已被移除。

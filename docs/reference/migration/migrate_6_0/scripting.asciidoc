@@ -1,52 +1,42 @@
 [[breaking_60_scripting_changes]]
-=== Scripting changes
+=== Scripting 改变
 
-==== Groovy, JavaScript, and Python languages removed
+==== 移除 Groovy、 JavaScript 和 Python 语言
 
-The Groovy, JavaScript, and Python scripting languages were deprecated in
-elasticsearch 5.0 and have now been removed. Use painless instead.
+Groovy、 JavaScript 和 Python scripting 语言在 5.0 中已弃用，现已移除。请使用 painless 替代。
 
-==== Native scripts removed
+==== 移除本地 scripts
 
-Native scripts have been removed. Instead,
-<<modules-scripting-engine, implement a `ScriptEngine`>>.
+本地 scripts 已移除。请使用 <<modules-scripting-engine, implement a `ScriptEngine`>> 替换。
 
-==== Date fields now return dates
+==== Date 字段返回 dates
 
-`doc.some_date_field.value` now returns ++ReadableDateTime++s instead of
-milliseconds since epoch as a `long`. The same is true for
-`doc.some_date_field[some_number]`. Use `doc.some_date_field.value.millis` to
-fetch the milliseconds since epoch if you need it.
+`doc.some_date_field.value` 现在返回 ++ReadableDateTime++s 而不是从 epoch 算的 `long` 毫秒值。
+`doc.some_date_field[some_number]` 也是如此。 如果需要可使用 `doc.some_date_field.value.millis` 获取 epoch 毫秒值。
 
-==== Removed access to index internal via the `_index` variable
+==== 通过 `_index` 变量对内部索引访问已移除
 
-The `_index` variable has been removed. If you used it for advanced scoring, consider writing a `Similarity` plugin.
+`_index` 变量已移除。如果你使用它进行高级打分，请考虑写一个 `Similarity` 插件。
 
-==== Script Settings
+==== Script 设置
 
-All of the existing scripting security settings have been removed.  Instead
-they are replaced with `script.allowed_types` and `script.allowed_contexts`.
+所有存在的 scripting 安全设置已移除。它们已由 `script.allowed_types` 和 `script.allowed_contexts` 替代。
 
-==== `lang` can no longer be specified when using a stored script as part of a request
+==== 使用存储脚本作为请求的一部分时不能再指定 `lang`
 
-The `lang` variable can no longer be specified as part of a request that uses a stored
-script otherwise an error will occur.  Note that a request using a stored script is
-different from a request that puts a stored script.  The language of the script has
-already been stored as part of the cluster state and an `id` is sufficient to access
-all of the information necessary to execute a stored script.
+使用存储脚本作为请求的一部分时不能再指定 `lang` ，否则会发生错误。注意请求时使用存储脚本与请求时放置存储脚本是不一样的。
+脚本语言已被储存为集群状态的一部分，并且 `id` 足够访问所有执行存储脚本所需的信息。
 
-==== 'lang` can no longer be used when putting, getting, or deleting a stored script
+==== putting、 getting 和 deleting 存储脚本时不能再指定 `lang`
 
-Stored scripts can no longer have the `lang` parameter specified as part of the url
-when performing PUT, GET, and DELETE actions on the `_scripts/` path.  All stored
-scripts must have a unique `id` as the namespace is only `id` now and no longer `lang`
-and `id`.
+Stored 脚本在 `_scripts/` 路径上执行 PUT、 GET 和 DELETE 动作时无法指定 `lang` 参数作为 url 的一部分。
+所有存储脚本必须有一个唯一命名 `id` ，现在只有 `id` 而不再是 `lang` 和 `id` 。
 
-==== Stored search template apis removed
+==== 存储的搜索模板 apis 已移除
 
-The PUT, GET and DELETE `_search/template` apis have been removed. Store search templates with the stored scripts apis instead.
+PUT、 GET 和 DELETE `_search/template` apis 已移除。请使用存储脚本 apis 存储搜索模板替换。
 
-For example, previously one might have stored a search template with the following:
+例如，早期可能以如下方式存储搜索模板：
 
 [source,js]
 --------------------------------------------------
@@ -61,7 +51,7 @@ PUT /_search/template/custom_template
 --------------------------------------------------
 // NOTCONSOLE
 
-And instead one would now use the following:
+现在可用以下方式替换：
 
 [source,js]
 --------------------------------------------------
@@ -80,4 +70,3 @@ PUT /_scripts/custom_template
 }
 --------------------------------------------------
 // CONSOLE
-
