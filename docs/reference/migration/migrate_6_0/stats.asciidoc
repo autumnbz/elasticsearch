@@ -1,5 +1,5 @@
 [[breaking_60_stats_changes]]
-=== 统计和信息改变
+=== Stats 和 info 改变
 
 ==== `store` 统计中的 `throttle_time` 已移除
 
