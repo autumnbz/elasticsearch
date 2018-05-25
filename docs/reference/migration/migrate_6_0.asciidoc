@@ -1,35 +1,29 @@
 [[breaking-changes-6.0]]
-== Breaking changes in 6.0
+== 6.0 重大改变
 
-This section discusses the changes that you need to be aware of when migrating
-your application to Elasticsearch 6.0.
+本节讨论将应用程序迁移至 Elasticsearch 6.0 需要注意的改变。
 
 [float]
-=== Indices created before 6.0
+=== 6.0 之前创建的索引
 
-Elasticsearch 6.0 can read indices created in version 5.0 or above.  An
-Elasticsearch 6.0 node will not start in the presence of indices created in a
-version of Elasticsearch before 5.0.
+Elasticsearch 6.0 可以读取 2.0 或更高版本创建的索引。如果存在 Elasticsearch 5.0 之前版本创建的索引，Elasticsearch 6.0 节点将不能启动。
 
 [IMPORTANT]
-.Reindex indices from Elasticsearch 2.x or before
+.从 Elasticsearch 2.x 或之前版本重建索引
 =========================================
 
-Indices created in Elasticsearch 2.x or before will need to be reindexed with
-Elasticsearch 5.x in order to be readable by Elasticsearch 6.x.
+为了 Elasticsearch 6.x 可读，需要将 Elasticsearch 2.x 或之前版本创建的索引重建为 Elasticsearch 5.x 版本的索引。
 
 =========================================
 
 [IMPORTANT]
-.Multiple mapping types are not supported in indices created in 6.0
+.6.0 创建索引时将不支持多 mapping 类型
 =========================================
 
-The ability to have multiple mapping types per index has been removed in 6.0.
-New indices will be restricted to a single type. This is the first step in the
-plan to remove mapping types altogether.  Indices created in 5.x will continue
-to support multiple mapping types.
 
-See <<removal-of-types>> for more information.
+一个索引拥有多 mapping 类型功能将从 6.0 移除。新索引将限制为单类型。这是移除 mapping 类型的第一步。 5.x 版本创建索引时仍将支持多 mapping 类型。
+
+详细信息请参考 <<removal-of-types>> 。
 
 =========================================
 

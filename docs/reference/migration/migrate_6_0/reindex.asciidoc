@@ -1,6 +1,6 @@
 [[breaking_60_reindex_changes]]
-=== Reindex changes
+=== Reindex 改变
 
-==== `size` parameter
+==== `size` 参数
 
-The `size` parameter can no longer be explicitly set to `-1`. If all documents are required then the `size` parameter should not be set.
+`size` 参数不能再显式设置为 `-1` 。如果需要所有文档，则不应该设置 `size` 参数。

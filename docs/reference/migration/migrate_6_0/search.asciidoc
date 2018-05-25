@@ -1,193 +1,153 @@
 [[breaking_60_search_changes]]
-=== Search and Query DSL changes
+=== Search 和 Query DSL 改变
 
-==== Changes to queries
+==== queries 改变
 
-* The `collect_payloads` parameter of the `span_near` query has been removed. Payloads will be
-  loaded when needed.
+* `span_near` query 的 `collect_payloads` 参数已移除。负载将在需要时搜集。
 
-* Queries on boolean fields now strictly parse boolean-like values. This means
-  only the strings `"true"` and `"false"` will be parsed into their boolean
-  counterparts. Other strings will cause an error to be thrown.
+* 布尔字段查询现在严格解析 boolean-like 值。这意味着只有 `"true"` 和 `"false"` 可被解析。其他字符串将抛出错误。
 
-* The `in` query (a synonym for the `terms` query) has been removed
+* `in` 查询（`terms` 查询同义词）已移除
 
-* The `geo_bbox` query (a synonym for the `geo_bounding_box` query) has been removed
+* `geo_bbox` 查询 （`geo_bounding_box` 查询同义词）已移除
 
-* The `mlt` query (a synonym for the `more_like_this` query) has been removed.
+* `mlt` 查询（`more_like_this` 查询同义词）已移除
 
-* The deprecated `like_text`, `ids` and `docs` parameters (all synonyms for `like`) of the `more_like_this` query have
-been removed. Also the deprecated `min_word_len` (a synonym for `min_word_length`) and `max_word_len` 
-(a synonym for `max_word_length`) have been removed.
+* `more_like_this` 查询弃用的 `like_text` 、 `ids` 和 `docs` 参数（`like` 同义词）已移除。
+  已弃用的 `min_word_len` （`min_word_length` 同义词） 和 `max_word_len` （`max_word_length` 同义词）已移除。
 
-* The `fuzzy_match` and `match_fuzzy` query (synonyma for the `match` query) have been removed
+* `fuzzy_match` 和 `match_fuzzy` 查询 （`match` 查询已移除）已移除
 
-* The `terms` query now always returns scores equal to `1` and is not subject to
-  `indices.query.bool.max_clause_count` anymore.
+* `terms` 查询现在总算返回等于 `1` 的分数，同时不再受制于 `indices.query.bool.max_clause_count` 。
 
-* The deprecated `indices` query has been removed.
+* 弃用的 `indices` 查询已移除。
 
-* Support for empty query objects (`{ }`) has been removed from the query DSL.
-  An error is thrown whenever an empty query object is provided.
+* 支持空查询对象的 (`{ }`) 已从 query DSL 移除。
+  无论何时空查询对象都将抛出错误。
 
-* The deprecated `minimum_number_should_match` parameter in the `bool` query has
-  been removed, use `minimum_should_match` instead.
+* `bool` 查询中弃用的 `minimum_number_should_match` 参数已移除，请使用 `minimum_should_match` 替换。
 
-* The `query_string` query now correctly parses the maximum number of
-  states allowed when
-  "https://en.wikipedia.org/wiki/Powerset_construction#Complexity[determinizing]"
-  a regex as `max_determinized_states` instead of the typo
-  `max_determined_states`.
+* `query_string` 查询现在可以在 "https://en.wikipedia.org/wiki/Powerset_construction#Complexity[determinizing]"
+  正则为 `max_determinized_states` 而不是 `max_determined_states` 时正确解析为允许的最大状态数。
 
-* The `query_string` query no longer accepts `enable_position_increment`, use
-  `enable_position_increments` instead.
+* `query_string` 查询不再接收 `enable_position_increment` ，使用 `enable_position_increments` 替换。
 
-* For `geo_distance` queries, sorting, and aggregations the `sloppy_arc` option
-  has been removed from the `distance_type` parameter.
+* 对于 `geo_distance` 查询、排序和聚合， `sloppy_arc` 选项已从 `distance_type` 参数移除。
 
-* The `geo_distance_range` query, which was deprecated in 5.0, has been removed.
+* 5.0 中已过期的 `geo_distance_range` 查询，现已移除。
 
-* The `optimize_bbox` parameter has been removed from `geo_distance` queries.
+* `optimize_bbox` 参数已从 `geo_distance` 查询移除。
 
-* The `ignore_malformed` and `coerce` parameters have been removed from
-  `geo_bounding_box`, `geo_polygon`, and `geo_distance` queries.
+* `ignore_malformed` 和 `coerce` 参数已从
+  `geo_bounding_box` 、`geo_polygon` 和 `geo_distance` 查询移除。
 
-* The `disable_coord` parameter of the `bool` and `common_terms` queries has
-  been removed. If provided, it will be ignored and issue a deprecation warning.
+* `bool` 和 `common_terms` 查询的 `disable_coord` 参数已移除。如果提供，它将被忽略并产生一个弃用警告。
 
-* The `template` query has been removed. This query was deprecated since 5.0
+* `template` 查询已移除。该查询从 5.0 起已弃用。
 
-* The `percolate` query's `document_type` has been deprecated. From 6.0 and later
-  it is no longer required to specify the `document_type` parameter.
+* `percolate` 查询的 `document_type` 已弃用。从 6.0 起不再需要指定 `document_type` 参数。
 
-* The `split_on_whitespace` parameter for the `query_string` query has been removed.
-  If provided, it will be ignored and issue a deprecation warning.
-  The `query_string` query now splits on operator only.
+* `query_string` 查询的 `split_on_whitespace` 参数已移除。
+  如果提供，这个参数将被忽略并产生一个过期警告。`query_string` 查询现在仅由操作符分割。
 
-* The `use_dis_max` parameter for the `query_string` query has been removed.
-  If provided, it will be ignored and issue a deprecation warning.
-  The `tie_breaker` parameter must be used instead.
+* `query_string` 查询的 `use_dis_max` 参数已移除。
+  如果提供，这个参数将被忽略并产生一个过期警告。
+  请务必使用 `tie_breaker` 参数替代。
 
-* The `auto_generate_phrase_queries` parameter for the `query_string` query has been removed,
-  use an explicit quoted query instead.
-  If provided, it will be ignored and issue a deprecation warning.
+* `query_string` 查询的 `auto_generate_phrase_queries` 参数已移除，请使用显式引用查询替代。
+  如果提供，这个参数将被忽略并产生一个过期警告。
 
-* The `all_fields` parameter for the `query_string` and `simple_query_string` has been removed.
-  Set `default_field` to *` instead.
-  If provided, `default_field` will be automatically set to `*`
+* `query_string` 和 `simple_query_string` 的 `all_fields` 参数已移除。
+  设置 `default_field` 为 `*` 替换.
+  如果提供，`default_field` 会自动设为 `*` 。
 
-* The `index` parameter in the terms filter, used to look up terms in a dedicated index is
-  now mandatory. Previously, the index defaulted to the index the query was executed on. Now this index
-  must be explicitly set in the request.
+* 用于在特定索引中查找 terms 的 terms 过滤器中的 `index` 参数是强制性的。以前，索引默认为执行查询的索引。现在必须在请求中显式设置索引。
 
-* The deprecated `type` and `slop` parameter for the `match` query have been removed. Instead of
-setting the `type`, the `match_phrase` or `match_phrase_prefix` should be used. The `slop` removed from
-the `match` query but is supported for `match_phrase` and `match_phrase_prefix`.
+* `match` 查询的 `type` 和 `slop` 参数已移除。可以使用 `match_phrase` 或 `match_phrase_prefix` 替换设置 `type`。
+  `match` 查询移除了 `slop` 但是支持 `match_phrase` 和 `match_phrase_prefix` 。
 
-* The deprecated `phrase_slop` parameter (a synonym for the `slop` parameter) of the `match_phrase` query has been removed.
+* `match_phrase` 查询弃用的 `phrase_slop` 参数（`slop` 参数的同义词）已移除。
 
-* The deprecated `query` parameter (a synonym for the `filter` parameter) of the `constant_score` query has been removed.
+* `constant_score` 查询弃用的 `query` 参数（`filter` 参数的同义词）已移除。
 
-* The deprecated `phrase_slop` parameter (a synonym for the `slop` parameter) of the `multi_match` query has been removed.
+* `multi_match` 查询弃用的 `phrase_slop` 参数（`slop` 参数的同义词）已移除。
 
-* The deprecated `prefix` parameter (a synonym for the `value` parameter) of the `prefix` query has been removed.
+* `prefix` 查询弃用的 `prefix` 参数（`value` 参数的同义词）已移除。
 
-* The deprecated `le` (a synonym for `lte`) and `ge` (a synonym for `gte`) parameter of the `range` query have been removed.
+* `range` 查询弃用的 `le` （`lte` 同义词) 和 `ge` （`gte` 同义词） 参数已移除。
 
-* The deprecated multi term rewrite parameters `constant_score_auto`, `constant_score_filter` (synonyms for `constant_score`)
-have been removed.
+* 弃用的多 term 重写参数 `constant_score_auto` 、 `constant_score_filter` （`constant_score` 同义词）已移除。
 
-==== Search shards API
+==== 搜索分片 API
 
-The search shards API no longer accepts the `type` url parameter, which didn't
-have any effect in previous versions.
+搜索分片 API 不再接收 `type` url 参数，早期版本没有任何影响。
 
-==== Changes to the Profile API
+==== Profile API 改变
 
-The `"time"` field showing human readable timing output has been replaced by the `"time_in_nanos"`
-field which displays the elapsed time in nanoseconds. The `"time"` field can be turned on by adding
-`"?human=true"` to the request url. It will display a rounded, human readable time value.
+显示人类可读时间输出的 `"time"` 字段已被显示已过去纳秒时间的 `"time_in_nanos"` 字段替代。
+`"time"` 字段可在请求 url 中添加 `"?human=true"` 弃用。它会显示一个四舍五入的人类可读时间值。
 
-==== Scoring changes
+==== Scoring 改变
 
-===== Query normalization
+===== Query 标准化
 
-Query normalization has been removed. This means that the TF-IDF similarity no
-longer tries to make scores comparable across queries and that boosts are now
-integrated into scores as simple multiplicative factors.
+Query 标准化已移除。这意味着 TF-IDF 相似性不再试图使得分在查询中具有可比性，同时 boosts 将作为简单乘法因子集成到得分中。
 
-Other similarities are not affected as they did not normalize scores and
-already integrated boosts into scores as multiplicative factors.
+其他相似性不会受影响因为它们没有对分数进行标准化，并且已经将 boosts 作为乘法因子集成到得分中。
 
-See https://issues.apache.org/jira/browse/LUCENE-7347[`LUCENE-7347`] for more
-information.
+更多细节请参考 https://issues.apache.org/jira/browse/LUCENE-7347[`LUCENE-7347`] 。
 
-===== Coordination factors
+===== 协调因子
 
-Coordination factors have been removed from the scoring formula. This means that
-boolean queries no longer score based on the number of matching clauses.
-Instead, they always return the sum of the scores of the matching clauses.
+协调因子已从评分公式移除。这意味着布尔查询不再根据 matching 子句的数量进行打分。
+相反，它们总返回 matching 子句的总分。
 
-As a consequence, use of the TF-IDF similarity is now discouraged as this was
-an important component of the quality of the scores that this similarity
-produces. BM25 is recommended instead.
+因此，现在不鼓励使用 TF-IDF 相似性，因为这是这种相似性得分质量的重要组成部分。建议使用 BM25。
 
-See https://issues.apache.org/jira/browse/LUCENE-7347[`LUCENE-7347`] for more
-information.
+更多信息请参考 https://issues.apache.org/jira/browse/LUCENE-7347[`LUCENE-7347`] 。
 
-==== Fielddata on `_uid`
+==== `_uid` 上的 Fielddata
 
-Fielddata on `_uid` is deprecated. It is possible to switch to `_id` instead
-but the only reason why it has not been deprecated too is because it is used
-for the `random_score` function. If you really need access to the id of
-documents for sorting, aggregations or search scripts, the recommendation is
-to duplicate the id as a field in the document.
+`_uid` 上的 Fielddata 已过期。
+可以使用 `_id` 替换但是它没有过期的原因仅仅是因其用于 `random_score` 功能。
+如果你真的需要访问排序文档、聚合或搜索脚本的 id，推荐方法是将 id 复制为文档字段。
 
-==== Highlighters
+==== 高亮
 
-The `unified` highlighter is the new default choice for highlighter.
-The offset strategy for each field is picked internally by this highlighter depending on the
-type of the field (`index_options`).
-It is still possible to force the highlighter to `fvh` or `plain` types.
+`unified` 是新的默认高亮选项。每个字段的偏移量策略都由高亮依赖的字段类型（ `index_options` ） 在内部选择。仍然可以强制 `fvh` 或 `plain` 高亮。
 
-The `postings` highlighter has been removed from Lucene and Elasticsearch.
-The `unified` highlighter outputs the same highlighting when `index_options` is set
- to `offsets`.
+`postings` 高亮已从 Lucene 和 Elasticsearch 移除。在 `index_options` 设置为 `offsets` 时 `unified` 高亮输出相同的高亮。
 
 ==== `fielddata_fields`
 
-The deprecated `fielddata_fields` have now been removed. `docvalue_fields` should be used instead.
+弃用 `fielddata_fields` 已移除。请使用 `docvalue_fields` 替代。
 
 ==== `docvalue_fields`
 
-`docvalue_fields` now have a default upper limit of 100 fields that can be requested.
-This limit can be overridden by using the `index.max_docvalue_fields_search` index setting.
+在请求时 `docvalue_fields` 上限字段数为默认 100。
+这个限制可以通过设置 `index.max_docvalue_fields_search` 覆盖。
 
 ==== `script_fields`
 
-`script_fields` now have a default upper limit of 32 script fields that can be requested.
-This limit can be overridden by using the `index.max_script_fields` index setting.
+在请求时 `script_fields` 上限脚本字段值为 32。
+这个限制可以通过设置 `index.max_script_fields` 覆盖。
 
 ==== Inner hits
 
-The source inside a hit of inner hits keeps its full path with respect to the entire source.
-In prior versions the source field names were relative to the inner hit.
+内部匹配的 source 全路径与整个 source 相关。
+在之前的版本中，source 字段名称与内部匹配相关。
 
 ==== Scroll
 
-The `from` parameter can no longer be used in the search request body when initiating a scroll.
-The parameter was already ignored in these situations, now in addition an error is thrown.
+搜索请求体在开始 scroll 时不能再使用 `from` 参数。
+这个参数在这些场景已忽略，现在将抛出错误。
 
-==== Limit on from/size in top hits and inner hits
+==== top hits 和 inner hits 内的 from/size 限制
 
-The maximum number of results (`from` + `size`) that is allowed to be retrieved
-via inner hits and top hits has been limited to 100. The limit can be controlled
-via the `index.max_inner_result_window` index setting.
+通过 inner hits 和 top hits 检索返回的最大结果数（ `from` + `size` ）限制为 100。这个限制可以通过 `index.max_inner_result_window` 设置。
 
-==== Scroll queries that use the request_cache are deprecated
+==== Scroll 查询已弃用使用 request_cache
 
-Setting `request_cache:true` on a query that creates a scroll ('scroll=1m`)
- is deprecated and the request will not use the cache internally.
-In future versions we will return a `400 - Bad request` instead of just ignoring
-the hint.
-Scroll queries are not meant to be cached.
+scroll（ 'scroll=1m` ）查询设置 `request_cache:true` 已过期且不再会使用内部缓存。
+未来版本将返回 `400 - Bad request` 替代忽略提示。
+Scroll 查询并不意味着被缓存。

@@ -1,13 +1,9 @@
 [[breaking_60_analysis_changes]]
-=== Analysis changes
+=== Analysis 改变
 
-==== Synonym Token Filter
+==== 同义词词元过滤器
 
-In 6.0, Synonym Token Filter tokenizes synonyms with whatever
-tokenizer and token filters appear before it in the chain.
+在 6.0 中，同义词词元过滤器与早期链中的任何分词器和词元过滤器相同。
 
-The `tokenizer` and `ignore_case` parameters are deprecated
-and will be ignored when used in new indices.  These parameters
-will continue to function as before when used in indices
-created in 5.x.
-
+`tokenizer` 和 `ignore_case` 参数已弃用并在新索引中使用时会被忽略。
+这些参数在 5.x 版本创建的索引中仍将正常工作。

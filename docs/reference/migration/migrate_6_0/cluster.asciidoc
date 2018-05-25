@@ -1,16 +1,14 @@
 [[breaking_60_cluster_changes]]
-=== Cluster changes
+=== 集群改变
 
-==== Cluster name no longer allowed in path.data
+==== path.data 不允许出现集群名
 
-Previously the cluster name could be used in the `path.data` setting with a
-warning. This is now no longer allowed. For instance, in the previous version
-this was valid:
+早期在 `path.data` 中可以使用集群名并会被设置为一个警告。现在这种做法将不被允许。例如，早期版本中以下是有效的：
 
 [source,sh]
 --------------------------------------------------
-# Assuming path.data is /tmp/mydata
-# No longer supported:
+# 假设 path.data 是 /tmp/mydata
+# 不再支持：
 $ tree /tmp/mydata
 /tmp/mydata
 ├── <cluster_name>
@@ -18,7 +16,7 @@ $ tree /tmp/mydata
 │       └── 0
 │           └── <etc>
 
-# Should be changed to:
+# 应该改为：
 $ tree /tmp/mydata
 /tmp/mydata
 ├── nodes
