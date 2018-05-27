@@ -1,12 +1,11 @@
 [[api-conventions]]
-= API Conventions
+= API 约定
 
 [partintro]
 --
-The *Elasticsearch* REST APIs are exposed using <<modules-http,JSON over HTTP>>.
+*Elasticsearch* REST APIs 基于 <<modules-http,HTTP JSON 交互>> 。
 
-The conventions listed in this chapter can be applied throughout the REST
-API, unless otherwise specified.
+除非特殊说明，本章约定适用于整个 REST API。
 
 * <<multi-index>>
 * <<date-math-index-names>>
@@ -16,61 +15,45 @@ API, unless otherwise specified.
 --
 
 [[multi-index]]
-== Multiple Indices
+== 多重索引
 
-Most APIs that refer to an `index` parameter support execution across multiple indices,
-using simple `test1,test2,test3` notation (or `_all` for all indices). It also
-support wildcards, for example: `test*` or `*test` or `te*t` or `*test*`, and the
-ability to "exclude" (`-`), for example: `test*,-test3`.
+多数引用 `index` 参数的 APIs 都支持多索引执行，使用简单的 `test1,test2,test3` 表示形式（或所有索引的 `_all` ）。
+它也支持通配符，例如：`test*` 或 `*test` 或 `te*t` 或 `*test*` ，也包括 "exclude" （ `-` ）能力，例如：`test*,-test3` 。
 
-All multi indices API support the following url query string parameters:
+所有多重索引 APIs 支持以下 url 查询字符串参数：
 
 `ignore_unavailable`::
 
-Controls whether to ignore if any specified indices are unavailable, this
-includes indices that don't exist or closed indices. Either `true` or `false`
-can be specified.
+控制指定的索引不可用时是否忽略，这包括不存在或关闭的索引。可以指定为 `true` 或 `false` 。
 
 `allow_no_indices`::
 
-Controls whether to fail if a wildcard indices expressions results into no
-concrete indices. Either `true` or `false` can be specified. For example if
-the wildcard expression `foo*` is specified and no indices are available that
-start with `foo` then depending on this setting the request will fail. This
-setting is also applicable when `_all`, `*` or no index has been specified. This
-settings also applies for aliases, in case an alias points to a closed index.
+控制当通配符表达式未命中实际索引时是否失败。可以指定 `true` 或 `false` 。
+例如，指定 `foo*` 通配符表达式而并没有以 `foo` 开头的索引，那么依赖此设置的请求会失败。
+这个设置在 `_all` 、 `*` 或未指定索引时也适用。这个设置同样适用于别名，以防止别名指向关闭的索引。
 
 `expand_wildcards`::
 
-Controls to what kind of concrete indices wildcard indices expression expand
-to. If `open` is specified then the wildcard expression is expanded to only
-open indices and if `closed` is specified then the wildcard expression is
-expanded only to closed indices. Also both values (`open,closed`) can be
-specified to expand to all indices.
+控制通配符表达式可以扩展到哪些具体索引。
+如果指定为 `open` ，那么通配符表达式仅仅扩展为打开的索引，如果指定为 `closed` ，则通配符表达式仅仅扩展为关闭的索引。
+也可以同时指定所有值（ `open,closed` ）扩展到所有索引。
 +
-If `none` is specified then wildcard expansion will be disabled and if `all`
-is specified, wildcard expressions will expand to all indices (this is equivalent
-to specifying `open,closed`).
+如果指定为 `none` 那么通配符扩展将禁用，如果指定为 `all` 那么通配符表达式将扩展至所有索引（等同于指定 `open,closed` ）。
 
-The defaults settings for the above parameters depend on the api being used.
+上述参数的默认设置取决于所使用的 api。
 
-NOTE: Single index APIs such as the <<docs>> and the
-<<indices-aliases,single-index `alias` APIs>> do not support multiple indices.
+NOTE: 单索引 APIs， 例如 <<docs>> 和
+<<indices-aliases,single-index `alias` APIs>> 不支持多重索引。
 
 [[date-math-index-names]]
-== Date math support in index names
+==  Date math 索引名称支持
 
-Date math index name resolution enables you to search a range of time-series indices, rather
-than searching all of your time-series indices and filtering the results or maintaining aliases.
-Limiting the number of indices that are searched reduces the load on the cluster and improves
-execution performance. For example, if you are searching for errors in your
-daily logs, you can use a date math name template to restrict the search to the past
-two days.
+Date math 索引名称解析可以让你搜索一段时间序列索引，而不是搜索所有时间序列索引然后过滤结果或维护别名。
+限制搜索索引数减少了集群负载并提高了执行性能。例如，如果你在每天的日志中搜索错误，你可以使用 date math 名称模板将搜索天数限制为两天。
 
-Almost all APIs that have an `index` parameter, support date math in the `index` parameter
-value.
+几乎所有 APIs 具有支持 date math 的 `index` 参数。
 
-A date math index name takes the following form:
+date math 索引名称采用以下形式：
 
 [source,txt]
 ----------------------------------------------------------------------
@@ -80,13 +63,12 @@ A date math index name takes the following form:
 Where:
 
 [horizontal]
-`static_name`:: is the static text part of the name
-`date_math_expr`:: is a dynamic date math expression that computes the date dynamically
-`date_format`:: is the optional format in which the computed date should be rendered. Defaults to `YYYY.MM.dd`.
-`time_zone`:: is the optional time zone . Defaults to `utc`.
+`static_name`:: 名称的静态文本部分
+`date_math_expr`:: 动态计算日期的动态 date math 表达式
+`date_format`:: 计算日期呈现的可选格式。默认是 `YYYY.MM.dd`
+`time_zone`:: 可选时区。默认是 `utc`
 
-You must enclose date math index name expressions within angle brackets, and
-all special characters should be URI encoded. For example:
+你必须将 date math 索引名表达式放在尖括号中，同时所有的特殊字符应该进行 URI 编码。例如：
 
 [source,js]
 ----------------------------------------------------------------------
@@ -105,9 +87,9 @@ GET /%3Clogstash-%7Bnow%2Fd%7D%3E/_search
 // TEST[s/now/2016.09.20||/]
 
 [NOTE]
-.Percent encoding of date math characters
+.date math 字符百分号编码
 ======================================================
-The special characters used for date rounding must be URI encoded as follows:
+用于日期舍入的特殊字符必须按如下方式 URI 编码：
 
 [horizontal]
 `<`:: `%3C`
@@ -121,8 +103,7 @@ The special characters used for date rounding must be URI encoded as follows:
 `,`:: `%2C`
 ======================================================
 
-The following example shows different forms of date math index names and the final index names
-they resolve to given the current time is 22rd March 2024 noon utc.
+下例展示了对于给定当前 utc 时间为 2024 年 3 月 22 日中午不同格式的 date math 索引名和它们解析的最终索引名，
 
 [options="header"]
 |======
@@ -134,14 +115,11 @@ they resolve to given the current time is 22rd March 2024 noon utc.
 | `<logstash-{now/d{YYYY.MM.dd\|+12:00}}>`  | `logstash-2024.03.23`
 |======
 
-To use the characters `{` and `}` in the static part of an index name template, escape them
-with a backslash `\`, for example:
+为了在索引名称模板中使用 `{` and `}` 字符，请使用反斜线 `\` 对其转义，例如：
 
  * `<elastic\\{ON\\}-{now/M}>` resolves to `elastic{ON}-2024.03.01`
 
-The following example shows a search request that searches the Logstash indices for the past
-three days, assuming the indices use the default Logstash index name format,
-`logstash-YYYY.MM.dd`.
+下例展示了在 Logstash 索引中搜索过去三天的搜索请求，假设索引使用默认 Logstash 索引名格式，`logstash-YYYY.MM.dd` 。
 
 [source,js]
 ----------------------------------------------------------------------
@@ -160,50 +138,39 @@ GET /%3Clogstash-%7Bnow%2Fd-2d%7D%3E%2C%3Clogstash-%7Bnow%2Fd-1d%7D%3E%2C%3Clogs
 // TEST[s/now/2016.09.20||/]
 
 [[common-options]]
-== Common options
+== 公共选项
 
-The following options can be applied to all of the REST APIs.
+以下选项适用于所有 REST APIs。
 
 [float]
-=== Pretty Results
+=== Pretty 结果
 
-When appending `?pretty=true` to any request made, the JSON returned
-will be pretty formatted (use it for debugging only!). Another option is
-to set `?format=yaml` which will cause the result to be returned in the
-(sometimes) more readable yaml format.
+当在任何请求后追加 `?pretty=true` ，JSON 将优雅地格式化（仅用于调试！）。
+另一个选项是设置 `?format=yaml` ，这将使结果（有时）以更可读的 yaml 格式返回。
 
 
 [float]
-=== Human readable output
+=== 输出人类可读
 
-Statistics are returned in a format suitable for humans
-(eg `"exists_time": "1h"` or `"size": "1kb"`) and for computers
-(eg `"exists_time_in_millis": 3600000` or `"size_in_bytes": 1024`).
-The human readable values can be turned off by adding `?human=false`
-to the query string. This makes sense when the stats results are
-being consumed by a monitoring tool, rather than intended for human
-consumption.  The default for the `human` flag is
-`false`.
+返回适合人类（例如 `"exists_time": "1h"` 或 `"size": "1kb"` ）和计算机（例如 `"exists_time_in_millis": 3600000` 或 `"size_in_bytes": 1024` ）的统计格式。
+人类可读值可以通过在查询字符串添加 `?human=false` 关闭。
+这在统计结果是被监控工具消费而不是被人类消费时很有意义。默认 `human` 标志是 `false` 。
 
 [[date-math]]
 [float]
 === Date Math
 
-Most parameters which accept a formatted date value -- such as `gt` and `lt`
-in <<query-dsl-range-query,range queries>> `range` queries, or `from` and `to`
-in <<search-aggregations-bucket-daterange-aggregation,`daterange`
-aggregations>> -- understand date maths.
+多数接收格式化日期值的参数 -- 例如 <<query-dsl-range-query,range queries>> `range` 查询中的 `gt` 和 `lt` ，
+或者 <<search-aggregations-bucket-daterange-aggregation,`daterange` aggregations>> 中的 `from` 和 `to` --  可以理解 date maths。
 
-The expression starts with an anchor date, which can either be `now`, or a
-date string ending with `||`. This anchor date can optionally be followed by
-one or more maths expressions:
+以 anchor date 开头的表达式，可以是 `now` ，也可以是以 `||` 结尾的 date 字符串。该 anchor date 可以选择性地跟一个或多个数学表达式：
 
-* `+1h` - add one hour
-* `-1d` - subtract one day
-* `/d`  - round down to the nearest day
+* `+1h` - 加一小时
+* `-1d` - 减一小时
+* `/d`  - 向下舍入到最近一天
 
-The supported time units differ from those supported by <<time-units, time units>> for durations.
-The supported units are:
+支持的时间单位不同于持续时间所支持的时间单位。
+这些单位是：
 
 [horizontal]
 `y`:: years
@@ -215,20 +182,19 @@ The supported units are:
 `m`:: minutes
 `s`:: seconds
 
-Assuming `now` is `2001-01-01 12:00:00`, some examples are:
+假设 `now` 是 `2001-01-01 12:00:00` ，以下是一些例子：
 
-`now+1h`:: `now` in milliseconds plus one hour. Resolves to: `2001-01-01 13:00:00`
-`now-1h`:: `now` in milliseconds plus one hour. Resolves to: `2001-01-01 11:00:00`
-`now-1h/d`:: `now` in milliseconds rounded down to UTC 00:00. Resolves to: `2001-01-01 00:00:00``
- `2001-01-01\|\|+1M/d`:: `now` in milliseconds plus one month. Resolves to: `2001-02-01 00:00:00`
+`now+1h`:: `now` 在 milliseconds 加一小时。 解析为：`2001-01-01 13:00:00`
+`now-1h`:: `now` 在 milliseconds 减一小时。 解析为：`2001-01-01 11:00:00`
+`now-1h/d`:: `now` 在 milliseconds 向下舍入为 UTC 00:00。解析为：`2001-01-01 00:00:00`
+ `2001-01-01\|\|+1M/d`:: `now` 在 milliseconds 加一个月。解析为：`2001-02-01 00:00:00`
 
 [float]
 [[common-options-response-filtering]]
-=== Response Filtering
+=== 响应过滤
 
-All REST APIs accept a `filter_path` parameter that can be used to reduce
-the response returned by Elasticsearch. This parameter takes a comma
-separated list of filters expressed with the dot notation:
+所有的 REST APIs 接收一个可以减少 Elasticsearch 响应的 `filter_path` 参数。
+这个参数以逗号分隔点符号过滤表达式：
 
 [source,js]
 --------------------------------------------------
@@ -237,7 +203,7 @@ GET /_search?q=elasticsearch&filter_path=took,hits.hits._id,hits.hits._score
 // CONSOLE
 // TEST[setup:twitter]
 
-Responds:
+响应：
 
 [source,js]
 --------------------------------------------------
@@ -256,8 +222,7 @@ Responds:
 // TESTRESPONSE[s/"took" : 3/"took" : $body.took/]
 // TESTRESPONSE[s/1.6375021/$body.hits.hits.0._score/]
 
-It also supports the `*` wildcard character to match any field or part
-of a field's name:
+这同样支持以 `*` 通配符匹配字段名的任何字段：
 
 [source,sh]
 --------------------------------------------------
@@ -266,7 +231,7 @@ GET /_cluster/state?filter_path=metadata.indices.*.stat*
 // CONSOLE
 // TEST[s/^/PUT twitter\n/]
 
-Responds:
+响应：
 
 [source,sh]
 --------------------------------------------------
@@ -280,9 +245,7 @@ Responds:
 --------------------------------------------------
 // TESTRESPONSE
 
-And the `**` wildcard can be used to include fields without knowing the
-exact path of the field. For example, we can return the Lucene version
-of every segment with this request:
+同时 `**` 通配符可以用于包括不知道确切路径的字段。例如，我们可以用该请求返回每个段的 Lucene 版本：
 
 [source,js]
 --------------------------------------------------
@@ -291,7 +254,7 @@ GET /_cluster/state?filter_path=routing_table.indices.**.state
 // CONSOLE
 // TEST[s/^/PUT twitter\n/]
 
-Responds:
+响应：
 
 [source,js]
 --------------------------------------------------
@@ -313,7 +276,7 @@ Responds:
 --------------------------------------------------
 // TESTRESPONSE
 
-It is also possible to exclude one or more fields by prefixing the filter with the char `-`:
+同样可以使用字符 `-` 前缀过滤器排除一个或多个字段：
 
 [source,js]
 --------------------------------------------------
@@ -322,7 +285,7 @@ GET /_count?filter_path=-_shards
 // CONSOLE
 // TEST[setup:twitter]
 
-Responds:
+响应：
 
 [source,js]
 --------------------------------------------------
@@ -332,9 +295,8 @@ Responds:
 --------------------------------------------------
 // TESTRESPONSE
 
-And for more control, both inclusive and exclusive filters can be combined in the same expression. In
-this case, the exclusive filters will be applied first and the result will be filtered again using the
-inclusive filters:
+为了更多的控制，inclusive 和 exclusive 过滤器可以组合在同一个表达式。
+在这种情况下，结果将首先使用 exclusive filters，并使用 inclusive filters 再次过滤：
 
 [source,js]
 --------------------------------------------------
@@ -343,7 +305,7 @@ GET /_cluster/state?filter_path=metadata.indices.*.state,-metadata.indices.logst
 // CONSOLE
 // TEST[s/^/PUT index-1\nPUT index-2\nPUT index-3\nPUT logstash-2016.01\n/]
 
-Responds:
+响应：
 
 [source,js]
 --------------------------------------------------
@@ -359,11 +321,9 @@ Responds:
 --------------------------------------------------
 // TESTRESPONSE
 
-Note that Elasticsearch sometimes returns directly the raw value of a field,
-like the `_source` field. If you want to filter `_source` fields, you should
-consider combining the already existing `_source` parameter (see
-<<get-source-filtering,Get API>> for more details) with the `filter_path`
-parameter like this:
+注意 Elasticsearch 有时直接返回字段原始值，例如 `_source` 字段。
+如果你需要过滤 `_source` 字段，你应该考虑以下方式让已有的 `_source` 参数
+（更多细节请参考 <<get-source-filtering,Get API>> ）与 `filter_path` 参数相结合：
 
 [source,js]
 --------------------------------------------------
@@ -395,10 +355,10 @@ GET /_search?filter_path=hits.hits._source&_source=title&sort=rating:desc
 
 
 [float]
-=== Flat Settings
+=== 扁平设置
 
-The `flat_settings` flag affects rendering of the lists of settings. When
-`flat_settings` flag is `true` settings are returned in a flat format:
+`flat_settings` 标志影响设置列表的呈现形式。当 `flat_settings` 标志为 `true` 设置将
+以扁平格式返回：
 
 [source,js]
 --------------------------------------------------
@@ -407,7 +367,7 @@ GET twitter/_settings?flat_settings=true
 // CONSOLE
 // TEST[setup:twitter]
 
-Returns:
+响应：
 
 [source,js]
 --------------------------------------------------
@@ -428,8 +388,7 @@ Returns:
 // TESTRESPONSE[s/n6gzFZTgS664GUfx0Xrpjw/$body.twitter.settings.index\\\\.uuid/]
 // TESTRESPONSE[s/"index.version.created": \.\.\./"index.version.created": $body.twitter.settings.index\\\\.version\\\\.created/]
 
-When the `flat_settings` flag is `false` settings are returned in a more
-human readable structured format:
+当 `flat_settings` 标志为 `false` ，设置将返回更适合人类阅读的格式化结构：
 
 [source,js]
 --------------------------------------------------
@@ -438,7 +397,7 @@ GET twitter/_settings?flat_settings=false
 // CONSOLE
 // TEST[setup:twitter]
 
-Returns:
+响应：
 
 [source,js]
 --------------------------------------------------
@@ -463,33 +422,29 @@ Returns:
 // TESTRESPONSE[s/n6gzFZTgS664GUfx0Xrpjw/$body.twitter.settings.index.uuid/]
 // TESTRESPONSE[s/"created": \.\.\./"created": $body.twitter.settings.index.version.created/]
 
-By default the `flat_settings` is set to `false`.
+默认 `flat_settings` 为 `false` 。
 
 [float]
-=== Parameters
+=== 参数
 
-Rest parameters (when using HTTP, map to HTTP URL parameters) follow the
-convention of using underscore casing.
-
-[float]
-=== Boolean Values
-
-All REST APIs parameters (both request parameters and JSON body) support
-providing boolean "false" as the value `false` and boolean "true" as the
-value `true`. All other values will raise an error.
+Rest 参数 （当使用 HTTP，映射为 HTTP URL 参数）(when using HTTP, map to HTTP URL parameters）遵循使用下划线框的约定。
 
 [float]
-=== Number Values
+=== 布尔值
 
-All REST APIs support providing numbered parameters as `string` on top
-of supporting the native JSON number types.
+所有 REST APIs 参数（请求参数和 JSON 体）仅支持 "false" 作为 `false` 值和 "true" 作为 `true` 值。
+所有其他值将产生一个错误。
+
+[float]
+=== 数值
+
+所有 REST APIs 都支持在支持本机 JSON 数字类型的前提下提供编号参数作为字符串。
 
 [[time-units]]
 [float]
-=== Time units
+=== 时间单位
 
-Whenever durations need to be specified, e.g. for a `timeout` parameter, the duration must specify
-the unit, like `2d` for 2 days.  The supported units are:
+每当需要指定持续时间时，例如 `timeout` 参数，持续时间必须指定单位，比如 `2d` 为 2 天。支持的单位为：
 
 [horizontal]
 `d`::       days
@@ -502,11 +457,10 @@ the unit, like `2d` for 2 days.  The supported units are:
 
 [[byte-units]]
 [float]
-=== Byte size units
+=== 字节大小单位
 
-Whenever the byte size of data needs to be specified, eg when setting a buffer size
-parameter, the value must specify the unit, like `10kb` for 10 kilobytes. Note that
-these units use powers of 1024, so `1kb` means 1024 bytes. The supported units are:
+当需要指定数据字节大小时，例如设置 buffer 大小参数，该值必须指定单位，例如 `10kb` 为 10 kb。
+注意这些单位使用 1024 幂，所以 `1kb` 等于 1024 字节。支持的单位有：
 
 [horizontal]
 `b`::   Bytes
@@ -518,12 +472,12 @@ these units use powers of 1024, so `1kb` means 1024 bytes. The supported units a
 
 [[size-units]]
 [float]
-=== Unit-less quantities
+=== 无单位数
 
-Unit-less quantities means that they don't have a "unit" like "bytes" or "Hertz" or "meter" or "long tonne".
+无单位数意味着它们不需要类似 "bytes" 或 "Hertz" 或 "meter" 或 "long tonne" 的 "单位"。
 
-If one of these quantities is large we'll print it out like 10m for 10,000,000 or 7k for 7,000. We'll still print 87
-when we mean 87 though. These are the supported multipliers:
+如果这些数很大我们将用 10m 替代 10,000,000 或 7k 替代 7,000 输出。
+我们仍将用 87 输出 87。以下是支持的乘数：
 
 [horizontal]
 ``::   Single
@@ -535,14 +489,12 @@ when we mean 87 though. These are the supported multipliers:
 
 [[distance-units]]
 [float]
-=== Distance Units
+=== 距离单位
 
-Wherever distances need to be specified, such as the `distance` parameter in
-the <<query-dsl-geo-distance-query>>), the default unit if none is specified is
-the meter. Distances can be specified in other units, such as `"1km"` or
-`"2mi"` (2 miles).
+当需要指定距离时，例如 <<query-dsl-geo-distance-query>> 里的 `distance` 参数，
+如果没有指定则默认单位为米。可以指定其他距离单位，例如 `"1km"` 或 `"2mi"` （2 英里）。
 
-The full list of units is listed below:
+所有的完整单位列表列举如下：
 
 [horizontal]
 Mile::          `mi` or `miles`
@@ -557,44 +509,38 @@ Nautical mile:: `NM`, `nmi` or `nauticalmiles`
 
 [[fuzziness]]
 [float]
-=== Fuzziness
+=== 模糊性
 
-Some queries and APIs support parameters to allow inexact _fuzzy_ matching,
-using the `fuzziness` parameter.
+一些查询和 APIs 允许使用 `fuzziness` 参数进行非精确 _fuzzy_ 匹配。
 
-When querying `text` or `keyword` fields, `fuzziness` is interpreted as a
-http://en.wikipedia.org/wiki/Levenshtein_distance[Levenshtein Edit Distance]
--- the number of one character changes that need to be made to one string to
-make it the same as another string.
+当查询 `text` 或 `keyword` 字段，`fuzziness` 解释为 http://en.wikipedia.org/wiki/Levenshtein_distance[Levenshtein Edit Distance] --
+ 两个字符串转换时所需的最少字符改变数。
 
-The `fuzziness` parameter can be specified as:
+可以指定的 `fuzziness` 参数有：
 
 `0`, `1`, `2`::
 
-the maximum allowed Levenshtein Edit Distance (or number of edits)
+最大允许 Levenshtein Edit Distance（或编辑数）
 
 `AUTO`::
 +
 --
-generates an edit distance based on the length of the term.
-Low and high distance arguments may be optionally provided `AUTO:[low],[high]`, if not specified,
-the default values are 3 and 6, equivalent to `AUTO:3,6` that make for lengths:
+根据词项的长度生成编辑距离。
+可以选择低距离和高距离参数 `AUTO:[low],[high]` ，如果没有指定，默认值为 3 和 6，等同于 `AUTO:3,6` ：
 
 `0..2`:: must match exactly
 `3..5`:: one edit allowed
 `>5`:: two edits allowed
 
-`AUTO` should generally be the preferred value for `fuzziness`.
+`AUTO` 一般应该是 `fuzziness` 的首选值。
 --
 
 [float]
 [[common-options-error-options]]
-=== Enabling stack traces
+=== 启用堆栈追踪
 
-By default when a request returns an error Elasticsearch doesn't include the
-stack trace of the error. You can enable that behavior by setting the
-`error_trace` url parameter to `true`. For example, by default when you send an
-invalid `size` parameter to the `_search` API:
+Elasticsearch 默认不会在请求返回错误时包含堆栈错误。你可以通过在 url 参数中设置 `error_trace` 为 `true` 启用该行为。
+例如，默认情况下你向 `_search` API 添加无效的 `size` 参数：
 
 [source,js]
 ----------------------------------------------------------------------
@@ -604,7 +550,7 @@ POST /twitter/_search?size=surprise_me
 // TEST[s/surprise_me/surprise_me&error_trace=false/ catch:bad_request]
 // Since the test system sends error_trace=true by default we have to override
 
-The response looks like:
+类似的响应如下：
 
 [source,js]
 ----------------------------------------------------------------------
@@ -628,7 +574,7 @@ The response looks like:
 ----------------------------------------------------------------------
 // TESTRESPONSE
 
-But if you set `error_trace=true`:
+但是如果你设置 `error_trace=true`:
 
 [source,js]
 ----------------------------------------------------------------------
@@ -637,7 +583,7 @@ POST /twitter/_search?size=surprise_me&error_trace=true
 // CONSOLE
 // TEST[catch:bad_request]
 
-The response looks like:
+类似的响应如下：
 
 [source,js]
 ----------------------------------------------------------------------
@@ -667,40 +613,30 @@ The response looks like:
 // TESTRESPONSE[s/"stack_trace": "java.lang.Number.+\.\.\."/"stack_trace": $body.error.caused_by.stack_trace/]
 
 [float]
-=== Request body in query string
+=== 查询字符串中的请求体
 
-For libraries that don't accept a request body for non-POST requests,
-you can pass the request body as the `source` query string parameter
-instead. When using this method, the `source_content_type` parameter
-should also be passed with a media type value that indicates the format
-of the source, such as `application/json`.
+对于非 POST 请求不接受请求体的库，你可以将请求体作为 `source` 查询字符串参数替换。
+当使用该方法时，`source_content_type` 参数应该传递指示 source 格式的媒体类型值传递，例如 `application/json` 。
 
 [float]
-=== Content-Type Requirements
+=== Content-Type 要求
 
-The type of the content sent in a request body must be specified using
-the `Content-Type` header. The value of this header must map to one of
-the supported formats that the API supports. Most APIs support JSON,
-YAML, CBOR, and SMILE. The bulk and multi-search APIs support NDJSON,
-JSON and SMILE; other types will result in an error response.
+请求体中的内容类型必须使用 `Content-Type` 头指定。这个头必须映射成 API 支持的格式。
+大多数 APIs 支持 JSON、YAML、CBOR 和 SMILE。
+批操作和 multi-search APIs 支持 NDJSON、JSON 和 SMILE；
+其他类型会导致响应错误。
 
-Additionally, when using the `source` query string parameter the
-content type must be specified using the `source_content_type` query
-string parameter.
+另外，当使用 `source` 查询字符串参数时，内容类型必须使用 `source_content_type` 查询字符串参数指定。
 
 [[url-access-control]]
-== URL-based access control
+== 基于 URL 的访问控制
 
-Many users use a proxy with URL-based access control to secure access to
-Elasticsearch indices. For <<search-multi-search,multi-search>>,
-<<docs-multi-get,multi-get>> and <<docs-bulk,bulk>> requests, the user has
-the choice of specifying an index in the URL and on each individual request
-within the request body. This can make URL-based access control challenging.
+很多用户使用基于 URL 访问控制的代理来安全地访问 Elasticsearch 索引。对于 <<search-multi-search,multi-search>> 、
+<<docs-multi-get,multi-get>> 和  <<docs-bulk,bulk>> 请求，用户可以选择在 URL 和每个请求体的独立请求上指定索引。
+这可能使得基于 URL 的访问控制具有挑战性。
 
-To prevent the user from overriding the index which has been specified in the
-URL, add this setting to the `elasticsearch.yml` file:
+为了阻止用户覆盖指定 URL 中的索引，可以在 `elasticsearch.yml` 文件中添加并设置：
 
     rest.action.multi.allow_explicit_index: false
 
-The default value is `true`, but when set to `false`, Elasticsearch will
-reject requests that have an explicit index specified in the request body.
+默认值为 `true` ，但是当设置为 `false` 时，Elasticsearch 将拒绝在请求体中显式指定索引的请求。
