@@ -4,24 +4,22 @@
 [partintro]
 --
 
-This section starts with a short introduction to Elasticsearch's <<docs-replication,data replication model>>, followed by a
-detailed description of the following CRUD APIs:
+本章首先介绍 Elasticsearch <<docs-replication,数据复制模型>> ，然后是对 CURD APIs 的详解描述：
 
-.Single document APIs
+.单文档 APIs
 * <<docs-index_>>
 * <<docs-get>>
 * <<docs-delete>>
 * <<docs-update>>
 
-.Multi-document APIs
+.多文档 APIs
 * <<docs-multi-get>>
 * <<docs-bulk>>
 * <<docs-delete-by-query>>
 * <<docs-update-by-query>>
 * <<docs-reindex>>
 
-NOTE: All CRUD APIs are single-index APIs. The `index` parameter accepts a single
-index name, or an `alias` which points to a single index.
+NOTE: 所有单索引的 CURD APIs。`index` 参数仅接收单索引名，或者一个指向单索引的 `alias`。
 
 --
 
