@@ -1,9 +1,8 @@
 [[docs-get]]
 == Get API
 
-The get API allows to get a typed JSON document from the index based on
-its id. The following example gets a JSON document from an index called
-twitter, under a type called tweet, with id valued 0:
+get API 允许从一个根据 id 的索引中获取一个 JSON 格式的文档。
+下例从 twitter 索引 _doc 类型下获取 id 为 0 的 JSON 文档：
 
 [source,js]
 --------------------------------------------------
@@ -12,7 +11,7 @@ GET twitter/_doc/0
 // CONSOLE
 // TEST[setup:twitter]
 
-The result of the above get operation is:
+上文 get 操作的结果是：
 
 [source,js]
 --------------------------------------------------
@@ -32,13 +31,10 @@ The result of the above get operation is:
 --------------------------------------------------
 // TESTRESPONSE
 
-The above result includes the `_index`, `_type`, `_id` and `_version`
-of the document we wish to retrieve, including the actual `_source`
-of the document if it could be found (as indicated by the `found`
-field in the response).
+上文结果包含我们想要获取文档的 `_index` 、 `_type` 、 `_id` 和 `_version` ，
+包括文档的实际 `_source` ，如果它可以被发现（响应中的 `found` 字段）。
 
-The API also allows to check for the existence of a document using
-`HEAD`, for example:
+API 同意允许使用 `HEAD` 验证文档是否存在，例如：
 
 [source,js]
 --------------------------------------------------
@@ -49,22 +45,18 @@ HEAD twitter/_doc/0
 
 [float]
 [[realtime]]
-=== Realtime
+=== 实时
 
-By default, the get API is realtime, and is not affected by the refresh
-rate of the index (when data will become visible for search). If a document
-has been updated but is not yet refreshed, the get API will issue a refresh
-call in-place to make the document visible. This will also make other documents
-changed since the last refresh visible. In order to disable realtime GET,
-one can set the `realtime` parameter to `false`.
+默认情况，get API 是实时的，并不受索引 refresh 频率（当数据对搜索可见）的影响。
+如果一个文档被更新且并没有 refresh，get API 将立即执行 refresh 调用使文档可见。
+这同样会使从上次 refresh 后改变的文档可见。如果需要禁止实时 GET，可以设置 `realtime` 参数为 `false` 。
 
 [float]
 [[get-source-filtering]]
-=== Source filtering
+=== Source 过滤
 
-By default, the get operation returns the contents of the `_source` field unless
-you have used the `stored_fields` parameter or if the `_source` field is disabled.
-You can turn off `_source` retrieval by using the `_source` parameter:
+默认情况，除非使用 `stored_fields` 参数或禁用 `_source` ，否则 get 操作会返回 `_source` 字段内容。
+你可以使用 `_source` 参数来关闭 `_source` 检索：
 
 [source,js]
 --------------------------------------------------
@@ -73,10 +65,8 @@ GET twitter/_doc/0?_source=false
 // CONSOLE
 // TEST[setup:twitter]
 
-If you only need one or two fields from the complete `_source`, you can use the `_source_include`
-& `_source_exclude` parameters to include or filter out that parts you need. This can be especially helpful
-with large documents where partial retrieval can save on network overhead. Both parameters take a comma separated list
-of fields or wildcard expressions. Example:
+如果只需 `_source` 中的一两个字段，你可以使用 `_source_include` & `_source_exclude` 参数来包含或者过滤你需要的部分。
+这对获取大文档的部分字段十分有用，可以节省网络负载。这两个参数都可以用逗号分隔符连接或者通配符表达式。示例：
 
 [source,js]
 --------------------------------------------------
@@ -85,7 +75,7 @@ GET twitter/_doc/0?_source_include=*.id&_source_exclude=entities
 // CONSOLE
 // TEST[setup:twitter]
 
-If you only want to specify includes, you can use a shorter notation:
+如果你只想指定 includes，你可以使用更简短的表示方法：
 
 [source,js]
 --------------------------------------------------
@@ -98,10 +88,8 @@ GET twitter/_doc/0?_source=*.id,retweeted
 [[get-stored-fields]]
 === Stored Fields
 
-The get operation allows specifying a set of stored fields that will be
-returned by passing the `stored_fields` parameter.
-If the requested fields are not stored, they will be ignored.
-Consider for instance the following mapping:
+get 操作允许通过 `stored_fields` 参数返回指定的 stored fields 集。
+如果请求字段没有 stored，它们会被忽略。可以参考以下示例：
 
 [source,js]
 --------------------------------------------------
@@ -125,7 +113,7 @@ PUT twitter
 --------------------------------------------------
 // CONSOLE
 
-Now we can add a document:
+现在我们添加一个文档：
 
 [source,js]
 --------------------------------------------------
@@ -138,7 +126,7 @@ PUT twitter/_doc/1
 // CONSOLE
 // TEST[continued]
 
-... and try to retrieve it:
+... 尝试获取它：
 
 [source,js]
 --------------------------------------------------
@@ -147,7 +135,7 @@ GET twitter/_doc/1?stored_fields=tags,counter
 // CONSOLE
 // TEST[continued]
 
-The result of the above get operation is:
+以上 get 操作的结果是：
 
 [source,js]
 --------------------------------------------------
@@ -167,10 +155,9 @@ The result of the above get operation is:
 // TESTRESPONSE
 
 
-Field values fetched from the document it self are always returned as an array.
-Since the `counter` field is not stored the get request simply ignores it when trying to get the `stored_fields.`
+从文档抓取的 Field 值常常以数组形式返回。因为 `counter` 字段没有被存储，尝试获取 `stored_fields` 时 get 请求简单的忽略它。
 
-It is also possible to retrieve metadata fields like the `_routing` field:
+可以获取类似 `_routing` 的元字段：
 
 [source,js]
 --------------------------------------------------
@@ -190,7 +177,7 @@ GET twitter/_doc/2?routing=user1&stored_fields=tags,counter
 // CONSOLE
 // TEST[continued]
 
-The result of the above get operation is:
+以上 get 操作的结果是：
 
 [source,js]
 --------------------------------------------------
@@ -210,16 +197,14 @@ The result of the above get operation is:
 --------------------------------------------------
 // TESTRESPONSE
 
-Also only leaf fields can be returned via the `stored_field` option. So object fields can't be returned and such requests
-will fail.
+同样只有叶子字段可以通过 `stored_field` 选项返回。所以无法返回 object 字段同时这个请求会失败。
 
 [float]
 [[_source]]
-=== Getting the +_source+ directly
+=== 直接 Getting the +_source+
 
-Use the `/{index}/{type}/{id}/_source` endpoint to get
-just the `_source` field of the document,
-without any additional content around it. For example:
+使用 `/{index}/{type}/{id}/_source` endpoint 可以只 get 文档的 `_source` 字段，
+不会有其他附加内容。例如：
 
 [source,js]
 --------------------------------------------------
@@ -228,7 +213,7 @@ GET twitter/_doc/1/_source
 // CONSOLE
 // TEST[continued]
 
-You can also use the same source filtering parameters to control which parts of the `_source` will be returned:
+你同样可以使用相同的 source 过滤参数来控制 `_source` 返回的部分：
 
 [source,js]
 --------------------------------------------------
@@ -237,8 +222,8 @@ GET twitter/_doc/1/_source?_source_include=*.id&_source_exclude=entities'
 // CONSOLE
 // TEST[continued]
 
-Note, there is also a HEAD variant for the _source endpoint to efficiently test for document _source existence.
-An existing document will not have a _source if it is disabled in the <<mapping-source-field,mapping>>.
+注意， HEAD 变量同样可以有效验证 _source 是否存在。
+一个已存在的文档如果在 <<mapping-source-field,mapping>> 已禁止，那么不会有 _source 。
 
 [source,js]
 --------------------------------------------------
@@ -249,10 +234,9 @@ HEAD twitter/_doc/1/_source
 
 [float]
 [[get-routing]]
-=== Routing
+=== 路由
 
-When indexing using the ability to control the routing, in order to get
-a document, the routing value should also be provided. For example:
+当索引时使用了控制路由功能，为了 get 文档，需要提供路由值。例如：
 
 [source,js]
 --------------------------------------------------
@@ -261,66 +245,48 @@ GET twitter/_doc/2?routing=user1
 // CONSOLE
 // TEST[continued]
 
-The above will get a tweet with id 2, but will be routed based on the
-user. Note, issuing a get without the correct routing, will cause the
-document not to be fetched.
+以上操作将 get id 为 2 的 tweet，但是基于 user 路由的。
+注意，如果 get 没有正确路由，将造成文档无法被获取。
 
 [float]
 [[preference]]
 === Preference
 
-Controls a `preference` of which shard replicas to execute the get
-request on. By default, the operation is randomized between the shard
-replicas.
+控制分片执行 get 请求的 `preference` 。默认是随机在分片见执行的。
 
-The `preference` can be set to:
+`preference` 可以设置为：
 
 `_primary`::
-	The operation will go and be executed only on the primary
-	shards.
+	操作会在主分片上执行。
 
 `_local`::
-	The operation will prefer to be executed on a local
-	allocated shard if possible.
+  如果可能优先在本地分片执行。
 
 Custom (string) value::
-	A custom value will be used to guarantee that
-	the same shards will be used for the same custom value. This can help
-	with "jumping values" when hitting different shards in different refresh
-	states. A sample value can be something like the web session id, or the
-	user name.
+  自定义值会确保相同分片使用相同自定义值。这可以用 "jumping values" 帮助不同 refresh 状态下命中不同分片。
+  这个值可以是 session id 或 user name。
 
 [float]
 [[get-refresh]]
 === Refresh
 
-The `refresh` parameter can be set to `true` in order to refresh the
-relevant shard before the get operation and make it searchable. Setting
-it to `true` should be done after careful thought and verification that
-this does not cause a heavy load on the system (and slows down
-indexing).
+`refresh` 参数可以设置为 `true` 为了在 get 操作和可搜索前 refresh 相关分片。
+设置 `true` 应该十分小心并需要验证这不会对系统造成过载（降低索引速度）。
 
 [float]
 [[get-distributed]]
 === Distributed
 
-The get operation gets hashed into a specific shard id. It then gets
-redirected to one of the replicas within that shard id and returns the
-result. The replicas are the primary shard and its replicas within that
-shard id group. This means that the more replicas we will have, the
-better GET scaling we will have.
+get 操作将 hash 至指定分片 id。然后它直接从包含该分片 id 的某个 replicas 中返回结果。
+replicas 是分片 id 组内的主分片和副本分片。这意味我们 replicas 更多， get 扩展能力更强。
 
 
 [float]
 [[get-versioning]]
-=== Versioning support
+=== 版本支持
 
-You can use the `version` parameter to retrieve the document only if
-its current version is equal to the specified one. This behavior is the same
-for all version types with the exception of version type `FORCE` which always
-retrieves the document. Note that `FORCE` version type is deprecated.
+当前版本与指定版本相等时你可以使用 `version` 参数获取文档。除了经常获取文档的 `FORCE` 版本类型，
+这种方式与 all 版本类型相同。注意 `FORCE` 版本类型已过期。
 
-Internally, Elasticsearch has marked the old document as deleted and added an
-entirely new document. The old version of the document doesn’t disappear
-immediately, although you won’t be able to access it. Elasticsearch cleans up
-deleted documents in the background as you continue to index more data.
+Elasticsearch 内部标记旧文档为删除并添加一个新文档。文档的旧版本不会直接消失，尽管你无法访问它。
+Elasticsearch 在你继续索引更多数据时会在后台清理已删除文档。

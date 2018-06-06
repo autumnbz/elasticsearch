@@ -1,10 +1,7 @@
 [[docs-delete]]
-== Delete API
+== delete API
 
-The delete API allows to delete a typed JSON document from a specific
-index based on its id. The following example deletes the JSON document
-from an index called twitter, under a type called tweet, with id valued
-1:
+delete API 可以删除指定索引 id 的 JSON 结构文档。下例删除 twitter 索引 _doc 类型 id 为 1 的 JSON 文档：
 
 [source,js]
 --------------------------------------------------
@@ -13,7 +10,7 @@ DELETE /twitter/_doc/1
 // CONSOLE
 // TEST[setup:twitter]
 
-The result of the above delete operation is:
+上文 delete 操作结果是：
 
 [source,js]
 --------------------------------------------------
@@ -38,24 +35,19 @@ The result of the above delete operation is:
 
 [float]
 [[delete-versioning]]
-=== Versioning
+=== 版本
 
-Each document indexed is versioned. When deleting a document, the
-`version` can be specified to make sure the relevant document we are
-trying to delete is actually being deleted and it has not changed in the
-meantime. Every write operation executed on a document, deletes included,
-causes its version to be incremented.
+索引的每个文档都被版本标记。当删除文档时，可以指定 `version` 以确保我们试图删除的文档确实被删了， 它在此期间没有改变。
+每次在文档上执行写操作时，包括删除，都会使版本号增加。
 
 [float]
 [[delete-routing]]
-=== Routing
+=== 路由
 
-When indexing using the ability to control the routing, in order to
-delete a document, the routing value should also be provided. For
-example:
+当索引时使用了控制路由功能，为了删除文档，需要提供路由值。例如：
 
 ////
-Example to delete with routing
+使用路由删除的例子
 
 [source,js]
 --------------------------------------------------
@@ -75,64 +67,46 @@ DELETE /twitter/_doc/1?routing=kimchy
 // CONSOLE
 // TEST[continued]
 
-The above will delete a tweet with id 1, but will be routed based on the
-user. Note, issuing a delete without the correct routing, will cause the
-document to not be deleted.
+上文会删除 id 为 1 的 tweet，但是基于 user 路由的。
+注意，如果删除没有正确路由，将造成文档无法被删除。
 
-When the `_routing` mapping is set as `required` and no routing value is
-specified, the delete api will throw a `RoutingMissingException` and reject
-the request.
+当 `_routing` 映射设置为 `required` 且没有指定路由值，delete api 会抛出 `RoutingMissingException` 并拒绝请求。
 
 [float]
 [[delete-index-creation]]
-=== Automatic index creation
+=== 自动创建索引
 
-If an <<docs-index_,external versioning variant>> is used,
-the delete operation automatically creates an index if it has not been
-created before (check out the <<indices-create-index,create index API>>
-for manually creating an index), and also automatically creates a
-dynamic type mapping for the specific type if it has not been created
-before (check out the <<indices-put-mapping,put mapping>>
-API for manually creating type mapping).
+如果使用了 <<docs-index_,external versioning variant>> ，
+删除操作会在索引未创建前（查看 <<indices-create-index,create index API>> 手动创建索引）自动创建索引，
+同时也会在类型未创建前自动创建动态类型映射（查看 <<indices-put-mapping,put mapping>> 手动创建类型映射）。
 
 [float]
 [[delete-distributed]]
 === Distributed
 
-The delete operation gets hashed into a specific shard id. It then gets
-redirected into the primary shard within that id group, and replicated
-(if needed) to shard replicas within that id group.
+删除操作将 hash 至指定分片 id。然后它直接跳转至该 id 组 主分片，同时复制（如果需要）请求至 id 组内的分片副本。
 
 [float]
 [[delete-wait-for-active-shards]]
-=== Wait For Active Shards
+=== 等待活动分片
 
-When making delete requests, you can set the `wait_for_active_shards`
-parameter to require a minimum number of shard copies to be active
-before starting to process the delete request. See
-<<index-wait-for-active-shards,here>> for further details and a usage
-example.
+当使用删除请求时，你可以设置 `wait_for_active_shards` 参数来要求开始处理删除请求前的最少活动分片。
+更多细节和例子请参考 <<index-wait-for-active-shards,here>> 。
 
 [float]
 [[delete-refresh]]
 === Refresh
 
-Control when the changes made by this request are visible to search. See
-<<docs-refresh>>.
+控制该请求做的改变对搜索何时可见。详见 <<docs-refresh>> 。
 
 
 [float]
 [[delete-timeout]]
-=== Timeout
+=== 超时
 
-The primary shard assigned to perform the delete operation might not be
-available when the delete operation is executed. Some reasons for this
-might be that the primary shard is currently recovering from a store
-or undergoing relocation. By default, the delete operation will wait on
-the primary shard to become available for up to 1 minute before failing
-and responding with an error. The `timeout` parameter can be used to
-explicitly specify how long it waits. Here is an example of setting it
-to 5 minutes:
+执行删除操作时，分配执行删除的主分片可能会不可用。可能的一些原因是主分片正在恢复或者迁移。
+删除操作默认等待一分钟，之后会失败并响应一个错误。`timeout` 参数可以显式指定等待多长时间。
+以下是设置 5 分钟的例子：
 
 [source,js]
 --------------------------------------------------
