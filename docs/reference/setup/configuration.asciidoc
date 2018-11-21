@@ -38,7 +38,7 @@ command line or via your shell profile.
 For the package distributions, the config directory location defaults to
 `/etc/elasticsearch`. The location of the config directory can also be changed
 via the `ES_PATH_CONF` environment variable, but note that setting this in your
-shell is not sufficient. Instead, this variabled is sourced from
+shell is not sufficient. Instead, this variable is sourced from
 `/etc/default/elasticsearch` (for the Debian package) and
 `/etc/sysconfig/elasticsearch` (for the RPM package). You will need to edit the
 `ES_PATH_CONF=/etc/elasticsearch` entry in one of these files accordingly to
@@ -81,6 +81,10 @@ network.host: ${ES_NETWORK_HOST}
 
 [float]
 === Prompting for settings
+
+NOTE: Prompting for settings is deprecated. Please use <<secure-settings>>
+for sensitive property values. Not all settings can be converted to use
+<<secure-settings>>.
 
 For settings that you do not wish to store in the configuration file, you can
 use the value `${prompt.text}` or `${prompt.secret}` and start Elasticsearch

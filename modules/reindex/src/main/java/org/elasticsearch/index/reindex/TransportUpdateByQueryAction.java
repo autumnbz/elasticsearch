@@ -56,7 +56,7 @@ public class TransportUpdateByQueryAction extends HandledTransportAction<UpdateB
             IndexNameExpressionResolver indexNameExpressionResolver, Client client, TransportService transportService,
             ScriptService scriptService, ClusterService clusterService) {
         super(settings, UpdateByQueryAction.NAME, threadPool, transportService, actionFilters,
-                indexNameExpressionResolver, UpdateByQueryRequest::new);
+                UpdateByQueryRequest::new, indexNameExpressionResolver);
         this.client = client;
         this.scriptService = scriptService;
         this.clusterService = clusterService;
@@ -87,15 +87,9 @@ public class TransportUpdateByQueryAction extends HandledTransportAction<UpdateB
      */
     static class AsyncIndexBySearchAction extends AbstractAsyncBulkByScrollAction<UpdateByQueryRequest> {
         AsyncIndexBySearchAction(BulkByScrollTask task, Logger logger, ParentTaskAssigningClient client,
-                                 ThreadPool threadPool, UpdateByQueryRequest request, ScriptService scriptService, ClusterState clusterState,
-                                 ActionListener<BulkByScrollResponse> listener) {
-            this(task, logger, client, threadPool, request, scriptService, clusterState, listener, client.settings());
-        }
-
-        AsyncIndexBySearchAction(BulkByScrollTask task, Logger logger, ParentTaskAssigningClient client,
                 ThreadPool threadPool, UpdateByQueryRequest request, ScriptService scriptService, ClusterState clusterState,
-                ActionListener<BulkByScrollResponse> listener, Settings settings) {
-            super(task, logger, client, threadPool, request, scriptService, clusterState, listener, settings);
+                ActionListener<BulkByScrollResponse> listener) {
+            super(task, logger, client, threadPool, request, scriptService, clusterState, listener);
         }
 
         @Override

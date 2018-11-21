@@ -67,7 +67,7 @@ task createKey(type: LoggedExec) {
     project.delete(keystore.parentFile)
     keystore.parentFile.mkdirs()
   }
-  executable = new File(project.javaHome, 'bin/keytool')
+  executable = new File(project.runtimeJavaHome, 'bin/keytool')
   standardInput = new ByteArrayInputStream('FirstName LastName\nUnit\nOrganization\nCity\nState\nNL\nyes\n\n'.getBytes('UTF-8'))
   args '-genkey',
           '-alias', 'test-node',
@@ -128,7 +128,7 @@ thirdPartyAudit.excludes = [
 ]
 
 // jarhell with jdk (intentionally, because jaxb was removed from default modules in java 9)
-if (JavaVersion.current() <= JavaVersion.VERSION_1_8) {
+if (project.runtimeJavaVersion <= JavaVersion.VERSION_1_8) {
   thirdPartyAudit.excludes += [
     'javax.xml.bind.Binder',
     'javax.xml.bind.ContextFinder$1',

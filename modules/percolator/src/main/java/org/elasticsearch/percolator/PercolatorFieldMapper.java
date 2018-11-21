@@ -142,11 +142,30 @@ public class PercolatorFieldMapper extends FieldMapper {
             fieldType.rangeField = rangeFieldMapper.fieldType();
             NumberFieldMapper minimumShouldMatchFieldMapper = createMinimumShouldMatchField(context);
             fieldType.minimumShouldMatchField = minimumShouldMatchFieldMapper.fieldType();
+            fieldType.mapUnmappedFieldsAsText = getMapUnmappedFieldAsText(context.indexSettings());
+
             context.path().remove();
             setupFieldType(context);
             return new PercolatorFieldMapper(name(), fieldType, defaultFieldType, context.indexSettings(),
                     multiFieldsBuilder.build(this, context), copyTo, queryShardContext, extractedTermsField,
                     extractionResultField, queryBuilderField, rangeFieldMapper, minimumShouldMatchFieldMapper);
+        }
+
+        private static boolean getMapUnmappedFieldAsText(Settings indexSettings) {
+            if (INDEX_MAP_UNMAPPED_FIELDS_AS_TEXT_SETTING.exists(indexSettings) &&
+                INDEX_MAP_UNMAPPED_FIELDS_AS_STRING_SETTING.exists(indexSettings)) {
+                throw new IllegalArgumentException("Either specify [" + INDEX_MAP_UNMAPPED_FIELDS_AS_STRING_SETTING.getKey() +
+                    "] or [" + INDEX_MAP_UNMAPPED_FIELDS_AS_TEXT_SETTING.getKey() + "] setting, not both");
+            }
+
+            if (INDEX_MAP_UNMAPPED_FIELDS_AS_STRING_SETTING.exists(indexSettings)) {
+                DEPRECATION_LOGGER.deprecatedAndMaybeLog(INDEX_MAP_UNMAPPED_FIELDS_AS_STRING_SETTING.getKey(),
+                    "The [" + INDEX_MAP_UNMAPPED_FIELDS_AS_STRING_SETTING.getKey() +
+                        "] setting is deprecated in favour for the [" + INDEX_MAP_UNMAPPED_FIELDS_AS_TEXT_SETTING.getKey() + "] setting");
+                return INDEX_MAP_UNMAPPED_FIELDS_AS_STRING_SETTING.get(indexSettings);
+            } else {
+                return INDEX_MAP_UNMAPPED_FIELDS_AS_TEXT_SETTING.get(indexSettings);
+            }
         }
 
         static KeywordFieldMapper createExtractQueryFieldBuilder(String name, BuilderContext context) {
@@ -201,6 +220,7 @@ public class PercolatorFieldMapper extends FieldMapper {
         MappedFieldType minimumShouldMatchField;
 
         RangeFieldMapper.RangeFieldType rangeField;
+        boolean mapUnmappedFieldsAsText;
 
         FieldType() {
             setIndexOptions(IndexOptions.NONE);
@@ -215,6 +235,7 @@ public class PercolatorFieldMapper extends FieldMapper {
             queryBuilderField = ref.queryBuilderField;
             rangeField = ref.rangeField;
             minimumShouldMatchField = ref.minimumShouldMatchField;
+            mapUnmappedFieldsAsText = ref.mapUnmappedFieldsAsText;
         }
 
         @Override
@@ -333,7 +354,6 @@ public class PercolatorFieldMapper extends FieldMapper {
 
     }
 
-    private final boolean mapUnmappedFieldAsText;
     private final Supplier<QueryShardContext> queryShardContext;
     private KeywordFieldMapper queryTermsField;
     private KeywordFieldMapper extractionResultField;
@@ -354,25 +374,7 @@ public class PercolatorFieldMapper extends FieldMapper {
         this.extractionResultField = extractionResultField;
         this.queryBuilderField = queryBuilderField;
         this.minimumShouldMatchFieldMapper = minimumShouldMatchFieldMapper;
-        this.mapUnmappedFieldAsText = getMapUnmappedFieldAsText(indexSettings);
         this.rangeFieldMapper = rangeFieldMapper;
-    }
-
-    private static boolean getMapUnmappedFieldAsText(Settings indexSettings) {
-        if (INDEX_MAP_UNMAPPED_FIELDS_AS_TEXT_SETTING.exists(indexSettings) &&
-                INDEX_MAP_UNMAPPED_FIELDS_AS_STRING_SETTING.exists(indexSettings)) {
-            throw new IllegalArgumentException("Either specify [" + INDEX_MAP_UNMAPPED_FIELDS_AS_STRING_SETTING.getKey() +
-                    "] or [" + INDEX_MAP_UNMAPPED_FIELDS_AS_TEXT_SETTING.getKey() + "] setting, not both");
-        }
-
-        if (INDEX_MAP_UNMAPPED_FIELDS_AS_STRING_SETTING.exists(indexSettings)) {
-            DEPRECATION_LOGGER.deprecatedAndMaybeLog(INDEX_MAP_UNMAPPED_FIELDS_AS_STRING_SETTING.getKey(),
-                    "The [" + INDEX_MAP_UNMAPPED_FIELDS_AS_STRING_SETTING.getKey() +
-                    "] setting is deprecated in favour for the [" + INDEX_MAP_UNMAPPED_FIELDS_AS_TEXT_SETTING.getKey() + "] setting");
-            return INDEX_MAP_UNMAPPED_FIELDS_AS_STRING_SETTING.get(indexSettings);
-        } else {
-            return INDEX_MAP_UNMAPPED_FIELDS_AS_TEXT_SETTING.get(indexSettings);
-        }
     }
 
     @Override
@@ -400,7 +402,7 @@ public class PercolatorFieldMapper extends FieldMapper {
     }
 
     @Override
-    public Mapper parse(ParseContext context) throws IOException {
+    public void parse(ParseContext context) throws IOException {
         QueryShardContext queryShardContext = this.queryShardContext.get();
         if (context.doc().getField(queryBuilderField.name()) != null) {
             // If a percolator query has been defined in an array object then multiple percolator queries
@@ -421,9 +423,16 @@ public class PercolatorFieldMapper extends FieldMapper {
 
         Version indexVersion = context.mapperService().getIndexSettings().getIndexVersionCreated();
         createQueryBuilderField(indexVersion, queryBuilderField, queryBuilder, context);
-        Query query = toQuery(queryShardContext, mapUnmappedFieldAsText, queryBuilder);
+
+        QueryBuilder queryBuilderForProcessing = queryBuilder.rewrite(new QueryShardContext(queryShardContext) {
+
+            @Override
+            public boolean convertNowRangeToMatchAll() {
+                return true;
+            }
+        });
+        Query query = toQuery(queryShardContext, isMapUnmappedFieldAsText(), queryBuilderForProcessing);
         processQuery(query, context);
-        return null;
     }
 
     static void createQueryBuilderField(Version indexVersion, BinaryFieldMapper qbField,
@@ -441,7 +450,7 @@ public class PercolatorFieldMapper extends FieldMapper {
             try (XContentBuilder builder = XContentFactory.contentBuilder(QUERY_BUILDER_CONTENT_TYPE)) {
                 queryBuilder.toXContent(builder, new MapParams(Collections.emptyMap()));
                 builder.flush();
-                byte[] queryBuilderAsBytes = BytesReference.toBytes(builder.bytes());
+                byte[] queryBuilderAsBytes = BytesReference.toBytes(BytesReference.bytes(builder));
                 context.doc().add(new Field(qbField.name(), queryBuilderAsBytes, qbField.fieldType()));
             }
         }
@@ -541,7 +550,7 @@ public class PercolatorFieldMapper extends FieldMapper {
     }
 
     boolean isMapUnmappedFieldAsText() {
-        return mapUnmappedFieldAsText;
+        return ((FieldType) fieldType).mapUnmappedFieldsAsText;
     }
 
     /**

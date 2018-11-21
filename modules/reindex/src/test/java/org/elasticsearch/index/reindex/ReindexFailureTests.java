@@ -90,6 +90,7 @@ public class ReindexFailureTests extends ReindexTestCase {
      * the whole process. We do lose some information about how far along the
      * process got, but its important that they see these failures.
      */
+    @AwaitsFix(bugUrl="https://github.com/elastic/elasticsearch/issues/28053")
     public void testResponseOnSearchFailure() throws Exception {
         /*
          * Attempt to trigger a reindex failure by deleting the source index out
@@ -107,6 +108,14 @@ public class ReindexFailureTests extends ReindexTestCase {
                 response.get();
                 logger.info("Didn't trigger a reindex failure on the {} attempt", attempt);
                 attempt++;
+                /*
+                 * In the past we've seen the delete of the source index
+                 * actually take effect *during* the `indexDocs` call in
+                 * the next step. This breaks things pretty disasterously
+                 * so we *try* and wait for the delete to be fully
+                 * complete here.
+                 */
+                assertBusy(() -> assertFalse(client().admin().indices().prepareExists("source").get().isExists()));
             } catch (ExecutionException e) {
                 logger.info("Triggered a reindex failure on the {} attempt: {}", attempt, e.getMessage());
                 assertThat(e.getMessage(),

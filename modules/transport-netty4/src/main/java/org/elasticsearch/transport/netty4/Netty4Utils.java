@@ -27,25 +27,17 @@ import io.netty.channel.ChannelFuture;
 import io.netty.util.NettyRuntime;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
-import org.apache.logging.log4j.Logger;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.BytesRefIterator;
 import org.elasticsearch.common.Booleans;
 import org.elasticsearch.common.bytes.BytesReference;
-import org.elasticsearch.common.logging.ESLoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
-import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 public class Netty4Utils {
 
@@ -163,73 +155,6 @@ public class Netty4Utils {
         if (closingExceptions != null) {
             throw closingExceptions;
         }
-    }
-
-    /**
-     * If the specified cause is an unrecoverable error, this method will rethrow the cause on a separate thread so that it can not be
-     * caught and bubbles up to the uncaught exception handler.
-     *
-     * @param cause the throwable to test
-     */
-    public static void maybeDie(final Throwable cause) {
-        final Optional<Error> maybeError = maybeError(cause);
-        if (maybeError.isPresent()) {
-            /*
-             * Here be dragons. We want to rethrow this so that it bubbles up to the uncaught exception handler. Yet, Netty wraps too many
-             * invocations of user-code in try/catch blocks that swallow all throwables. This means that a rethrow here will not bubble up
-             * to where we want it to. So, we fork a thread and throw the exception from there where Netty can not get to it. We do not wrap
-             * the exception so as to not lose the original cause during exit.
-             */
-            try {
-                // try to log the current stack trace
-                final StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-                final String formatted = Arrays.stream(stackTrace).skip(1).map(e -> "\tat " + e).collect(Collectors.joining("\n"));
-                final Logger logger = ESLoggerFactory.getLogger(Netty4Utils.class);
-                logger.error("fatal error on the network layer\n{}", formatted);
-            } finally {
-                new Thread(
-                        () -> {
-                            throw maybeError.get();
-                        })
-                        .start();
-            }
-        }
-    }
-
-    static final int MAX_ITERATIONS = 1024;
-
-    /**
-     * Unwrap the specified throwable looking for any suppressed errors or errors as a root cause of the specified throwable.
-     *
-     * @param cause the root throwable
-     *
-     * @return an optional error if one is found suppressed or a root cause in the tree rooted at the specified throwable
-     */
-    static Optional<Error> maybeError(final Throwable cause) {
-        // early terminate if the cause is already an error
-        if (cause instanceof Error) {
-            return Optional.of((Error) cause);
-        }
-
-        final Queue<Throwable> queue = new LinkedList<>();
-        queue.add(cause);
-        int iterations = 0;
-        while (!queue.isEmpty()) {
-            iterations++;
-            if (iterations > MAX_ITERATIONS) {
-                ESLoggerFactory.getLogger(Netty4Utils.class).warn("giving up looking for fatal errors on the network layer", cause);
-                break;
-            }
-            final Throwable current = queue.remove();
-            if (current instanceof Error) {
-                return Optional.of((Error) current);
-            }
-            Collections.addAll(queue, current.getSuppressed());
-            if (current.getCause() != null) {
-                queue.add(current.getCause());
-            }
-        }
-        return Optional.empty();
     }
 
 }

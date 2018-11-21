@@ -21,32 +21,45 @@ package org.elasticsearch.test.rest;
 
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
+import org.apache.http.HttpStatus;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.nio.conn.ssl.SSLIOSessionStrategy;
 import org.apache.http.ssl.SSLContexts;
-import org.apache.lucene.util.IOUtils;
+import org.apache.http.util.EntityUtils;
 import org.elasticsearch.action.admin.cluster.node.tasks.list.ListTasksAction;
+import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.ResponseException;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
+import org.elasticsearch.common.CheckedRunnable;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.io.PathUtils;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.util.concurrent.ThreadContext;
+import org.elasticsearch.common.xcontent.DeprecationHandler;
+import org.elasticsearch.common.xcontent.NamedXContentRegistry;
+import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.common.xcontent.json.JsonXContent;
+import org.elasticsearch.common.xcontent.support.XContentMapValues;
+import org.elasticsearch.core.internal.io.IOUtils;
+import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.test.ESTestCase;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 
 import javax.net.ssl.SSLContext;
+
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyManagementException;
@@ -55,15 +68,14 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
-import static java.util.Collections.singletonMap;
 import static java.util.Collections.sort;
 import static java.util.Collections.unmodifiableList;
 import static org.hamcrest.Matchers.anyOf;
@@ -77,15 +89,41 @@ public abstract class ESRestTestCase extends ESTestCase {
     public static final String TRUSTSTORE_PASSWORD = "truststore.password";
     public static final String CLIENT_RETRY_TIMEOUT = "client.retry.timeout";
     public static final String CLIENT_SOCKET_TIMEOUT = "client.socket.timeout";
+    public static final String CLIENT_PATH_PREFIX = "client.path.prefix";
 
     /**
      * Convert the entity from a {@link Response} into a map of maps.
      */
-    public Map<String, Object> entityAsMap(Response response) throws IOException {
+    public static Map<String, Object> entityAsMap(Response response) throws IOException {
         XContentType xContentType = XContentType.fromMediaTypeOrFormat(response.getEntity().getContentType().getValue());
-        try (XContentParser parser = createParser(xContentType.xContent(), response.getEntity().getContent())) {
+        // EMPTY and THROW are fine here because `.map` doesn't use named x content or deprecation
+        try (XContentParser parser = xContentType.xContent().createParser(
+                NamedXContentRegistry.EMPTY, DeprecationHandler.THROW_UNSUPPORTED_OPERATION,
+                response.getEntity().getContent())) {
             return parser.map();
         }
+    }
+
+    /**
+     * Does any node in the cluster being tested have x-pack installed?
+     */
+    public static boolean hasXPack() throws IOException {
+        RestClient client = adminClient();
+        if (client == null) {
+            throw new IllegalStateException("must be called inside of a rest test case test");
+        }
+        Map<?, ?> response = entityAsMap(client.performRequest(new Request("GET", "_nodes/plugins")));
+        Map<?, ?> nodes = (Map<?, ?>) response.get("nodes");
+        for (Map.Entry<?, ?> node : nodes.entrySet()) {
+            Map<?, ?> nodeInfo = (Map<?, ?>) node.getValue();
+            for (Object module: (List<?>) nodeInfo.get("modules")) {
+                Map<?, ?> moduleInfo = (Map<?, ?>) module;
+                if (moduleInfo.get("name").toString().startsWith("x-pack-")) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private static List<HttpHost> clusterHosts;
@@ -118,7 +156,7 @@ public abstract class ESRestTestCase extends ESTestCase {
                 }
                 String host = stringUrl.substring(0, portSeparator);
                 int port = Integer.valueOf(stringUrl.substring(portSeparator + 1));
-                hosts.add(new HttpHost(host, port, getProtocol()));
+                hosts.add(buildHttpHost(host, port));
             }
             clusterHosts = unmodifiableList(hosts);
             logger.info("initializing REST clients against {}", clusterHosts);
@@ -131,13 +169,22 @@ public abstract class ESRestTestCase extends ESTestCase {
     }
 
     /**
+     * Construct an HttpHost from the given host and port
+     */
+    protected HttpHost buildHttpHost(String host, int port) {
+        return new HttpHost(host, port, getProtocol());
+    }
+
+    /**
      * Clean up after the test case.
      */
     @After
     public final void cleanUpCluster() throws Exception {
-        wipeCluster();
-        waitForClusterStateUpdatesToFinish();
-        logIfThereAreRunningTasks();
+        if (preserveClusterUponCompletion() == false) {
+            wipeCluster();
+            waitForClusterStateUpdatesToFinish();
+            logIfThereAreRunningTasks();
+        }
     }
 
     @AfterClass
@@ -166,6 +213,71 @@ public abstract class ESRestTestCase extends ESTestCase {
     }
 
     /**
+     * Wait for outstanding tasks to complete. The specified admin client is used to check the outstanding tasks and this is done using
+     * {@link ESTestCase#assertBusy(CheckedRunnable)} to give a chance to any outstanding tasks to complete.
+     *
+     * @param adminClient the admin client
+     * @throws Exception if an exception is thrown while checking the outstanding tasks
+     */
+    public static void waitForPendingTasks(final RestClient adminClient) throws Exception {
+        waitForPendingTasks(adminClient, taskName -> false);
+    }
+
+    /**
+     * Wait for outstanding tasks to complete. The specified admin client is used to check the outstanding tasks and this is done using
+     * {@link ESTestCase#assertBusy(CheckedRunnable)} to give a chance to any outstanding tasks to complete. The specified filter is used
+     * to filter out outstanding tasks that are expected to be there.
+     *
+     * @param adminClient the admin client
+     * @param taskFilter  predicate used to filter tasks that are expected to be there
+     * @throws Exception if an exception is thrown while checking the outstanding tasks
+     */
+    public static void waitForPendingTasks(final RestClient adminClient, final Predicate<String> taskFilter) throws Exception {
+        assertBusy(() -> {
+            try {
+                final Request request = new Request("GET", "/_cat/tasks");
+                request.addParameter("detailed", "true");
+                final Response response = adminClient.performRequest(request);
+                /*
+                 * Check to see if there are outstanding tasks; we exclude the list task itself, and any expected outstanding tasks using
+                 * the specified task filter.
+                 */
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                    try (BufferedReader responseReader = new BufferedReader(
+                            new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8))) {
+                        int activeTasks = 0;
+                        String line;
+                        final StringBuilder tasksListString = new StringBuilder();
+                        while ((line = responseReader.readLine()) != null) {
+                            final String taskName = line.split("\\s+")[0];
+                            if (taskName.startsWith(ListTasksAction.NAME) || taskFilter.test(taskName)) {
+                                continue;
+                            }
+                            activeTasks++;
+                            tasksListString.append(line);
+                            tasksListString.append('\n');
+                        }
+                        assertEquals(activeTasks + " active tasks found:\n" + tasksListString, 0, activeTasks);
+                    }
+                }
+            } catch (final IOException e) {
+                throw new AssertionError("error getting active tasks list", e);
+            }
+        });
+    }
+
+    /**
+     * Returns whether to preserve the state of the cluster upon completion of this test. Defaults to false. If true, overrides the value of
+     * {@link #preserveIndicesUponCompletion()}, {@link #preserveTemplatesUponCompletion()}, {@link #preserveReposUponCompletion()},
+     * {@link #preserveSnapshotsUponCompletion()}, and {@link #preserveRollupJobsUponCompletion()}.
+     *
+     * @return true if the state of the cluster should be preserved
+     */
+    protected boolean preserveClusterUponCompletion() {
+        return false;
+    }
+
+    /**
      * Returns whether to preserve the indices created during this test on completion of this test.
      * Defaults to {@code false}. Override this method if indices should be preserved after the test,
      * with the assumption that some other process or test will clean up the indices afterward.
@@ -187,6 +299,16 @@ public abstract class ESRestTestCase extends ESTestCase {
     }
 
     /**
+     * Controls whether or not to preserve cluster settings upon completion of the test. The default implementation is to remove all cluster
+     * settings.
+     *
+     * @return true if cluster settings should be preserved and otherwise false
+     */
+    protected boolean preserveClusterSettings() {
+        return false;
+    }
+
+    /**
      * Returns whether to preserve the repositories on completion of this test.
      * Defaults to not preserving repos. See also
      * {@link #preserveSnapshotsUponCompletion()}.
@@ -203,11 +325,22 @@ public abstract class ESRestTestCase extends ESTestCase {
         return false;
     }
 
-    private void wipeCluster() throws IOException {
+    /**
+     * Returns whether to preserve the rollup jobs of this test. Defaults to
+     * not preserving them. Only runs at all if xpack is installed on the
+     * cluster being tested.
+     */
+    protected boolean preserveRollupJobsUponCompletion() {
+        return false;
+    }
+
+    private void wipeCluster() throws Exception {
+        boolean hasXPack = hasXPack();
+
         if (preserveIndicesUponCompletion() == false) {
             // wipe indices
             try {
-                adminClient().performRequest("DELETE", "*");
+                adminClient().performRequest(new Request("DELETE", "*"));
             } catch (ResponseException e) {
                 // 404 here just means we had no indexes
                 if (e.getResponse().getStatusLine().getStatusCode() != 404) {
@@ -218,10 +351,53 @@ public abstract class ESRestTestCase extends ESTestCase {
 
         // wipe index templates
         if (preserveTemplatesUponCompletion() == false) {
-            adminClient().performRequest("DELETE", "_template/*");
+            if (hasXPack) {
+                /*
+                 * Delete only templates that xpack doesn't automatically
+                 * recreate. Deleting them doesn't hurt anything, but it
+                 * slows down the test because xpack will just recreate
+                 * them.
+                 */
+                Request request = new Request("GET", "_cat/templates");
+                request.addParameter("h", "name");
+                String templates = EntityUtils.toString(adminClient().performRequest(request).getEntity());
+                if (false == "".equals(templates)) {
+                    for (String template : templates.split("\n")) {
+                        if (isXPackTemplate(template)) continue;
+                        if ("".equals(template)) {
+                            throw new IllegalStateException("empty template in templates list:\n" + templates);
+                        }
+                        logger.debug("Clearing template [{}]", template);
+                        adminClient().performRequest(new Request("DELETE", "_template/" + template));
+                    }
+                }
+            } else {
+                logger.debug("Clearing all templates");
+                adminClient().performRequest(new Request("DELETE", "_template/*"));
+            }
         }
 
         wipeSnapshots();
+
+        // wipe cluster settings
+        if (preserveClusterSettings() == false) {
+            wipeClusterSettings();
+        }
+
+        if (hasXPack && false == preserveRollupJobsUponCompletion()) {
+            try {
+                wipeRollupJobs();
+            } catch (ResponseException e) {
+                // Temporary work around for mixed clusters, some of which don't have rollup
+                if (    // The request was made to node without rollup
+                        e.getResponse().getStatusLine().getStatusCode() != 400
+                        // or the request was made to a node with rollup and it sent something to a node without it
+                        && false == e.getMessage().contains("No handler for action [cluster:monitor/xpack/rollup/get]")) {
+                    throw e;
+                }
+            }
+            waitForPendingRollupTasks();
+        }
     }
 
     /**
@@ -230,27 +406,105 @@ public abstract class ESRestTestCase extends ESTestCase {
      * the snapshots intact in the repository.
      */
     private void wipeSnapshots() throws IOException {
-        for (Map.Entry<String, ?> repo : entityAsMap(adminClient.performRequest("GET", "_snapshot/_all")).entrySet()) {
+        for (Map.Entry<String, ?> repo : entityAsMap(adminClient.performRequest(new Request("GET", "/_snapshot/_all"))).entrySet()) {
             String repoName = repo.getKey();
             Map<?, ?> repoSpec = (Map<?, ?>) repo.getValue();
             String repoType = (String) repoSpec.get("type");
             if (false == preserveSnapshotsUponCompletion() && repoType.equals("fs")) {
                 // All other repo types we really don't have a chance of being able to iterate properly, sadly.
-                String url = "_snapshot/" + repoName + "/_all";
-                Map<String, String> params = singletonMap("ignore_unavailable", "true");
-                List<?> snapshots = (List<?>) entityAsMap(adminClient.performRequest("GET", url, params)).get("snapshots");
+                Request listRequest = new Request("GET", "/_snapshot/" + repoName + "/_all");
+                listRequest.addParameter("ignore_unavailable", "true");
+                List<?> snapshots = (List<?>) entityAsMap(adminClient.performRequest(listRequest)).get("snapshots");
                 for (Object snapshot : snapshots) {
                     Map<?, ?> snapshotInfo = (Map<?, ?>) snapshot;
                     String name = (String) snapshotInfo.get("snapshot");
                     logger.debug("wiping snapshot [{}/{}]", repoName, name);
-                    adminClient().performRequest("DELETE", "_snapshot/" + repoName + "/" + name);
+                    adminClient().performRequest(new Request("DELETE", "/_snapshot/" + repoName + "/" + name));
                 }
             }
             if (preserveReposUponCompletion() == false) {
                 logger.debug("wiping snapshot repository [{}]", repoName);
-                adminClient().performRequest("DELETE", "_snapshot/" + repoName);
+                adminClient().performRequest(new Request("DELETE", "_snapshot/" + repoName));
             }
         }
+    }
+
+    /**
+     * Remove any cluster settings.
+     */
+    private void wipeClusterSettings() throws IOException {
+        Map<?, ?> getResponse = entityAsMap(adminClient().performRequest(new Request("GET", "/_cluster/settings")));
+
+        boolean mustClear = false;
+        XContentBuilder clearCommand = JsonXContent.contentBuilder();
+        clearCommand.startObject();
+        for (Map.Entry<?, ?> entry : getResponse.entrySet()) {
+            String type = entry.getKey().toString();
+            Map<?, ?> settings = (Map<?, ?>) entry.getValue();
+            if (settings.isEmpty()) {
+                continue;
+            }
+            mustClear = true;
+            clearCommand.startObject(type);
+            for (Object key: settings.keySet()) {
+                clearCommand.field(key + ".*").nullValue();
+            }
+            clearCommand.endObject();
+        }
+        clearCommand.endObject();
+
+        if (mustClear) {
+            Request request = new Request("PUT", "/_cluster/settings");
+            request.setJsonEntity(Strings.toString(clearCommand));
+            adminClient().performRequest(request);
+        }
+    }
+
+    private void wipeRollupJobs() throws IOException, InterruptedException {
+        Response response = adminClient().performRequest(new Request("GET", "/_xpack/rollup/job/_all"));
+        Map<String, Object> jobs = entityAsMap(response);
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> jobConfigs =
+                (List<Map<String, Object>>) XContentMapValues.extractValue("jobs", jobs);
+
+        if (jobConfigs == null) {
+            return;
+        }
+
+        for (Map<String, Object> jobConfig : jobConfigs) {
+            @SuppressWarnings("unchecked")
+            String jobId = (String) ((Map<String, Object>) jobConfig.get("config")).get("id");
+            Request request = new Request("POST", "/_xpack/rollup/job/" + jobId + "/_stop");
+            request.addParameter("ignore", "404");
+            logger.debug("stopping rollup job [{}]", jobId);
+            adminClient().performRequest(request);
+        }
+
+        // TODO this is temporary until StopJob API gains the ability to block until stopped
+        awaitBusy(() -> {
+            Request request = new Request("GET", "/_xpack/rollup/job/_all");
+            try {
+                Response jobsResponse = adminClient().performRequest(request);
+                String body = EntityUtils.toString(jobsResponse.getEntity());
+                // If the body contains any of the non-stopped states, at least one job is not finished yet
+                return Arrays.stream(new String[]{"started", "aborting", "stopping", "indexing"}).noneMatch(body::contains);
+            } catch (IOException e) {
+                return false;
+            }
+        }, 10, TimeUnit.SECONDS);
+
+        for (Map<String, Object> jobConfig : jobConfigs) {
+            @SuppressWarnings("unchecked")
+            String jobId = (String) ((Map<String, Object>) jobConfig.get("config")).get("id");
+            Request request = new Request("DELETE", "/_xpack/rollup/job/" + jobId);
+            request.addParameter("ignore", "404"); // Ignore 404s because they imply someone was racing us to delete this
+            logger.debug("deleting rollup job [{}]", jobId);
+            adminClient().performRequest(request);
+        }
+    }
+
+    private void waitForPendingRollupTasks() throws Exception {
+        waitForPendingTasks(adminClient(), taskName -> taskName.startsWith("xpack/rollup/job") == false);
     }
 
     /**
@@ -258,7 +512,7 @@ public abstract class ESRestTestCase extends ESTestCase {
      * other tests.
      */
     private void logIfThereAreRunningTasks() throws InterruptedException, IOException {
-        Set<String> runningTasks = runningTasks(adminClient().performRequest("GET", "_tasks"));
+        Set<String> runningTasks = runningTasks(adminClient().performRequest(new Request("GET", "/_tasks")));
         // Ignore the task list API - it doesn't count against us
         runningTasks.remove(ListTasksAction.NAME);
         runningTasks.remove(ListTasksAction.NAME + "[n]");
@@ -282,7 +536,7 @@ public abstract class ESRestTestCase extends ESTestCase {
     private void waitForClusterStateUpdatesToFinish() throws Exception {
         assertBusy(() -> {
             try {
-                Response response = adminClient().performRequest("GET", "_cluster/pending_tasks");
+                Response response = adminClient().performRequest(new Request("GET", "/_cluster/pending_tasks"));
                 List<?> tasks = (List<?>) entityAsMap(response).get("tasks");
                 if (false == tasks.isEmpty()) {
                     StringBuilder message = new StringBuilder("there are still running tasks:");
@@ -301,7 +555,11 @@ public abstract class ESRestTestCase extends ESTestCase {
      * Used to obtain settings for the REST client that is used to send REST requests.
      */
     protected Settings restClientSettings() {
-        return Settings.EMPTY;
+        Settings.Builder builder = Settings.builder();
+        if (System.getProperty("tests.rest.client_path_prefix") != null) {
+            builder.put(CLIENT_PATH_PREFIX, System.getProperty("tests.rest.client_path_prefix"));
+        }
+        return builder.build();
     }
 
     /**
@@ -327,6 +585,11 @@ public abstract class ESRestTestCase extends ESTestCase {
 
     protected RestClient buildClient(Settings settings, HttpHost[] hosts) throws IOException {
         RestClientBuilder builder = RestClient.builder(hosts);
+        configureClient(builder, settings);
+        return builder.build();
+    }
+
+    protected static void configureClient(RestClientBuilder builder, Settings settings) throws IOException {
         String keystorePath = settings.get(TRUSTSTORE_PATH);
         if (keystorePath != null) {
             final String keystorePass = settings.get(TRUSTSTORE_PASSWORD);
@@ -345,11 +608,10 @@ public abstract class ESRestTestCase extends ESTestCase {
                 SSLContext sslcontext = SSLContexts.custom().loadTrustMaterial(keyStore, null).build();
                 SSLIOSessionStrategy sessionStrategy = new SSLIOSessionStrategy(sslcontext);
                 builder.setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder.setSSLStrategy(sessionStrategy));
-            } catch (KeyStoreException|NoSuchAlgorithmException|KeyManagementException|CertificateException e) {
+            } catch (KeyStoreException |NoSuchAlgorithmException |KeyManagementException |CertificateException e) {
                 throw new RuntimeException("Error setting up ssl", e);
             }
         }
-
         try (ThreadContext threadContext = new ThreadContext(settings)) {
             Header[] defaultHeaders = new Header[threadContext.getHeaders().size()];
             int i = 0;
@@ -358,7 +620,6 @@ public abstract class ESRestTestCase extends ESTestCase {
             }
             builder.setDefaultHeaders(defaultHeaders);
         }
-
         final String requestTimeoutString = settings.get(CLIENT_RETRY_TIMEOUT);
         if (requestTimeoutString != null) {
             final TimeValue maxRetryTimeout = TimeValue.parseTimeValue(requestTimeoutString, CLIENT_RETRY_TIMEOUT);
@@ -369,7 +630,9 @@ public abstract class ESRestTestCase extends ESTestCase {
             final TimeValue socketTimeout = TimeValue.parseTimeValue(socketTimeoutString, CLIENT_SOCKET_TIMEOUT);
             builder.setRequestConfigCallback(conf -> conf.setSocketTimeout(Math.toIntExact(socketTimeout.getMillis())));
         }
-        return builder.build();
+        if (settings.hasValue(CLIENT_PATH_PREFIX)) {
+            builder.setPathPrefix(settings.get(CLIENT_PATH_PREFIX));
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -388,7 +651,7 @@ public abstract class ESRestTestCase extends ESTestCase {
         return runningTasks;
     }
 
-    protected void assertOK(Response response) {
+    protected static void assertOK(Response response) {
         assertThat(response.getStatusLine().getStatusCode(), anyOf(equalTo(200), equalTo(201)));
     }
 
@@ -397,43 +660,131 @@ public abstract class ESRestTestCase extends ESTestCase {
      * in an non green state
      * @param index index to test for
      **/
-    protected void ensureGreen(String index) throws IOException {
-        Map<String, String> params = new HashMap<>();
-        params.put("wait_for_status", "green");
-        params.put("wait_for_no_relocating_shards", "true");
-        params.put("timeout", "70s");
-        params.put("level", "shards");
-        assertOK(client().performRequest("GET", "_cluster/health/" + index, params));
+    protected static void ensureGreen(String index) throws IOException {
+        Request request = new Request("GET", "/_cluster/health/" + index);
+        request.addParameter("wait_for_status", "green");
+        request.addParameter("wait_for_no_relocating_shards", "true");
+        request.addParameter("timeout", "70s");
+        request.addParameter("level", "shards");
+        client().performRequest(request);
     }
 
     /**
      * waits until all shard initialization is completed. This is a handy alternative to ensureGreen as it relates to all shards
      * in the cluster and doesn't require to know how many nodes/replica there are.
      */
-    protected void ensureNoInitializingShards() throws IOException {
-        Map<String, String> params = new HashMap<>();
-        params.put("wait_for_no_initializing_shards", "true");
-        params.put("timeout", "70s");
-        params.put("level", "shards");
-        assertOK(client().performRequest("GET", "_cluster/health/", params));
+    protected static void ensureNoInitializingShards() throws IOException {
+        Request request = new Request("GET", "/_cluster/health");
+        request.addParameter("wait_for_no_initializing_shards", "true");
+        request.addParameter("timeout", "70s");
+        request.addParameter("level", "shards");
+        client().performRequest(request);
     }
 
-    protected void createIndex(String name, Settings settings) throws IOException {
+    protected static void createIndex(String name, Settings settings) throws IOException {
         createIndex(name, settings, "");
     }
 
-    protected void createIndex(String name, Settings settings, String mapping) throws IOException {
-        assertOK(client().performRequest("PUT", name, Collections.emptyMap(),
-            new StringEntity("{ \"settings\": " + Strings.toString(settings)
-                + ", \"mappings\" : {" + mapping + "} }", ContentType.APPLICATION_JSON)));
+    protected static void createIndex(String name, Settings settings, String mapping) throws IOException {
+        Request request = new Request("PUT", "/" + name);
+        request.setJsonEntity("{\n \"settings\": " + Strings.toString(settings)
+                + ", \"mappings\" : {" + mapping + "} }");
+        client().performRequest(request);
     }
 
-    protected void updateIndexSetting(String index, Settings.Builder settings) throws IOException {
-        updateIndexSetting(index, settings.build());
+    protected static void deleteIndex(String name) throws IOException {
+        Request request = new Request("DELETE", "/" + name);
+        client().performRequest(request);
     }
 
-    private void updateIndexSetting(String index, Settings settings) throws IOException {
-        assertOK(client().performRequest("PUT", index + "/_settings", Collections.emptyMap(),
-            new StringEntity(Strings.toString(settings), ContentType.APPLICATION_JSON)));
+    protected static void updateIndexSettings(String index, Settings.Builder settings) throws IOException {
+        updateIndexSettings(index, settings.build());
     }
+
+    private static void updateIndexSettings(String index, Settings settings) throws IOException {
+        Request request = new Request("PUT", "/" + index + "/_settings");
+        request.setJsonEntity(Strings.toString(settings));
+        client().performRequest(request);
+    }
+
+    protected static Map<String, Object> getIndexSettings(String index) throws IOException {
+        Request request = new Request("GET", "/" + index + "/_settings");
+        request.addParameter("flat_settings", "true");
+        Response response = client().performRequest(request);
+        try (InputStream is = response.getEntity().getContent()) {
+            return XContentHelper.convertToMap(XContentType.JSON.xContent(), is, true);
+        }
+    }
+
+    protected static boolean indexExists(String index) throws IOException {
+        Response response = client().performRequest(new Request("HEAD", "/" + index));
+        return RestStatus.OK.getStatus() == response.getStatusLine().getStatusCode();
+    }
+
+    protected static void closeIndex(String index) throws IOException {
+        Response response = client().performRequest(new Request("POST", "/" + index + "/_close"));
+        assertThat(response.getStatusLine().getStatusCode(), equalTo(RestStatus.OK.getStatus()));
+    }
+
+    protected static void openIndex(String index) throws IOException {
+        Response response = client().performRequest(new Request("POST", "/" + index + "/_open"));
+        assertThat(response.getStatusLine().getStatusCode(), equalTo(RestStatus.OK.getStatus()));
+    }
+
+    protected static boolean aliasExists(String alias) throws IOException {
+        Response response = client().performRequest(new Request("HEAD", "/_alias/" + alias));
+        return RestStatus.OK.getStatus() == response.getStatusLine().getStatusCode();
+    }
+
+    protected static boolean aliasExists(String index, String alias) throws IOException {
+        Response response = client().performRequest(new Request("HEAD", "/" + index + "/_alias/" + alias));
+        return RestStatus.OK.getStatus() == response.getStatusLine().getStatusCode();
+    }
+
+    @SuppressWarnings("unchecked")
+    protected static Map<String, Object> getAlias(final String index, final String alias) throws IOException {
+        String endpoint = "/_alias";
+        if (false == Strings.isEmpty(index)) {
+            endpoint = index + endpoint;
+        }
+        if (false == Strings.isEmpty(alias)) {
+            endpoint = endpoint + "/" + alias;
+        }
+        Map<String, Object> getAliasResponse = getAsMap(endpoint);
+        return (Map<String, Object>)XContentMapValues.extractValue(index + ".aliases." + alias, getAliasResponse);
+    }
+
+    protected static Map<String, Object> getAsMap(final String endpoint) throws IOException {
+        Response response = client().performRequest(new Request("GET", endpoint));
+        XContentType entityContentType = XContentType.fromMediaTypeOrFormat(response.getEntity().getContentType().getValue());
+        Map<String, Object> responseEntity = XContentHelper.convertToMap(entityContentType.xContent(),
+                response.getEntity().getContent(), false);
+        assertNotNull(responseEntity);
+        return responseEntity;
+    }
+
+    /**
+     * Is this template one that is automatically created by xpack?
+     */
+    private static boolean isXPackTemplate(String name) {
+        if (name.startsWith(".monitoring-")) {
+            return true;
+        }
+        if (name.startsWith(".watch") || name.startsWith(".triggered_watches")) {
+            return true;
+        }
+        if (name.startsWith(".ml-")) {
+            return true;
+        }
+        switch (name) {
+        case ".triggered_watches":
+        case ".watches":
+        case "logstash-index-template":
+        case "security_audit_log":
+            return true;
+        default:
+            return false;
+        }
+    }
+
 }

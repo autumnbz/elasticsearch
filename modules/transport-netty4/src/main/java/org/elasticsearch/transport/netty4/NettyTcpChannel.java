@@ -20,19 +20,15 @@
 package org.elasticsearch.transport.netty4;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPromise;
-import org.apache.logging.log4j.message.ParameterizedMessage;
-import org.apache.logging.log4j.util.Supplier;
-import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.ExceptionsHelper;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.transport.TcpChannel;
 import org.elasticsearch.transport.TransportException;
 
 import java.net.InetSocketAddress;
-import java.nio.channels.ClosedSelectorException;
 import java.util.concurrent.CompletableFuture;
 
 public class NettyTcpChannel implements TcpChannel {
@@ -48,7 +44,7 @@ public class NettyTcpChannel implements TcpChannel {
             } else {
                 Throwable cause = f.cause();
                 if (cause instanceof Error) {
-                    Netty4Utils.maybeDie(cause);
+                    ExceptionsHelper.maybeDieOnAnotherThread(cause);
                     closeContext.completeExceptionally(cause);
                 } else {
                     closeContext.completeExceptionally(cause);
@@ -90,7 +86,7 @@ public class NettyTcpChannel implements TcpChannel {
                 listener.onResponse(null);
             } else {
                 final Throwable cause = f.cause();
-                Netty4Utils.maybeDie(cause);
+                ExceptionsHelper.maybeDieOnAnotherThread(cause);
                 assert cause instanceof Exception;
                 listener.onFailure((Exception) cause);
             }

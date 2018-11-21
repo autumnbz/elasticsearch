@@ -19,7 +19,11 @@ setting named `search.max_buckets`. It is disabled by default (-1) but requests 
 
 include::bucket/adjacency-matrix-aggregation.asciidoc[]
 
+include::bucket/autodatehistogram-aggregation.asciidoc[]
+
 include::bucket/children-aggregation.asciidoc[]
+
+include::bucket/composite-aggregation.asciidoc[]
 
 include::bucket/datehistogram-aggregation.asciidoc[]
 
@@ -56,6 +60,4 @@ include::bucket/significantterms-aggregation.asciidoc[]
 include::bucket/significanttext-aggregation.asciidoc[]
 
 include::bucket/terms-aggregation.asciidoc[]
-
-include::bucket/composite-aggregation.asciidoc[]
 

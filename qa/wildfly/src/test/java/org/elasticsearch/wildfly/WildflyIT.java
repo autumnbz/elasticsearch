@@ -26,10 +26,14 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 import org.apache.lucene.util.LuceneTestCase;
+import org.apache.lucene.util.TestRuleLimitSysouts;
 import org.elasticsearch.Build;
 import org.elasticsearch.Version;
 import org.elasticsearch.cluster.ClusterModule;
+import org.elasticsearch.common.Strings;
+import org.elasticsearch.common.xcontent.DeprecationHandler;
 import org.elasticsearch.common.xcontent.NamedXContentRegistry;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
@@ -47,13 +51,15 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 
+@TestRuleLimitSysouts.Limit(bytes = 14000)
 public class WildflyIT extends LuceneTestCase {
 
     public void testTransportClient() throws URISyntaxException, IOException {
         try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
             final String str = String.format(
                     Locale.ROOT,
-                    "http://localhost:38080/wildfly-%s%s/transport/employees/1",
+                    "http://localhost:%d/wildfly-%s%s/transport/employees/1",
+                    Integer.parseInt(System.getProperty("tests.jboss.http.port")),
                     Version.CURRENT,
                     Build.CURRENT.isSnapshot() ? "-SNAPSHOT" : "");
             final HttpPut put = new HttpPut(new URI(str));
@@ -73,11 +79,13 @@ public class WildflyIT extends LuceneTestCase {
                     builder.endArray();
                 }
                 builder.endObject();
-                body = builder.string();
+                body = Strings.toString(builder);
             }
             put.setEntity(new StringEntity(body, ContentType.APPLICATION_JSON));
             try (CloseableHttpResponse response = client.execute(put)) {
-                assertThat(response.getStatusLine().getStatusCode(), equalTo(201));
+                int status = response.getStatusLine().getStatusCode();
+                assertThat("expected a 201 response but got: " + status + " - body: " + EntityUtils.toString(response.getEntity()),
+                        status, equalTo(201));
             }
 
             final HttpGet get = new HttpGet(new URI(str));
@@ -86,6 +94,7 @@ public class WildflyIT extends LuceneTestCase {
                     XContentParser parser =
                             JsonXContent.jsonXContent.createParser(
                                     new NamedXContentRegistry(ClusterModule.getNamedXWriteables()),
+                                    DeprecationHandler.THROW_UNSUPPORTED_OPERATION,
                                     response.getEntity().getContent())) {
                 final Map<String, Object> map = parser.map();
                 assertThat(map.get("first_name"), equalTo("John"));

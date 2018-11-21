@@ -30,11 +30,13 @@ There are several thread pools, but the important ones include:
     with a size of `# of available processors`,
     queue_size of `1000`.
 
-`bulk`::
-    For bulk operations. Thread pool type is `fixed`
-    with a size of `# of available processors`,
-    queue_size of `200`.  The maximum size for this pool
-    is `1 + # of available processors`.
+`analyze`::
+    For analyze requests. Thread pool type is `fixed` with a size of 1, queue size of 16.
+
+`write`::
+    For single-document index/delete/update and bulk requests. Thread pool type
+    is `fixed` with a size of `# of available processors`, queue_size of `200`.
+    The maximum size for this pool is `1 + # of available processors`.
 
 `snapshot`::
     For snapshot/restore operations. Thread pool type is `scaling` with a
@@ -120,7 +122,7 @@ The `auto_queue_frame_size` setting controls the number of operations during
 which measurement is taken before the queue is adjusted. It should be large
 enough that a single operation cannot unduly bias the calculation.
 
-The `target_response_rate` is a time value setting that indicates the targeted
+The `target_response_time` is a time value setting that indicates the targeted
 average response time for tasks in the thread pool queue. If tasks are routinely
 above this time, the thread pool queue will be adjusted down so that tasks are
 rejected.
@@ -134,7 +136,7 @@ thread_pool:
         min_queue_size: 10
         max_queue_size: 1000
         auto_queue_frame_size: 2000
-        target_response_rate: 1s
+        target_response_time: 1s
 --------------------------------------------------
 
 [float]

@@ -105,6 +105,11 @@ NOTE: 每个 Elasticsearch 分片是一个 Lucence 索引。一个 Lucene 索引
 
 == 安装
 
+[TIP]
+==============
+你可以完全跳过安装步骤，直接使用我们托管的云服务 https://www.elastic.co/cloud[Elastic Cloud]，在 AWS 和 GCP 上已经开放了。 你可以免费 https://www.elastic.co/cloud/elasticsearch-service/signup[试用托管服务]。
+==============
+
 Elasticsearch 最低需要 Java 8 支持。 在撰写本文时强烈建议你使用 Oracle JDK 版本 {jdk}。Java 在不同平台的安装方法不同，所以我们不会在这里详细讨论安装细节。Oracle 的建议安装文档可以在 http://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html[Oracle's website] 找到。需要知道的是，在安装 Elasticsearch 之前请先检查你的 Java 版本（请按需进行 安装/升级）：
 
 [source,sh]
@@ -158,6 +163,9 @@ cd elasticsearch-{version}/bin
 --------------------------------------------------
 brew install elasticsearch
 --------------------------------------------------
+
+If installation succeeds, Homebrew will finish by saying that you can start Elasticsearch by entering
+`elasticsearch`. Do that now. The expected response is described below, under <<successfully-running-node>>.
 
 [float]
 === MSI Windows Installer 安装示例
@@ -477,7 +485,7 @@ DELETE /customer
 
 [source,js]
 --------------------------------------------------
-<REST Verb> /<Index>/<Type>/<ID>
+<HTTP Verb> /<Index>/<Type>/<ID>
 --------------------------------------------------
 // NOTCONSOLE
 
@@ -668,8 +676,8 @@ Bulk API 不会因为一个操作失败而失败。如果一个动作因为某�
 
 [source,sh]
 --------------------------------------------------
-curl -H "Content-Type: application/json" -XPOST 'localhost:9200/bank/account/_bulk?pretty&refresh' --data-binary "@accounts.json"
-curl 'localhost:9200/_cat/indices?v'
+curl -H "Content-Type: application/json" -XPOST "localhost:9200/bank/_doc/_bulk?pretty&refresh" --data-binary "@accounts.json"
+curl "localhost:9200/_cat/indices?v"
 --------------------------------------------------
 // NOTCONSOLE
 
@@ -856,7 +864,7 @@ GET /bank/_search
 
 注意如果 `size` 没有指定，默认是 10。
 
-下例执行了 `match_all` 并返回 11 到 20 的文档结果。
+下例执行了 `match_all` 并返回 11 到 19 的文档结果。
 
 [source,js]
 --------------------------------------------------
@@ -1107,7 +1115,7 @@ GET /bank/_search
 
 [source,sh]
 --------------------------------------------------
-SELECT state, COUNT(*) FROM bank GROUP BY state ORDER BY COUNT(*) DESC
+SELECT state, COUNT(*) FROM bank GROUP BY state ORDER BY COUNT(*) DESC LIMIT 10;
 --------------------------------------------------
 
 响应如下（部分展示）：

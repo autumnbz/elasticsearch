@@ -22,14 +22,14 @@ package org.elasticsearch.plugin.discovery.gce;
 import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.util.ClassInfo;
 import org.apache.logging.log4j.Logger;
-import org.apache.lucene.util.IOUtils;
+import org.elasticsearch.common.Booleans;
+import org.elasticsearch.core.internal.io.IOUtils;
 import org.apache.lucene.util.SetOnce;
 import org.elasticsearch.cloud.gce.GceInstancesService;
 import org.elasticsearch.cloud.gce.GceInstancesServiceImpl;
 import org.elasticsearch.cloud.gce.GceMetadataService;
 import org.elasticsearch.cloud.gce.network.GceNameResolver;
 import org.elasticsearch.cloud.gce.util.Access;
-import org.elasticsearch.common.logging.DeprecationLogger;
 import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.network.NetworkService;
 import org.elasticsearch.common.settings.Setting;
@@ -42,6 +42,7 @@ import org.elasticsearch.transport.TransportService;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -50,12 +51,16 @@ import java.util.function.Supplier;
 
 public class GceDiscoveryPlugin extends Plugin implements DiscoveryPlugin, Closeable {
 
+    /** Determines whether settings those reroutes GCE call should be allowed (for testing purposes only). */
+    private static final boolean ALLOW_REROUTE_GCE_SETTINGS =
+        Booleans.parseBoolean(System.getProperty("es.allow_reroute_gce_settings", "false"));
+
     public static final String GCE = "gce";
-    private final Settings settings;
+    protected final Settings settings;
     private static final Logger logger = Loggers.getLogger(GceDiscoveryPlugin.class);
-    private static final DeprecationLogger deprecationLogger = new DeprecationLogger(logger);
+
     // stashed when created in order to properly close
-    private final SetOnce<GceInstancesServiceImpl> gceInstancesService = new SetOnce<>();
+    private final SetOnce<GceInstancesService> gceInstancesService = new SetOnce<>();
 
     static {
         /*
@@ -74,13 +79,16 @@ public class GceDiscoveryPlugin extends Plugin implements DiscoveryPlugin, Close
         logger.trace("starting gce discovery plugin...");
     }
 
-
+    // overrideable for tests
+    protected GceInstancesService createGceInstancesService() {
+        return new GceInstancesServiceImpl(settings);
+    }
 
     @Override
     public Map<String, Supplier<UnicastHostsProvider>> getZenHostsProviders(TransportService transportService,
                                                                             NetworkService networkService) {
         return Collections.singletonMap(GCE, () -> {
-            gceInstancesService.set(new GceInstancesServiceImpl(settings));
+            gceInstancesService.set(createGceInstancesService());
             return new GceUnicastHostsProvider(settings, gceInstancesService.get(), transportService, networkService);
         });
     }
@@ -93,14 +101,22 @@ public class GceDiscoveryPlugin extends Plugin implements DiscoveryPlugin, Close
 
     @Override
     public List<Setting<?>> getSettings() {
-        return Arrays.asList(
-            // Register GCE settings
-            GceInstancesService.PROJECT_SETTING,
-            GceInstancesService.ZONE_SETTING,
-            GceUnicastHostsProvider.TAGS_SETTING,
-            GceInstancesService.REFRESH_SETTING,
-            GceInstancesService.RETRY_SETTING,
-            GceInstancesService.MAX_WAIT_SETTING);
+        List<Setting<?>> settings = new ArrayList<>(
+            Arrays.asList(
+                // Register GCE settings
+                GceInstancesService.PROJECT_SETTING,
+                GceInstancesService.ZONE_SETTING,
+                GceUnicastHostsProvider.TAGS_SETTING,
+                GceInstancesService.REFRESH_SETTING,
+                GceInstancesService.RETRY_SETTING,
+                GceInstancesService.MAX_WAIT_SETTING)
+        );
+
+        if (ALLOW_REROUTE_GCE_SETTINGS) {
+            settings.add(GceMetadataService.GCE_HOST);
+            settings.add(GceInstancesServiceImpl.GCE_ROOT_URL);
+        }
+        return Collections.unmodifiableList(settings);
     }
 
 

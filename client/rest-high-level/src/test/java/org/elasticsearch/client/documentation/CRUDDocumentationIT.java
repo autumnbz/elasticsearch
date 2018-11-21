@@ -19,14 +19,12 @@
 
 package org.elasticsearch.client.documentation;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.nio.entity.NStringEntity;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.DocWriteRequest;
 import org.elasticsearch.action.DocWriteResponse;
+import org.elasticsearch.action.LatchedActionListener;
+import org.elasticsearch.action.admin.cluster.node.tasks.list.ListTasksResponse;
 import org.elasticsearch.action.bulk.BackoffPolicy;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkProcessor;
@@ -36,58 +34,74 @@ import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.get.MultiGetItemResponse;
+import org.elasticsearch.action.get.MultiGetRequest;
+import org.elasticsearch.action.get.MultiGetResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.support.ActiveShardCount;
+import org.elasticsearch.action.support.IndicesOptions;
 import org.elasticsearch.action.support.WriteRequest;
+import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
 import org.elasticsearch.action.support.replication.ReplicationResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.ESRestHighLevelClientTestCase;
+import org.elasticsearch.client.Request;
+import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.RethrottleRequest;
 import org.elasticsearch.common.Strings;
+import org.elasticsearch.common.bytes.BytesArray;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.ByteSizeUnit;
 import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.common.xcontent.json.JsonXContent;
 import org.elasticsearch.index.VersionType;
 import org.elasticsearch.index.get.GetResult;
+import org.elasticsearch.index.query.MatchAllQueryBuilder;
+import org.elasticsearch.index.query.TermQueryBuilder;
+import org.elasticsearch.index.reindex.BulkByScrollResponse;
+import org.elasticsearch.index.reindex.DeleteByQueryRequest;
+import org.elasticsearch.index.reindex.ReindexRequest;
+import org.elasticsearch.index.reindex.RemoteInfo;
+import org.elasticsearch.index.reindex.ScrollableHitSource;
+import org.elasticsearch.index.reindex.UpdateByQueryRequest;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.script.ScriptType;
 import org.elasticsearch.search.fetch.subphase.FetchSourceContext;
-import org.elasticsearch.threadpool.Scheduler;
+import org.elasticsearch.search.sort.SortOrder;
+import org.elasticsearch.tasks.TaskId;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 
-import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
+import static org.hamcrest.Matchers.arrayWithSize;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.not;
 
 /**
- * This class is used to generate the Java CRUD API documentation.
- * You need to wrap your code between two tags like:
- * // tag::example[]
- * // end::example[]
- *
- * Where example is your tag name.
- *
- * Then in the documentation, you can extract what is between tag and end tags with
- * ["source","java",subs="attributes,callouts,macros"]
- * --------------------------------------------------
- * include-tagged::{doc-tests}/CRUDDocumentationIT.java[example]
- * --------------------------------------------------
+ * Documentation for CRUD APIs in the high level java client.
+ * Code wrapped in {@code tag} and {@code end} tags is included in the docs.
  */
 public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
 
-    public void testIndex() throws IOException {
+    public void testIndex() throws Exception {
         RestHighLevelClient client = highLevelClient();
 
         {
@@ -99,8 +113,8 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
             IndexRequest indexRequest = new IndexRequest("posts", "doc", "1")
                     .source(jsonMap); // <1>
             //end::index-request-map
-            IndexResponse indexResponse = client.index(indexRequest);
-            assertEquals(indexResponse.getResult(), DocWriteResponse.Result.CREATED);
+            IndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);
+            assertEquals(DocWriteResponse.Result.CREATED, indexResponse.getResult());
         }
         {
             //tag::index-request-xcontent
@@ -108,15 +122,15 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
             builder.startObject();
             {
                 builder.field("user", "kimchy");
-                builder.field("postDate", new Date());
+                builder.timeField("postDate", new Date());
                 builder.field("message", "trying out Elasticsearch");
             }
             builder.endObject();
             IndexRequest indexRequest = new IndexRequest("posts", "doc", "1")
                     .source(builder);  // <1>
             //end::index-request-xcontent
-            IndexResponse indexResponse = client.index(indexRequest);
-            assertEquals(indexResponse.getResult(), DocWriteResponse.Result.UPDATED);
+            IndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);
+            assertEquals(DocWriteResponse.Result.UPDATED, indexResponse.getResult());
         }
         {
             //tag::index-request-shortcut
@@ -125,8 +139,8 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
                             "postDate", new Date(),
                             "message", "trying out Elasticsearch"); // <1>
             //end::index-request-shortcut
-            IndexResponse indexResponse = client.index(indexRequest);
-            assertEquals(indexResponse.getResult(), DocWriteResponse.Result.UPDATED);
+            IndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);
+            assertEquals(DocWriteResponse.Result.UPDATED, indexResponse.getResult());
         }
         {
             //tag::index-request-string
@@ -143,9 +157,9 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
             //end::index-request-string
 
             // tag::index-execute
-            IndexResponse indexResponse = client.index(request);
+            IndexResponse indexResponse = client.index(request, RequestOptions.DEFAULT);
             // end::index-execute
-            assertEquals(indexResponse.getResult(), DocWriteResponse.Result.UPDATED);
+            assertEquals(DocWriteResponse.Result.UPDATED, indexResponse.getResult());
 
             // tag::index-response
             String index = indexResponse.getIndex();
@@ -162,25 +176,12 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
                 // <3>
             }
             if (shardInfo.getFailed() > 0) {
-                for (ReplicationResponse.ShardInfo.Failure failure : shardInfo.getFailures()) {
+                for (ReplicationResponse.ShardInfo.Failure failure :
+                        shardInfo.getFailures()) {
                     String reason = failure.reason(); // <4>
                 }
             }
             // end::index-response
-
-            // tag::index-execute-async
-            client.indexAsync(request, new ActionListener<IndexResponse>() {
-                @Override
-                public void onResponse(IndexResponse indexResponse) {
-                    // <1>
-                }
-
-                @Override
-                public void onFailure(Exception e) {
-                    // <2>
-                }
-            });
-            // end::index-execute-async
         }
         {
             IndexRequest request = new IndexRequest("posts", "doc", "1");
@@ -218,7 +219,7 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
                     .source("field", "value")
                     .version(1);
             try {
-                IndexResponse response = client.index(request);
+                IndexResponse response = client.index(request, RequestOptions.DEFAULT);
             } catch(ElasticsearchException e) {
                 if (e.status() == RestStatus.CONFLICT) {
                     // <1>
@@ -232,7 +233,7 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
                     .source("field", "value")
                     .opType(DocWriteRequest.OpType.CREATE);
             try {
-                IndexResponse response = client.index(request);
+                IndexResponse response = client.index(request, RequestOptions.DEFAULT);
             } catch(ElasticsearchException e) {
                 if (e.status() == RestStatus.CONFLICT) {
                     // <1>
@@ -240,26 +241,52 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
             }
             // end::index-optype
         }
+        {
+            IndexRequest request = new IndexRequest("posts", "doc", "async").source("field", "value");
+            ActionListener<IndexResponse> listener;
+            // tag::index-execute-listener
+            listener = new ActionListener<IndexResponse>() {
+                @Override
+                public void onResponse(IndexResponse indexResponse) {
+                    // <1>
+                }
+
+                @Override
+                public void onFailure(Exception e) {
+                    // <2>
+                }
+            };
+            // end::index-execute-listener
+
+            // Replace the empty listener by a blocking listener in test
+            final CountDownLatch latch = new CountDownLatch(1);
+            listener = new LatchedActionListener<>(listener, latch);
+
+            // tag::index-execute-async
+            client.indexAsync(request, RequestOptions.DEFAULT, listener); // <1>
+            // end::index-execute-async
+
+            assertTrue(latch.await(30L, TimeUnit.SECONDS));
+        }
     }
 
-    public void testUpdate() throws IOException {
+    public void testUpdate() throws Exception {
         RestHighLevelClient client = highLevelClient();
         {
             IndexRequest indexRequest = new IndexRequest("posts", "doc", "1").source("field", 0);
-            IndexResponse indexResponse = client.index(indexRequest);
-            assertSame(indexResponse.status(), RestStatus.CREATED);
+            IndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);
+            assertSame(RestStatus.CREATED, indexResponse.status());
 
-            XContentType xContentType = XContentType.JSON;
-            String script = XContentBuilder.builder(xContentType.xContent())
+            Request request = new Request("POST", "/_scripts/increment-field");
+            request.setJsonEntity(Strings.toString(JsonXContent.contentBuilder()
                     .startObject()
                         .startObject("script")
                             .field("lang", "painless")
-                            .field("code", "ctx._source.field += params.count")
+                            .field("source", "ctx._source.field += params.count")
                         .endObject()
-                    .endObject().string();
-            HttpEntity body = new NStringEntity(script, ContentType.create(xContentType.mediaType()));
-            Response response = client().performRequest(HttpPost.METHOD_NAME, "/_scripts/increment-field", emptyMap(), body);
-            assertEquals(response.getStatusLine().getStatusCode(), RestStatus.OK.getStatus());
+                    .endObject()));
+            Response response = client().performRequest(request);
+            assertEquals(RestStatus.OK.getStatus(), response.getStatusLine().getStatusCode());
         }
         {
             //tag::update-request
@@ -272,21 +299,22 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
             //tag::update-request-with-inline-script
             Map<String, Object> parameters = singletonMap("count", 4); // <1>
 
-            Script inline = new Script(ScriptType.INLINE, "painless", "ctx._source.field += params.count", parameters);  // <2>
+            Script inline = new Script(ScriptType.INLINE, "painless",
+                    "ctx._source.field += params.count", parameters);  // <2>
             request.script(inline);  // <3>
             //end::update-request-with-inline-script
-            UpdateResponse updateResponse = client.update(request);
-            assertEquals(updateResponse.getResult(), DocWriteResponse.Result.UPDATED);
+            UpdateResponse updateResponse = client.update(request, RequestOptions.DEFAULT);
+            assertEquals(DocWriteResponse.Result.UPDATED, updateResponse.getResult());
             assertEquals(4, updateResponse.getGetResult().getSource().get("field"));
 
             request = new UpdateRequest("posts", "doc", "1").fetchSource(true);
             //tag::update-request-with-stored-script
-            Script stored =
-                    new Script(ScriptType.STORED, null, "increment-field", parameters);  // <1>
+            Script stored = new Script(
+                    ScriptType.STORED, null, "increment-field", parameters);  // <1>
             request.script(stored);  // <2>
             //end::update-request-with-stored-script
-            updateResponse = client.update(request);
-            assertEquals(updateResponse.getResult(), DocWriteResponse.Result.UPDATED);
+            updateResponse = client.update(request, RequestOptions.DEFAULT);
+            assertEquals(DocWriteResponse.Result.UPDATED, updateResponse.getResult());
             assertEquals(8, updateResponse.getGetResult().getSource().get("field"));
         }
         {
@@ -297,23 +325,23 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
             UpdateRequest request = new UpdateRequest("posts", "doc", "1")
                     .doc(jsonMap); // <1>
             //end::update-request-with-doc-as-map
-            UpdateResponse updateResponse = client.update(request);
-            assertEquals(updateResponse.getResult(), DocWriteResponse.Result.UPDATED);
+            UpdateResponse updateResponse = client.update(request, RequestOptions.DEFAULT);
+            assertEquals(DocWriteResponse.Result.UPDATED, updateResponse.getResult());
         }
         {
             //tag::update-request-with-doc-as-xcontent
             XContentBuilder builder = XContentFactory.jsonBuilder();
             builder.startObject();
             {
-                builder.field("updated", new Date());
+                builder.timeField("updated", new Date());
                 builder.field("reason", "daily update");
             }
             builder.endObject();
             UpdateRequest request = new UpdateRequest("posts", "doc", "1")
                     .doc(builder);  // <1>
             //end::update-request-with-doc-as-xcontent
-            UpdateResponse updateResponse = client.update(request);
-            assertEquals(updateResponse.getResult(), DocWriteResponse.Result.UPDATED);
+            UpdateResponse updateResponse = client.update(request, RequestOptions.DEFAULT);
+            assertEquals(DocWriteResponse.Result.UPDATED, updateResponse.getResult());
         }
         {
             //tag::update-request-shortcut
@@ -321,8 +349,8 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
                     .doc("updated", new Date(),
                          "reason", "daily update"); // <1>
             //end::update-request-shortcut
-            UpdateResponse updateResponse = client.update(request);
-            assertEquals(updateResponse.getResult(), DocWriteResponse.Result.UPDATED);
+            UpdateResponse updateResponse = client.update(request, RequestOptions.DEFAULT);
+            assertEquals(DocWriteResponse.Result.UPDATED, updateResponse.getResult());
         }
         {
             //tag::update-request-with-doc-as-string
@@ -335,9 +363,10 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
             //end::update-request-with-doc-as-string
             request.fetchSource(true);
             // tag::update-execute
-            UpdateResponse updateResponse = client.update(request);
+            UpdateResponse updateResponse = client.update(
+                    request, RequestOptions.DEFAULT);
             // end::update-execute
-            assertEquals(updateResponse.getResult(), DocWriteResponse.Result.UPDATED);
+            assertEquals(DocWriteResponse.Result.UPDATED, updateResponse.getResult());
 
             // tag::update-response
             String index = updateResponse.getIndex();
@@ -373,31 +402,20 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
                 // <1>
             }
             if (shardInfo.getFailed() > 0) {
-                for (ReplicationResponse.ShardInfo.Failure failure : shardInfo.getFailures()) {
+                for (ReplicationResponse.ShardInfo.Failure failure :
+                        shardInfo.getFailures()) {
                     String reason = failure.reason(); // <2>
                 }
             }
             // end::update-failure
-
-            // tag::update-execute-async
-            client.updateAsync(request, new ActionListener<UpdateResponse>() {
-                @Override
-                public void onResponse(UpdateResponse updateResponse) {
-                    // <1>
-                }
-
-                @Override
-                public void onFailure(Exception e) {
-                    // <2>
-                }
-            });
-            // end::update-execute-async
         }
         {
             //tag::update-docnotfound
-            UpdateRequest request = new UpdateRequest("posts", "type", "does_not_exist").doc("field", "value");
+            UpdateRequest request = new UpdateRequest("posts", "type", "does_not_exist")
+                    .doc("field", "value");
             try {
-                UpdateResponse updateResponse = client.update(request);
+                UpdateResponse updateResponse = client.update(
+                        request, RequestOptions.DEFAULT);
             } catch (ElasticsearchException e) {
                 if (e.status() == RestStatus.NOT_FOUND) {
                     // <1>
@@ -411,7 +429,8 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
                     .doc("field", "value")
                     .version(1);
             try {
-                UpdateResponse updateResponse = client.update(request);
+                UpdateResponse updateResponse = client.update(
+                        request, RequestOptions.DEFAULT);
             } catch(ElasticsearchException e) {
                 if (e.status() == RestStatus.CONFLICT) {
                     // <1>
@@ -424,8 +443,8 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
             //tag::update-request-no-source
             request.fetchSource(true); // <1>
             //end::update-request-no-source
-            UpdateResponse updateResponse = client.update(request);
-            assertEquals(updateResponse.getResult(), DocWriteResponse.Result.UPDATED);
+            UpdateResponse updateResponse = client.update(request, RequestOptions.DEFAULT);
+            assertEquals(DocWriteResponse.Result.UPDATED, updateResponse.getResult());
             assertNotNull(updateResponse.getGetResult());
             assertEquals(3, updateResponse.getGetResult().sourceAsMap().size());
         }
@@ -434,10 +453,11 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
             //tag::update-request-source-include
             String[] includes = new String[]{"updated", "r*"};
             String[] excludes = Strings.EMPTY_ARRAY;
-            request.fetchSource(new FetchSourceContext(true, includes, excludes)); // <1>
+            request.fetchSource(
+                    new FetchSourceContext(true, includes, excludes)); // <1>
             //end::update-request-source-include
-            UpdateResponse updateResponse = client.update(request);
-            assertEquals(updateResponse.getResult(), DocWriteResponse.Result.UPDATED);
+            UpdateResponse updateResponse = client.update(request, RequestOptions.DEFAULT);
+            assertEquals(DocWriteResponse.Result.UPDATED, updateResponse.getResult());
             Map<String, Object> sourceAsMap = updateResponse.getGetResult().sourceAsMap();
             assertEquals(2, sourceAsMap.size());
             assertEquals("source includes", sourceAsMap.get("reason"));
@@ -448,10 +468,11 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
             //tag::update-request-source-exclude
             String[] includes = Strings.EMPTY_ARRAY;
             String[] excludes = new String[]{"updated"};
-            request.fetchSource(new FetchSourceContext(true, includes, excludes)); // <1>
+            request.fetchSource(
+                    new FetchSourceContext(true, includes, excludes)); // <1>
             //end::update-request-source-exclude
-            UpdateResponse updateResponse = client.update(request);
-            assertEquals(updateResponse.getResult(), DocWriteResponse.Result.UPDATED);
+            UpdateResponse updateResponse = client.update(request, RequestOptions.DEFAULT);
+            assertEquals(DocWriteResponse.Result.UPDATED, updateResponse.getResult());
             Map<String, Object> sourceAsMap = updateResponse.getGetResult().sourceAsMap();
             assertEquals(2, sourceAsMap.size());
             assertEquals("source excludes", sourceAsMap.get("reason"));
@@ -497,29 +518,58 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
             request.waitForActiveShards(ActiveShardCount.ALL); // <2>
             // end::update-request-active-shards
         }
+        {
+            UpdateRequest request = new UpdateRequest("posts", "doc", "async").doc("reason", "async update").docAsUpsert(true);
+
+            ActionListener<UpdateResponse> listener;
+            // tag::update-execute-listener
+            listener = new ActionListener<UpdateResponse>() {
+                @Override
+                public void onResponse(UpdateResponse updateResponse) {
+                    // <1>
+                }
+
+                @Override
+                public void onFailure(Exception e) {
+                    // <2>
+                }
+            };
+            // end::update-execute-listener
+
+            // Replace the empty listener by a blocking listener in test
+            final CountDownLatch latch = new CountDownLatch(1);
+            listener = new LatchedActionListener<>(listener, latch);
+
+            // tag::update-execute-async
+            client.updateAsync(request, RequestOptions.DEFAULT, listener); // <1>
+            // end::update-execute-async
+
+            assertTrue(latch.await(30L, TimeUnit.SECONDS));
+        }
     }
 
-    public void testDelete() throws IOException {
+    public void testDelete() throws Exception {
         RestHighLevelClient client = highLevelClient();
 
         {
             IndexRequest indexRequest = new IndexRequest("posts", "doc", "1").source("field", "value");
-            IndexResponse indexResponse = client.index(indexRequest);
-            assertSame(indexResponse.status(), RestStatus.CREATED);
+            IndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);
+            assertSame(RestStatus.CREATED, indexResponse.status());
         }
 
         {
             // tag::delete-request
             DeleteRequest request = new DeleteRequest(
                     "posts",    // <1>
-                    "doc",     // <2>
-                    "1");      // <3>
+                    "doc",      // <2>
+                    "1");       // <3>
             // end::delete-request
 
             // tag::delete-execute
-            DeleteResponse deleteResponse = client.delete(request);
+            DeleteResponse deleteResponse = client.delete(
+                    request, RequestOptions.DEFAULT);
             // end::delete-execute
-            assertSame(deleteResponse.getResult(), DocWriteResponse.Result.DELETED);
+            assertSame(DocWriteResponse.Result.DELETED, deleteResponse.getResult());
 
             // tag::delete-response
             String index = deleteResponse.getIndex();
@@ -531,25 +581,12 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
                 // <1>
             }
             if (shardInfo.getFailed() > 0) {
-                for (ReplicationResponse.ShardInfo.Failure failure : shardInfo.getFailures()) {
+                for (ReplicationResponse.ShardInfo.Failure failure :
+                        shardInfo.getFailures()) {
                     String reason = failure.reason(); // <2>
                 }
             }
             // end::delete-response
-
-            // tag::delete-execute-async
-            client.deleteAsync(request, new ActionListener<DeleteResponse>() {
-                @Override
-                public void onResponse(DeleteResponse deleteResponse) {
-                    // <1>
-                }
-
-                @Override
-                public void onFailure(Exception e) {
-                    // <2>
-                }
-            });
-            // end::delete-execute-async
         }
 
         {
@@ -579,7 +616,8 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
         {
             // tag::delete-notfound
             DeleteRequest request = new DeleteRequest("posts", "doc", "does_not_exist");
-            DeleteResponse deleteResponse = client.delete(request);
+            DeleteResponse deleteResponse = client.delete(
+                    request, RequestOptions.DEFAULT);
             if (deleteResponse.getResult() == DocWriteResponse.Result.NOT_FOUND) {
                 // <1>
             }
@@ -587,13 +625,15 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
         }
 
         {
-            IndexResponse indexResponse = client.index(new IndexRequest("posts", "doc", "1").source("field", "value"));
-            assertSame(indexResponse.status(), RestStatus.CREATED);
+            IndexResponse indexResponse = client.index(new IndexRequest("posts", "doc", "1").source("field", "value")
+                    , RequestOptions.DEFAULT);
+            assertSame(RestStatus.CREATED, indexResponse.status());
 
             // tag::delete-conflict
             try {
-                DeleteRequest request = new DeleteRequest("posts", "doc", "1").version(2);
-                DeleteResponse deleteResponse = client.delete(request);
+                DeleteResponse deleteResponse = client.delete(
+                        new DeleteRequest("posts", "doc", "1").version(2),
+                        RequestOptions.DEFAULT);
             } catch (ElasticsearchException exception) {
                 if (exception.status() == RestStatus.CONFLICT) {
                     // <1>
@@ -601,9 +641,41 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
             }
             // end::delete-conflict
         }
+        {
+            IndexResponse indexResponse = client.index(new IndexRequest("posts", "doc", "async").source("field", "value"),
+                    RequestOptions.DEFAULT);
+            assertSame(RestStatus.CREATED, indexResponse.status());
+
+            DeleteRequest request = new DeleteRequest("posts", "doc", "async");
+
+            ActionListener<DeleteResponse> listener;
+            // tag::delete-execute-listener
+            listener = new ActionListener<DeleteResponse>() {
+                @Override
+                public void onResponse(DeleteResponse deleteResponse) {
+                    // <1>
+                }
+
+                @Override
+                public void onFailure(Exception e) {
+                    // <2>
+                }
+            };
+            // end::delete-execute-listener
+
+            // Replace the empty listener by a blocking listener in test
+            final CountDownLatch latch = new CountDownLatch(1);
+            listener = new LatchedActionListener<>(listener, latch);
+
+            // tag::delete-execute-async
+            client.deleteAsync(request, RequestOptions.DEFAULT, listener); // <1>
+            // end::delete-execute-async
+
+            assertTrue(latch.await(30L, TimeUnit.SECONDS));
+        }
     }
 
-    public void testBulk() throws IOException {
+    public void testBulk() throws Exception {
         RestHighLevelClient client = highLevelClient();
         {
             // tag::bulk-request
@@ -616,9 +688,9 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
                     .source(XContentType.JSON,"field", "baz"));
             // end::bulk-request
             // tag::bulk-execute
-            BulkResponse bulkResponse = client.bulk(request);
+            BulkResponse bulkResponse = client.bulk(request, RequestOptions.DEFAULT);
             // end::bulk-execute
-            assertSame(bulkResponse.status(), RestStatus.OK);
+            assertSame(RestStatus.OK, bulkResponse.status());
             assertFalse(bulkResponse.hasFailures());
         }
         {
@@ -630,8 +702,8 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
             request.add(new IndexRequest("posts", "doc", "4")  // <3>
                     .source(XContentType.JSON,"field", "baz"));
             // end::bulk-request-with-mixed-operations
-            BulkResponse bulkResponse = client.bulk(request);
-            assertSame(bulkResponse.status(), RestStatus.OK);
+            BulkResponse bulkResponse = client.bulk(request, RequestOptions.DEFAULT);
+            assertSame(RestStatus.OK, bulkResponse.status());
             assertFalse(bulkResponse.hasFailures());
 
             // tag::bulk-response
@@ -679,8 +751,8 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
             request.waitForActiveShards(ActiveShardCount.ALL); // <2>
             // end::bulk-request-active-shards
 
-            // tag::bulk-execute-async
-            client.bulkAsync(request, new ActionListener<BulkResponse>() {
+            // tag::bulk-execute-listener
+            ActionListener<BulkResponse> listener = new ActionListener<BulkResponse>() {
                 @Override
                 public void onResponse(BulkResponse bulkResponse) {
                     // <1>
@@ -690,15 +762,440 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
                 public void onFailure(Exception e) {
                     // <2>
                 }
-            });
+            };
+            // end::bulk-execute-listener
+
+            // Replace the empty listener by a blocking listener in test
+            final CountDownLatch latch = new CountDownLatch(1);
+            listener = new LatchedActionListener<>(listener, latch);
+
+            // tag::bulk-execute-async
+            client.bulkAsync(request, RequestOptions.DEFAULT, listener); // <1>
             // end::bulk-execute-async
+
+            assertTrue(latch.await(30L, TimeUnit.SECONDS));
         }
     }
 
-    public void testGet() throws IOException {
+    public void testReindex() throws Exception {
         RestHighLevelClient client = highLevelClient();
         {
-            String mappings = "{\n" +
+            String mapping =
+                "\"doc\": {\n" +
+                    "    \"properties\": {\n" +
+                    "      \"user\": {\n" +
+                    "        \"type\": \"text\"\n" +
+                    "      },\n" +
+                    "      \"field1\": {\n" +
+                    "        \"type\": \"integer\"\n" +
+                    "      },\n" +
+                    "      \"field2\": {\n" +
+                    "        \"type\": \"integer\"\n" +
+                    "      }\n" +
+                    "    }\n" +
+                    "  }";
+            createIndex("source1", Settings.EMPTY, mapping);
+            createIndex("source2", Settings.EMPTY, mapping);
+            createPipeline("my_pipeline");
+        }
+        {
+            // tag::reindex-request
+            ReindexRequest request = new ReindexRequest(); // <1>
+            request.setSourceIndices("source1", "source2"); // <2>
+            request.setDestIndex("dest");  // <3>
+            // end::reindex-request
+            // tag::reindex-request-versionType
+            request.setDestVersionType(VersionType.EXTERNAL); // <1>
+            // end::reindex-request-versionType
+            // tag::reindex-request-opType
+            request.setDestOpType("create"); // <1>
+            // end::reindex-request-opType
+            // tag::reindex-request-conflicts
+            request.setConflicts("proceed"); // <1>
+            // end::reindex-request-conflicts
+            // tag::reindex-request-typeOrQuery
+            request.setSourceDocTypes("doc"); // <1>
+            request.setSourceQuery(new TermQueryBuilder("user", "kimchy")); // <2>
+            // end::reindex-request-typeOrQuery
+            // tag::reindex-request-size
+            request.setSize(10); // <1>
+            // end::reindex-request-size
+            // tag::reindex-request-sourceSize
+            request.setSourceBatchSize(100); // <1>
+            // end::reindex-request-sourceSize
+            // tag::reindex-request-pipeline
+            request.setDestPipeline("my_pipeline"); // <1>
+            // end::reindex-request-pipeline
+            // tag::reindex-request-sort
+            request.addSortField("field1", SortOrder.DESC); // <1>
+            request.addSortField("field2", SortOrder.ASC); // <2>
+            // end::reindex-request-sort
+            // tag::reindex-request-script
+            request.setScript(
+                new Script(
+                    ScriptType.INLINE, "painless",
+                    "if (ctx._source.user == 'kimchy') {ctx._source.likes++;}",
+                    Collections.emptyMap())); // <1>
+            // end::reindex-request-script
+            // tag::reindex-request-remote
+            request.setRemoteInfo(
+                new RemoteInfo(
+                    "https", "localhost", 9002, null, new BytesArray(new MatchAllQueryBuilder().toString()),
+                    "user", "pass", Collections.emptyMap(), new TimeValue(100, TimeUnit.MILLISECONDS),
+                    new TimeValue(100, TimeUnit.SECONDS)
+                )
+            ); // <1>
+            // end::reindex-request-remote
+            request.setRemoteInfo(null); // Remove it for tests
+            // tag::reindex-request-timeout
+            request.setTimeout(TimeValue.timeValueMinutes(2)); // <1>
+            // end::reindex-request-timeout
+            // tag::reindex-request-refresh
+            request.setRefresh(true); // <1>
+            // end::reindex-request-refresh
+            // tag::reindex-request-slices
+            request.setSlices(2); // <1>
+            // end::reindex-request-slices
+            // tag::reindex-request-scroll
+            request.setScroll(TimeValue.timeValueMinutes(10)); // <1>
+            // end::reindex-request-scroll
+
+
+            // tag::reindex-execute
+            BulkByScrollResponse bulkResponse = client.reindex(request, RequestOptions.DEFAULT);
+            // end::reindex-execute
+            assertSame(0, bulkResponse.getSearchFailures().size());
+            assertSame(0, bulkResponse.getBulkFailures().size());
+            // tag::reindex-response
+            TimeValue timeTaken = bulkResponse.getTook(); // <1>
+            boolean timedOut = bulkResponse.isTimedOut(); // <2>
+            long totalDocs = bulkResponse.getTotal(); // <3>
+            long updatedDocs = bulkResponse.getUpdated(); // <4>
+            long createdDocs = bulkResponse.getCreated(); // <5>
+            long deletedDocs = bulkResponse.getDeleted(); // <6>
+            long batches = bulkResponse.getBatches(); // <7>
+            long noops = bulkResponse.getNoops(); // <8>
+            long versionConflicts = bulkResponse.getVersionConflicts(); // <9>
+            long bulkRetries = bulkResponse.getBulkRetries(); // <10>
+            long searchRetries = bulkResponse.getSearchRetries(); // <11>
+            TimeValue throttledMillis = bulkResponse.getStatus().getThrottled(); // <12>
+            TimeValue throttledUntilMillis = bulkResponse.getStatus().getThrottledUntil(); // <13>
+            List<ScrollableHitSource.SearchFailure> searchFailures = bulkResponse.getSearchFailures(); // <14>
+            List<BulkItemResponse.Failure> bulkFailures = bulkResponse.getBulkFailures(); // <15>
+            // end::reindex-response
+        }
+        {
+            ReindexRequest request = new ReindexRequest();
+            request.setSourceIndices("source1");
+            request.setDestIndex("dest");
+
+            // tag::reindex-execute-listener
+            ActionListener<BulkByScrollResponse> listener = new ActionListener<BulkByScrollResponse>() {
+                @Override
+                public void onResponse(BulkByScrollResponse bulkResponse) {
+                    // <1>
+                }
+
+                @Override
+                public void onFailure(Exception e) {
+                    // <2>
+                }
+            };
+            // end::reindex-execute-listener
+
+            // Replace the empty listener by a blocking listener in test
+            final CountDownLatch latch = new CountDownLatch(1);
+            listener = new LatchedActionListener<>(listener, latch);
+
+            // tag::reindex-execute-async
+            client.reindexAsync(request, RequestOptions.DEFAULT, listener); // <1>
+            // end::reindex-execute-async
+
+            assertTrue(latch.await(30L, TimeUnit.SECONDS));
+        }
+    }
+
+    public void testReindexRethrottle() throws Exception {
+        RestHighLevelClient client = highLevelClient();
+        TaskId taskId = new TaskId("oTUltX4IQMOUUVeiohTt8A:124");
+        {
+            // tag::rethrottle-disable-request
+            RethrottleRequest request = new RethrottleRequest(taskId); // <1>
+            // end::rethrottle-disable-request
+        }
+
+        {
+            // tag::rethrottle-request
+            RethrottleRequest request = new RethrottleRequest(taskId, 100.0f); // <1>
+            // end::rethrottle-request
+        }
+
+        {
+            RethrottleRequest request = new RethrottleRequest(taskId);
+            // tag::rethrottle-request-execution
+            client.reindexRethrottle(request, RequestOptions.DEFAULT);       // <1>
+            client.updateByQueryRethrottle(request, RequestOptions.DEFAULT); // <2>
+            client.deleteByQueryRethrottle(request, RequestOptions.DEFAULT); // <3>
+            // end::rethrottle-request-execution
+        }
+
+        // tag::rethrottle-request-async-listener
+        ActionListener<ListTasksResponse> listener = new ActionListener<ListTasksResponse>() {
+            @Override
+            public void onResponse(ListTasksResponse response) {
+                // <1>
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                // <2>
+            }
+        };
+        // end::rethrottle-request-async-listener
+
+        // Replace the empty listener by a blocking listener in test
+        final CountDownLatch latch = new CountDownLatch(3);
+        listener = new LatchedActionListener<>(listener, latch);
+
+        RethrottleRequest request = new RethrottleRequest(taskId);
+        // tag::rethrottle-execute-async
+        client.reindexRethrottleAsync(request, RequestOptions.DEFAULT, listener);       // <1>
+        client.updateByQueryRethrottleAsync(request, RequestOptions.DEFAULT, listener); // <2>
+        client.deleteByQueryRethrottleAsync(request, RequestOptions.DEFAULT, listener); // <3>
+        // end::rethrottle-execute-async
+        assertTrue(latch.await(30L, TimeUnit.SECONDS));
+    }
+
+    public void testUpdateByQuery() throws Exception {
+        RestHighLevelClient client = highLevelClient();
+        {
+            String mapping =
+                "\"doc\": {\n" +
+                    "    \"properties\": {\n" +
+                    "      \"user\": {\n" +
+                    "        \"type\": \"text\"\n" +
+                    "      },\n" +
+                    "      \"field1\": {\n" +
+                    "        \"type\": \"integer\"\n" +
+                    "      },\n" +
+                    "      \"field2\": {\n" +
+                    "        \"type\": \"integer\"\n" +
+                    "      }\n" +
+                    "    }\n" +
+                    "  }";
+            createIndex("source1", Settings.EMPTY, mapping);
+            createIndex("source2", Settings.EMPTY, mapping);
+            createPipeline("my_pipeline");
+        }
+        {
+            // tag::update-by-query-request
+            UpdateByQueryRequest request = new UpdateByQueryRequest("source1", "source2"); // <1>
+            // end::update-by-query-request
+            // tag::update-by-query-request-conflicts
+            request.setConflicts("proceed"); // <1>
+            // end::update-by-query-request-conflicts
+            // tag::update-by-query-request-query
+            request.setQuery(new TermQueryBuilder("user", "kimchy")); // <1>
+            // end::update-by-query-request-query
+            // tag::update-by-query-request-size
+            request.setSize(10); // <1>
+            // end::update-by-query-request-size
+            // tag::update-by-query-request-scrollSize
+            request.setBatchSize(100); // <1>
+            // end::update-by-query-request-scrollSize
+            // tag::update-by-query-request-pipeline
+            request.setPipeline("my_pipeline"); // <1>
+            // end::update-by-query-request-pipeline
+            // tag::update-by-query-request-script
+            request.setScript(
+                new Script(
+                    ScriptType.INLINE, "painless",
+                    "if (ctx._source.user == 'kimchy') {ctx._source.likes++;}",
+                    Collections.emptyMap())); // <1>
+            // end::update-by-query-request-script
+            // tag::update-by-query-request-timeout
+            request.setTimeout(TimeValue.timeValueMinutes(2)); // <1>
+            // end::update-by-query-request-timeout
+            // tag::update-by-query-request-refresh
+            request.setRefresh(true); // <1>
+            // end::update-by-query-request-refresh
+            // tag::update-by-query-request-slices
+            request.setSlices(2); // <1>
+            // end::update-by-query-request-slices
+            // tag::update-by-query-request-scroll
+            request.setScroll(TimeValue.timeValueMinutes(10)); // <1>
+            // end::update-by-query-request-scroll
+            // tag::update-by-query-request-routing
+            request.setRouting("=cat"); // <1>
+            // end::update-by-query-request-routing
+            // tag::update-by-query-request-indicesOptions
+            request.setIndicesOptions(IndicesOptions.LENIENT_EXPAND_OPEN); // <1>
+            // end::update-by-query-request-indicesOptions
+
+            // tag::update-by-query-execute
+            BulkByScrollResponse bulkResponse = client.updateByQuery(request, RequestOptions.DEFAULT);
+            // end::update-by-query-execute
+            assertSame(0, bulkResponse.getSearchFailures().size());
+            assertSame(0, bulkResponse.getBulkFailures().size());
+            // tag::update-by-query-response
+            TimeValue timeTaken = bulkResponse.getTook(); // <1>
+            boolean timedOut = bulkResponse.isTimedOut(); // <2>
+            long totalDocs = bulkResponse.getTotal(); // <3>
+            long updatedDocs = bulkResponse.getUpdated(); // <4>
+            long deletedDocs = bulkResponse.getDeleted(); // <5>
+            long batches = bulkResponse.getBatches(); // <6>
+            long noops = bulkResponse.getNoops(); // <7>
+            long versionConflicts = bulkResponse.getVersionConflicts(); // <8>
+            long bulkRetries = bulkResponse.getBulkRetries(); // <9>
+            long searchRetries = bulkResponse.getSearchRetries(); // <10>
+            TimeValue throttledMillis = bulkResponse.getStatus().getThrottled(); // <11>
+            TimeValue throttledUntilMillis = bulkResponse.getStatus().getThrottledUntil(); // <12>
+            List<ScrollableHitSource.SearchFailure> searchFailures = bulkResponse.getSearchFailures(); // <13>
+            List<BulkItemResponse.Failure> bulkFailures = bulkResponse.getBulkFailures(); // <14>
+            // end::update-by-query-response
+        }
+        {
+            UpdateByQueryRequest request = new UpdateByQueryRequest();
+            request.indices("source1");
+
+            // tag::update-by-query-execute-listener
+            ActionListener<BulkByScrollResponse> listener = new ActionListener<BulkByScrollResponse>() {
+                @Override
+                public void onResponse(BulkByScrollResponse bulkResponse) {
+                    // <1>
+                }
+
+                @Override
+                public void onFailure(Exception e) {
+                    // <2>
+                }
+            };
+            // end::update-by-query-execute-listener
+
+            // Replace the empty listener by a blocking listener in test
+            final CountDownLatch latch = new CountDownLatch(1);
+            listener = new LatchedActionListener<>(listener, latch);
+
+            // tag::update-by-query-execute-async
+            client.updateByQueryAsync(request, RequestOptions.DEFAULT, listener); // <1>
+            // end::update-by-query-execute-async
+
+            assertTrue(latch.await(30L, TimeUnit.SECONDS));
+        }
+    }
+
+    public void testDeleteByQuery() throws Exception {
+        RestHighLevelClient client = highLevelClient();
+        {
+            String mapping =
+                "\"doc\": {\n" +
+                    "    \"properties\": {\n" +
+                    "      \"user\": {\n" +
+                    "        \"type\": \"text\"\n" +
+                    "      },\n" +
+                    "      \"field1\": {\n" +
+                    "        \"type\": \"integer\"\n" +
+                    "      },\n" +
+                    "      \"field2\": {\n" +
+                    "        \"type\": \"integer\"\n" +
+                    "      }\n" +
+                    "    }\n" +
+                    "  }";
+            createIndex("source1", Settings.EMPTY, mapping);
+            createIndex("source2", Settings.EMPTY, mapping);
+        }
+        {
+            // tag::delete-by-query-request
+            DeleteByQueryRequest request = new DeleteByQueryRequest("source1", "source2"); // <1>
+            // end::delete-by-query-request
+            // tag::delete-by-query-request-conflicts
+            request.setConflicts("proceed"); // <1>
+            // end::delete-by-query-request-conflicts
+            // tag::delete-by-query-request-query
+            request.setQuery(new TermQueryBuilder("user", "kimchy")); // <1>
+            // end::delete-by-query-request-query
+            // tag::delete-by-query-request-size
+            request.setSize(10); // <1>
+            // end::delete-by-query-request-size
+            // tag::delete-by-query-request-scrollSize
+            request.setBatchSize(100); // <1>
+            // end::delete-by-query-request-scrollSize
+            // tag::delete-by-query-request-timeout
+            request.setTimeout(TimeValue.timeValueMinutes(2)); // <1>
+            // end::delete-by-query-request-timeout
+            // tag::delete-by-query-request-refresh
+            request.setRefresh(true); // <1>
+            // end::delete-by-query-request-refresh
+            // tag::delete-by-query-request-slices
+            request.setSlices(2); // <1>
+            // end::delete-by-query-request-slices
+            // tag::delete-by-query-request-scroll
+            request.setScroll(TimeValue.timeValueMinutes(10)); // <1>
+            // end::delete-by-query-request-scroll
+            // tag::delete-by-query-request-routing
+            request.setRouting("=cat"); // <1>
+            // end::delete-by-query-request-routing
+            // tag::delete-by-query-request-indicesOptions
+            request.setIndicesOptions(IndicesOptions.LENIENT_EXPAND_OPEN); // <1>
+            // end::delete-by-query-request-indicesOptions
+
+            // tag::delete-by-query-execute
+            BulkByScrollResponse bulkResponse = client.deleteByQuery(request, RequestOptions.DEFAULT);
+            // end::delete-by-query-execute
+            assertSame(0, bulkResponse.getSearchFailures().size());
+            assertSame(0, bulkResponse.getBulkFailures().size());
+            // tag::delete-by-query-response
+            TimeValue timeTaken = bulkResponse.getTook(); // <1>
+            boolean timedOut = bulkResponse.isTimedOut(); // <2>
+            long totalDocs = bulkResponse.getTotal(); // <3>
+            long deletedDocs = bulkResponse.getDeleted(); // <4>
+            long batches = bulkResponse.getBatches(); // <5>
+            long noops = bulkResponse.getNoops(); // <6>
+            long versionConflicts = bulkResponse.getVersionConflicts(); // <7>
+            long bulkRetries = bulkResponse.getBulkRetries(); // <8>
+            long searchRetries = bulkResponse.getSearchRetries(); // <9>
+            TimeValue throttledMillis = bulkResponse.getStatus().getThrottled(); // <10>
+            TimeValue throttledUntilMillis = bulkResponse.getStatus().getThrottledUntil(); // <11>
+            List<ScrollableHitSource.SearchFailure> searchFailures = bulkResponse.getSearchFailures(); // <12>
+            List<BulkItemResponse.Failure> bulkFailures = bulkResponse.getBulkFailures(); // <13>
+            // end::delete-by-query-response
+        }
+        {
+            DeleteByQueryRequest request = new DeleteByQueryRequest();
+            request.indices("source1");
+
+            // tag::delete-by-query-execute-listener
+            ActionListener<BulkByScrollResponse> listener = new ActionListener<BulkByScrollResponse>() {
+                @Override
+                public void onResponse(BulkByScrollResponse bulkResponse) {
+                    // <1>
+                }
+
+                @Override
+                public void onFailure(Exception e) {
+                    // <2>
+                }
+            };
+            // end::delete-by-query-execute-listener
+
+            // Replace the empty listener by a blocking listener in test
+            final CountDownLatch latch = new CountDownLatch(1);
+            listener = new LatchedActionListener<>(listener, latch);
+
+            // tag::delete-by-query-execute-async
+            client.deleteByQueryAsync(request, RequestOptions.DEFAULT, listener); // <1>
+            // end::delete-by-query-execute-async
+
+            assertTrue(latch.await(30L, TimeUnit.SECONDS));
+        }
+    }
+
+    public void testGet() throws Exception {
+        RestHighLevelClient client = highLevelClient();
+        {
+            Request createIndex = new Request("PUT", "/posts");
+            createIndex.setJsonEntity(
+                    "{\n" +
                     "    \"mappings\" : {\n" +
                     "        \"doc\" : {\n" +
                     "            \"properties\" : {\n" +
@@ -709,18 +1206,16 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
                     "            }\n" +
                     "        }\n" +
                     "    }\n" +
-                    "}";
-
-            NStringEntity entity = new NStringEntity(mappings, ContentType.APPLICATION_JSON);
-            Response response = client().performRequest("PUT", "/posts", Collections.emptyMap(), entity);
+                    "}");
+            Response response = client().performRequest(createIndex);
             assertEquals(200, response.getStatusLine().getStatusCode());
 
             IndexRequest indexRequest = new IndexRequest("posts", "doc", "1")
                     .source("user", "kimchy",
                             "postDate", new Date(),
                             "message", "trying out Elasticsearch");
-            IndexResponse indexResponse = client.index(indexRequest);
-            assertEquals(indexResponse.getResult(), DocWriteResponse.Result.CREATED);
+            IndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);
+            assertEquals(DocWriteResponse.Result.CREATED, indexResponse.getResult());
         }
         {
             //tag::get-request
@@ -731,7 +1226,7 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
             //end::get-request
 
             //tag::get-execute
-            GetResponse getResponse = client.get(getRequest);
+            GetResponse getResponse = client.get(getRequest, RequestOptions.DEFAULT);
             //end::get-execute
             assertTrue(getResponse.isExists());
             assertEquals(3, getResponse.getSourceAsMap().size());
@@ -752,9 +1247,9 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
         {
             GetRequest request = new GetRequest("posts", "doc", "1");
             //tag::get-request-no-source
-            request.fetchSourceContext(new FetchSourceContext(false)); // <1>
+            request.fetchSourceContext(FetchSourceContext.DO_NOT_FETCH_SOURCE); // <1>
             //end::get-request-no-source
-            GetResponse getResponse = client.get(request);
+            GetResponse getResponse = client.get(request, RequestOptions.DEFAULT);
             assertNull(getResponse.getSourceInternal());
         }
         {
@@ -762,10 +1257,11 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
             //tag::get-request-source-include
             String[] includes = new String[]{"message", "*Date"};
             String[] excludes = Strings.EMPTY_ARRAY;
-            FetchSourceContext fetchSourceContext = new FetchSourceContext(true, includes, excludes);
+            FetchSourceContext fetchSourceContext =
+                    new FetchSourceContext(true, includes, excludes);
             request.fetchSourceContext(fetchSourceContext); // <1>
             //end::get-request-source-include
-            GetResponse getResponse = client.get(request);
+            GetResponse getResponse = client.get(request, RequestOptions.DEFAULT);
             Map<String, Object> sourceAsMap = getResponse.getSourceAsMap();
             assertEquals(2, sourceAsMap.size());
             assertEquals("trying out Elasticsearch", sourceAsMap.get("message"));
@@ -776,10 +1272,11 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
             //tag::get-request-source-exclude
             String[] includes = Strings.EMPTY_ARRAY;
             String[] excludes = new String[]{"message"};
-            FetchSourceContext fetchSourceContext = new FetchSourceContext(true, includes, excludes);
+            FetchSourceContext fetchSourceContext =
+                    new FetchSourceContext(true, includes, excludes);
             request.fetchSourceContext(fetchSourceContext); // <1>
             //end::get-request-source-exclude
-            GetResponse getResponse = client.get(request);
+            GetResponse getResponse = client.get(request, RequestOptions.DEFAULT);
             Map<String, Object> sourceAsMap = getResponse.getSourceAsMap();
             assertEquals(2, sourceAsMap.size());
             assertEquals("kimchy", sourceAsMap.get("user"));
@@ -789,7 +1286,7 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
             GetRequest request = new GetRequest("posts", "doc", "1");
             //tag::get-request-stored
             request.storedFields("message"); // <1>
-            GetResponse getResponse = client.get(request);
+            GetResponse getResponse = client.get(request, RequestOptions.DEFAULT);
             String message = getResponse.getField("message").getValue(); // <2>
             //end::get-request-stored
             assertEquals("trying out Elasticsearch", message);
@@ -822,8 +1319,9 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
         }
         {
             GetRequest request = new GetRequest("posts", "doc", "1");
-            //tag::get-execute-async
-            client.getAsync(request, new ActionListener<GetResponse>() {
+
+            // tag::get-execute-listener
+            ActionListener<GetResponse> listener = new ActionListener<GetResponse>() {
                 @Override
                 public void onResponse(GetResponse getResponse) {
                     // <1>
@@ -833,14 +1331,24 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
                 public void onFailure(Exception e) {
                     // <2>
                 }
-            });
+            };
+            // end::get-execute-listener
+
+            // Replace the empty listener by a blocking listener in test
+            final CountDownLatch latch = new CountDownLatch(1);
+            listener = new LatchedActionListener<>(listener, latch);
+
+            //tag::get-execute-async
+            client.getAsync(request, RequestOptions.DEFAULT, listener); // <1>
             //end::get-execute-async
+
+            assertTrue(latch.await(30L, TimeUnit.SECONDS));
         }
         {
             //tag::get-indexnotfound
             GetRequest request = new GetRequest("does_not_exist", "doc", "1");
             try {
-                GetResponse getResponse = client.get(request);
+                GetResponse getResponse = client.get(request, RequestOptions.DEFAULT);
             } catch (ElasticsearchException e) {
                 if (e.status() == RestStatus.NOT_FOUND) {
                     // <1>
@@ -852,7 +1360,7 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
             // tag::get-conflict
             try {
                 GetRequest request = new GetRequest("posts", "doc", "1").version(2);
-                GetResponse getResponse = client.get(request);
+                GetResponse getResponse = client.get(request, RequestOptions.DEFAULT);
             } catch (ElasticsearchException exception) {
                 if (exception.status() == RestStatus.CONFLICT) {
                     // <1>
@@ -862,7 +1370,50 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
         }
     }
 
-    public void testBulkProcessor() throws InterruptedException, IOException {
+    public void testExists() throws Exception {
+        RestHighLevelClient client = highLevelClient();
+        // tag::exists-request
+        GetRequest getRequest = new GetRequest(
+            "posts", // <1>
+            "doc",   // <2>
+            "1");    // <3>
+        getRequest.fetchSourceContext(new FetchSourceContext(false)); // <4>
+        getRequest.storedFields("_none_");                            // <5>
+        // end::exists-request
+        {
+            // tag::exists-execute
+            boolean exists = client.exists(getRequest, RequestOptions.DEFAULT);
+            // end::exists-execute
+            assertFalse(exists);
+        }
+        {
+            // tag::exists-execute-listener
+            ActionListener<Boolean> listener = new ActionListener<Boolean>() {
+                @Override
+                public void onResponse(Boolean exists) {
+                    // <1>
+                }
+
+                @Override
+                public void onFailure(Exception e) {
+                    // <2>
+                }
+            };
+            // end::exists-execute-listener
+
+            // Replace the empty listener by a blocking listener in test
+            final CountDownLatch latch = new CountDownLatch(1);
+            listener = new LatchedActionListener<>(listener, latch);
+
+            // tag::exists-execute-async
+            client.existsAsync(getRequest, RequestOptions.DEFAULT, listener); // <1>
+            // end::exists-execute-async
+
+            assertTrue(latch.await(30L, TimeUnit.SECONDS));
+        }
+    }
+
+    public void testBulkProcessor() throws InterruptedException {
         RestHighLevelClient client = highLevelClient();
         {
             // tag::bulk-processor-init
@@ -873,7 +1424,8 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
                 }
 
                 @Override
-                public void afterBulk(long executionId, BulkRequest request, BulkResponse response) {
+                public void afterBulk(long executionId, BulkRequest request,
+                        BulkResponse response) {
                     // <3>
                 }
 
@@ -883,17 +1435,22 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
                 }
             };
 
-            BulkProcessor bulkProcessor = BulkProcessor.builder(client::bulkAsync, listener).build(); // <5>
+            BiConsumer<BulkRequest, ActionListener<BulkResponse>> bulkConsumer =
+                    (request, bulkListener) -> highLevelClient().bulkAsync(request, RequestOptions.DEFAULT, bulkListener);
+            BulkProcessor bulkProcessor = BulkProcessor.builder(bulkConsumer, listener).build(); // <5>
             // end::bulk-processor-init
             assertNotNull(bulkProcessor);
 
             // tag::bulk-processor-add
             IndexRequest one = new IndexRequest("posts", "doc", "1").
-                    source(XContentType.JSON, "title", "In which order are my Elasticsearch queries executed?");
+                    source(XContentType.JSON, "title",
+                            "In which order are my Elasticsearch queries executed?");
             IndexRequest two = new IndexRequest("posts", "doc", "2")
-                    .source(XContentType.JSON, "title", "Current status and upcoming changes in Elasticsearch");
+                    .source(XContentType.JSON, "title",
+                            "Current status and upcoming changes in Elasticsearch");
             IndexRequest three = new IndexRequest("posts", "doc", "3")
-                    .source(XContentType.JSON, "title", "The Future of Federated Search in Elasticsearch");
+                    .source(XContentType.JSON, "title",
+                            "The Future of Federated Search in Elasticsearch");
 
             bulkProcessor.add(one);
             bulkProcessor.add(two);
@@ -915,15 +1472,18 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
                 @Override
                 public void beforeBulk(long executionId, BulkRequest request) {
                     int numberOfActions = request.numberOfActions(); // <1>
-                    logger.debug("Executing bulk [{}] with {} requests", executionId, numberOfActions);
+                    logger.debug("Executing bulk [{}] with {} requests",
+                            executionId, numberOfActions);
                 }
 
                 @Override
-                public void afterBulk(long executionId, BulkRequest request, BulkResponse response) {
+                public void afterBulk(long executionId, BulkRequest request,
+                        BulkResponse response) {
                     if (response.hasFailures()) { // <2>
                         logger.warn("Bulk [{}] executed with failures", executionId);
                     } else {
-                        logger.debug("Bulk [{}] completed in {} milliseconds", executionId, response.getTook().getMillis());
+                        logger.debug("Bulk [{}] completed in {} milliseconds",
+                                executionId, response.getTook().getMillis());
                     }
                 }
 
@@ -935,13 +1495,213 @@ public class CRUDDocumentationIT extends ESRestHighLevelClientTestCase {
             // end::bulk-processor-listener
 
             // tag::bulk-processor-options
-            BulkProcessor.Builder builder = BulkProcessor.builder(client::bulkAsync, listener);
+            BiConsumer<BulkRequest, ActionListener<BulkResponse>> bulkConsumer =
+                    (request, bulkListener) -> highLevelClient().bulkAsync(request, RequestOptions.DEFAULT, bulkListener);
+            BulkProcessor.Builder builder = BulkProcessor.builder(bulkConsumer, listener);
             builder.setBulkActions(500); // <1>
             builder.setBulkSize(new ByteSizeValue(1L, ByteSizeUnit.MB)); // <2>
             builder.setConcurrentRequests(0); // <3>
             builder.setFlushInterval(TimeValue.timeValueSeconds(10L)); // <4>
-            builder.setBackoffPolicy(BackoffPolicy.constantBackoff(TimeValue.timeValueSeconds(1L), 3)); // <5>
+            builder.setBackoffPolicy(BackoffPolicy
+                    .constantBackoff(TimeValue.timeValueSeconds(1L), 3)); // <5>
             // end::bulk-processor-options
         }
+    }
+
+    public void testMultiGet() throws Exception {
+        RestHighLevelClient client = highLevelClient();
+
+        {
+            Request createIndex = new Request("PUT", "/index");
+            createIndex.setJsonEntity(
+                    "{\n" +
+                    "    \"mappings\" : {\n" +
+                    "        \"type\" : {\n" +
+                    "            \"properties\" : {\n" +
+                    "                \"foo\" : {\n" +
+                    "                    \"type\": \"text\",\n" +
+                    "                    \"store\": true\n" +
+                    "                }\n" +
+                    "            }\n" +
+                    "        }\n" +
+                    "    }\n" +
+                    "}");
+            Response response = client().performRequest(createIndex);
+            assertEquals(200, response.getStatusLine().getStatusCode());
+        }
+
+        Map<String, Object> source = new HashMap<>();
+        source.put("foo", "val1");
+        source.put("bar", "val2");
+        source.put("baz", "val3");
+        client.index(new IndexRequest("index", "type", "example_id")
+            .source(source)
+            .setRefreshPolicy(RefreshPolicy.IMMEDIATE), RequestOptions.DEFAULT);
+
+        {
+            // tag::multi-get-request
+            MultiGetRequest request = new MultiGetRequest();
+            request.add(new MultiGetRequest.Item(
+                "index",         // <1>
+                "type",          // <2>
+                "example_id"));  // <3>
+            request.add(new MultiGetRequest.Item("index", "type", "another_id"));  // <4>
+            // end::multi-get-request
+
+            // Add a missing index so we can test it.
+            request.add(new MultiGetRequest.Item("missing_index", "type", "id"));
+
+            // tag::multi-get-request-item-extras
+            request.add(new MultiGetRequest.Item("index", "type", "with_routing")
+                .routing("some_routing"));          // <1>
+            request.add(new MultiGetRequest.Item("index", "type", "with_parent")
+                .parent("some_parent"));            // <2>
+            request.add(new MultiGetRequest.Item("index", "type", "with_version")
+                .versionType(VersionType.EXTERNAL)  // <3>
+                .version(10123L));                  // <4>
+            // end::multi-get-request-item-extras
+            // tag::multi-get-request-top-level-extras
+            request.preference("some_preference");  // <1>
+            request.realtime(false);                // <2>
+            request.refresh(true);                  // <3>
+            // end::multi-get-request-top-level-extras
+
+            // tag::multi-get-execute
+            MultiGetResponse response = client.mget(request, RequestOptions.DEFAULT);
+            // end::multi-get-execute
+
+            // tag::multi-get-response
+            MultiGetItemResponse firstItem = response.getResponses()[0];
+            assertNull(firstItem.getFailure());              // <1>
+            GetResponse firstGet = firstItem.getResponse();  // <2>
+            String index = firstItem.getIndex();
+            String type = firstItem.getType();
+            String id = firstItem.getId();
+            if (firstGet.isExists()) {
+                long version = firstGet.getVersion();
+                String sourceAsString = firstGet.getSourceAsString();        // <3>
+                Map<String, Object> sourceAsMap = firstGet.getSourceAsMap(); // <4>
+                byte[] sourceAsBytes = firstGet.getSourceAsBytes();          // <5>
+            } else {
+                // <6>
+            }
+            // end::multi-get-response
+
+            assertTrue(firstGet.isExists());
+            assertEquals(source, firstGet.getSource());
+
+            MultiGetItemResponse missingIndexItem = response.getResponses()[2];
+            // tag::multi-get-indexnotfound
+            assertNull(missingIndexItem.getResponse());                // <1>
+            Exception e = missingIndexItem.getFailure().getFailure();  // <2>
+            ElasticsearchException ee = (ElasticsearchException) e;    // <3>
+            // TODO status is broken! fix in a followup
+            // assertEquals(RestStatus.NOT_FOUND, ee.status());        // <4>
+            assertThat(e.getMessage(),
+                containsString("reason=no such index"));               // <5>
+            // end::multi-get-indexnotfound
+
+            // tag::multi-get-execute-listener
+            ActionListener<MultiGetResponse> listener = new ActionListener<MultiGetResponse>() {
+                @Override
+                public void onResponse(MultiGetResponse response) {
+                    // <1>
+                }
+
+                @Override
+                public void onFailure(Exception e) {
+                    // <2>
+                }
+            };
+            // end::multi-get-execute-listener
+
+            // Replace the empty listener by a blocking listener in test
+            final CountDownLatch latch = new CountDownLatch(1);
+            listener = new LatchedActionListener<>(listener, latch);
+
+            // tag::multi-get-execute-async
+            client.mgetAsync(request, RequestOptions.DEFAULT, listener); // <1>
+            // end::multi-get-execute-async
+
+            assertTrue(latch.await(30L, TimeUnit.SECONDS));
+        }
+        {
+            MultiGetRequest request = new MultiGetRequest();
+            // tag::multi-get-request-no-source
+            request.add(new MultiGetRequest.Item("index", "type", "example_id")
+                .fetchSourceContext(FetchSourceContext.DO_NOT_FETCH_SOURCE));  // <1>
+            // end::multi-get-request-no-source
+            MultiGetItemResponse item = unwrapAndAssertExample(client.mget(request, RequestOptions.DEFAULT));
+            assertNull(item.getResponse().getSource());
+        }
+        {
+            MultiGetRequest request = new MultiGetRequest();
+            // tag::multi-get-request-source-include
+            String[] includes = new String[] {"foo", "*r"};
+            String[] excludes = Strings.EMPTY_ARRAY;
+            FetchSourceContext fetchSourceContext =
+                    new FetchSourceContext(true, includes, excludes);
+            request.add(new MultiGetRequest.Item("index", "type", "example_id")
+                .fetchSourceContext(fetchSourceContext));  // <1>
+            // end::multi-get-request-source-include
+            MultiGetItemResponse item = unwrapAndAssertExample(client.mget(request, RequestOptions.DEFAULT));
+            assertThat(item.getResponse().getSource(), hasEntry("foo", "val1"));
+            assertThat(item.getResponse().getSource(), hasEntry("bar", "val2"));
+            assertThat(item.getResponse().getSource(), not(hasKey("baz")));
+        }
+        {
+            MultiGetRequest request = new MultiGetRequest();
+            // tag::multi-get-request-source-exclude
+            String[] includes = Strings.EMPTY_ARRAY;
+            String[] excludes = new String[] {"foo", "*r"};
+            FetchSourceContext fetchSourceContext =
+                    new FetchSourceContext(true, includes, excludes);
+            request.add(new MultiGetRequest.Item("index", "type", "example_id")
+                .fetchSourceContext(fetchSourceContext));  // <1>
+            // end::multi-get-request-source-exclude
+            MultiGetItemResponse item = unwrapAndAssertExample(client.mget(request, RequestOptions.DEFAULT));
+            assertThat(item.getResponse().getSource(), not(hasKey("foo")));
+            assertThat(item.getResponse().getSource(), not(hasKey("bar")));
+            assertThat(item.getResponse().getSource(), hasEntry("baz", "val3"));
+        }
+        {
+            MultiGetRequest request = new MultiGetRequest();
+            // tag::multi-get-request-stored
+            request.add(new MultiGetRequest.Item("index", "type", "example_id")
+                .storedFields("foo"));  // <1>
+            MultiGetResponse response = client.mget(request, RequestOptions.DEFAULT);
+            MultiGetItemResponse item = response.getResponses()[0];
+            String value = item.getResponse().getField("foo").getValue(); // <2>
+            // end::multi-get-request-stored
+            assertNull(item.getResponse().getSource());
+            assertEquals("val1", value);
+        }
+        {
+            // tag::multi-get-conflict
+            MultiGetRequest request = new MultiGetRequest();
+            request.add(new MultiGetRequest.Item("index", "type", "example_id")
+                .version(1000L));
+            MultiGetResponse response = client.mget(request, RequestOptions.DEFAULT);
+            MultiGetItemResponse item = response.getResponses()[0];
+            assertNull(item.getResponse());                          // <1>
+            Exception e = item.getFailure().getFailure();            // <2>
+            ElasticsearchException ee = (ElasticsearchException) e;  // <3>
+            // TODO status is broken! fix in a followup
+            // assertEquals(RestStatus.CONFLICT, ee.status());          // <4>
+            assertThat(e.getMessage(),
+                containsString("version conflict, current version [1] is "
+                    + "different than the one provided [1000]"));    // <5>
+            // end::multi-get-conflict
+        }
+
+    }
+
+    private MultiGetItemResponse unwrapAndAssertExample(MultiGetResponse response) {
+        assertThat(response.getResponses(), arrayWithSize(1));
+        MultiGetItemResponse item = response.getResponses()[0];
+        assertEquals("index", item.getIndex());
+        assertEquals("type", item.getType());
+        assertEquals("example_id", item.getId());
+        return item;
     }
 }

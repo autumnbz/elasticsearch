@@ -50,6 +50,7 @@ import org.elasticsearch.transport.TransportService;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -61,18 +62,47 @@ import java.util.function.Function;
  * </ul>
  */
 public class MockNode extends Node {
+
     private final Collection<Class<? extends Plugin>> classpathPlugins;
 
-    public MockNode(Settings settings, Collection<Class<? extends Plugin>> classpathPlugins) {
-        this(settings, classpathPlugins, null);
+    public MockNode(final Settings settings, final Collection<Class<? extends Plugin>> classpathPlugins) {
+        this(settings, classpathPlugins, true);
     }
 
-    public MockNode(Settings settings, Collection<Class<? extends Plugin>> classpathPlugins, Path configPath) {
-        this(InternalSettingsPreparer.prepareEnvironment(settings, null, Collections.emptyMap(), configPath), classpathPlugins);
+    public MockNode(
+            final Settings settings,
+            final Collection<Class<? extends Plugin>> classpathPlugins,
+            final boolean forbidPrivateIndexSettings) {
+        this(settings, classpathPlugins, null, forbidPrivateIndexSettings);
     }
 
-    public MockNode(Environment environment, Collection<Class<? extends Plugin>> classpathPlugins) {
-        super(environment, classpathPlugins);
+    public MockNode(
+            final Settings settings,
+            final Collection<Class<? extends Plugin>> classpathPlugins,
+            final Path configPath) {
+        this(settings, classpathPlugins, configPath, true);
+    }
+
+    public MockNode(
+            final Settings settings,
+            final Collection<Class<? extends Plugin>> classpathPlugins,
+            final Path configPath,
+            final boolean forbidPrivateIndexSettings) {
+        this(
+                InternalSettingsPreparer.prepareEnvironment(settings, null, Collections.emptyMap(), configPath),
+                classpathPlugins,
+                forbidPrivateIndexSettings);
+    }
+
+    public MockNode(final Environment environment, final Collection<Class<? extends Plugin>> classpathPlugins) {
+        this(environment, classpathPlugins, true);
+    }
+
+    private MockNode(
+            final Environment environment,
+            final Collection<Class<? extends Plugin>> classpathPlugins,
+            final boolean forbidPrivateIndexSettings) {
+        super(environment, classpathPlugins, forbidPrivateIndexSettings);
         this.classpathPlugins = classpathPlugins;
     }
 
@@ -115,15 +145,15 @@ public class MockNode extends Node {
     protected TransportService newTransportService(Settings settings, Transport transport, ThreadPool threadPool,
                                                    TransportInterceptor interceptor,
                                                    Function<BoundTransportAddress, DiscoveryNode> localNodeFactory,
-                                                   ClusterSettings clusterSettings) {
+                                                   ClusterSettings clusterSettings, Set<String> taskHeaders) {
         // we use the MockTransportService.TestPlugin class as a marker to create a network
         // module with this MockNetworkService. NetworkService is such an integral part of the systme
         // we don't allow to plug it in from plugins or anything. this is a test-only override and
         // can't be done in a production env.
         if (getPluginsService().filterPlugins(MockTransportService.TestPlugin.class).isEmpty()) {
-            return super.newTransportService(settings, transport, threadPool, interceptor, localNodeFactory, clusterSettings);
+            return super.newTransportService(settings, transport, threadPool, interceptor, localNodeFactory, clusterSettings, taskHeaders);
         } else {
-            return new MockTransportService(settings, transport, threadPool, interceptor, localNodeFactory, clusterSettings);
+            return new MockTransportService(settings, transport, threadPool, interceptor, localNodeFactory, clusterSettings, taskHeaders);
         }
     }
 
@@ -143,5 +173,9 @@ public class MockNode extends Node {
             return new MockInternalClusterInfoService(settings, clusterService, threadPool, client, listener);
         }
     }
-}
 
+    @Override
+    protected void registerDerivedNodeNameWithLogger(String nodeName) {
+        // Nothing to do because test uses the thread name
+    }
+}
