@@ -1,5 +1,5 @@
 [[getting-started]]
-= 开始
+= 基础入门
 
 [partintro]
 --
